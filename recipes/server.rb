@@ -2,7 +2,8 @@
 # Cookbook Name:: keystone
 # Recipe:: server
 #
-# Copyright 2009, Rackspace Hosting, Inc.
+# Copyright 2009-2012 Rackspace Hosting, Inc.
+# Copyright 2012 Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -226,7 +227,3 @@ node["keystone"]["users"].each do |username, user_info|
     tenant_name user_info["default_tenant"]
   end
 end
-
-# TODO(shep): this needs to be if blocked on env collectd toggle
-# Include recipe(nova::network-monitoring)
-include_recipe "keystone::server-monitoring"
