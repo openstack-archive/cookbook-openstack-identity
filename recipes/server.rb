@@ -20,7 +20,6 @@
 
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 include_recipe "mysql::client"
-include_recipe "osops-utils"
 
 # Allow for using a well known db password
 if node["developer_mode"]
