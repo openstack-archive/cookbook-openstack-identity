@@ -1,3 +1,21 @@
+#
+# Cookbook Name:: keystone
+# Provider:: register
+#
+# Copyright 2012, Rackspace Hosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 action :create_service do
     # construct a HTTP object
@@ -14,9 +32,15 @@ action :create_service do
     # Construct the extension path
     path = "/#{new_resource.api_ver}/OS-KSADM/services"
 
+    # lookup service_uuid
+    service_container = "OS-KSADM:services"
+    service_key = "type"
+    service_path = "/#{new_resource.api_ver}/OS-KSADM/services"
+    service_uuid, service_error = _find_id(http, service_path, headers, service_container, service_key, new_resource.service_type)
+    Chef::Log.error("There was an error looking up Service '#{new_resource.service_type}'") if service_error
+
     # See if the service exists yet
-    service_uuid, error = _find_service_id(http, path, headers, new_resource.service_type)
-    unless service_uuid
+    unless service_uuid or service_error
         # Service does not exist yet
         payload = _build_service_object(new_resource.service_type, new_resource.service_name, new_resource.service_description)
         resp = http.send_request('POST', path, JSON.generate(payload), headers)
@@ -30,8 +54,9 @@ action :create_service do
             new_resource.updated_by_last_action(false)
         end
     else
-        Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.") if error
-        Chef::Log.info("Service UUID: #{service_uuid}")
+        Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.") if service_uuid
+        Chef::Log.info("Service UUID: #{service_uuid}") if service_uuid
+        Chef::Log.error("There was an error looking up '#{new_resource.role_name}'") if service_error
         new_resource.updated_by_last_action(false)
     end
 end
@@ -52,12 +77,16 @@ action :create_endpoint do
     # Construct the extension path
     path = "/#{new_resource.api_ver}/endpoints"
 
-    # Lookup the service_uuid for service_type
-    service_uuid, error = _find_service_id(http, "/#{new_resource.api_ver}/OS-KSADM/services", headers, new_resource.service_type)
-    unless service_uuid
+    # lookup service_uuid
+    service_container = "OS-KSADM:services"
+    service_key = "type"
+    service_path = "/#{new_resource.api_ver}/OS-KSADM/services"
+    service_uuid, service_error = _find_id(http, service_path, headers, service_container, service_key, new_resource.service_type)
+    Chef::Log.error("There was an error looking up Service '#{new_resource.service_type}'") if service_error
+
+    unless service_uuid or service_error
         Chef::Log.error("Unable to find service type '#{new_resource.service_type}'")
         new_resource.updated_by_last_action(false)
-        return
     end
 
     # Make sure this endpoint does not already exist
@@ -116,9 +145,14 @@ action :create_tenant do
     # Construct the extension path
     path = "/#{new_resource.api_ver}/tenants"
 
-    # See if the service exists yet
-    tenant_uuid, error = _find_tenant_id(http, path, headers, new_resource.tenant_name)
-    unless tenant_uuid
+    # lookup tenant_uuid
+    tenant_container = "tenants"
+    tenant_key = "name"
+    tenant_path = "/#{new_resource.api_ver}/tenants"
+    tenant_uuid, tenant_error = _find_id(http, tenant_path, headers, tenant_container, tenant_key, new_resource.tenant_name)
+    Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if tenant_error
+
+    unless tenant_uuid or tenant_error
         # Service does not exist yet
         payload = _build_tenant_object(new_resource.tenant_name, new_resource.service_description, new_resource.tenant_enabled)
         resp = http.send_request('POST', path, JSON.generate(payload), headers)
@@ -132,8 +166,9 @@ action :create_tenant do
             new_resource.updated_by_last_action(false)
         end
     else
-        Chef::Log.info("Tenant '#{new_resource.tenant_name}' already exists.. Not creating.") if error
+        Chef::Log.info("Tenant '#{new_resource.tenant_name}' already exists.. Not creating.")
         Chef::Log.info("Tenant UUID: #{tenant_uuid}")
+        Chef::Log.error("There was an error looking up '#{new_resource.role_name}'") if tenant_error
         new_resource.updated_by_last_action(false)
     end
 end
@@ -190,12 +225,16 @@ action :create_user do
     # Build out the required header info
     headers = _build_headers(new_resource.auth_token)
     
-    # Lookup the tenant_uuid for tenant_name
-    tenant_uuid, error = _find_tenant_id(http, "/#{new_resource.api_ver}/tenants", headers, new_resource.tenant_name)
+    # lookup tenant_uuid
+    tenant_container = "tenants"
+    tenant_key = "name"
+    tenant_path = "/#{new_resource.api_ver}/tenants"
+    tenant_uuid, tenant_error = _find_id(http, tenant_path, headers, tenant_container, tenant_key, new_resource.tenant_name)
+    Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if tenant_error
+
     unless tenant_uuid
         Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
         new_resource.updated_by_last_action(false)
-        return
     end
 
     # Construct the extension path using the found tenant_uuid
@@ -309,26 +348,6 @@ action :grant_role do
     end
 end
 
-private
-def _find_service_id(http, path, headers, service_type)
-    service_uuid = nil
-    error = false
-    resp = http.request_get(path, headers)
-    if resp.is_a?(Net::HTTPOK)
-        data = JSON.parse(resp.body)
-        data['OS-KSADM:services'].each do |svc|
-            service_uuid = svc['id'] if svc['type'] == service_type
-            break if service_uuid
-        end
-    else
-        Chef::Log.error("Unknown response from the Keystone Server")
-        Chef::Log.error("Response Code: #{resp.code}")
-        Chef::Log.error("Response Message: #{resp.message}")
-        error = true
-    end
-    return service_uuid,error
-end
-
 
 private
 def _find_id(http, path, headers, container, key, match_value)
@@ -348,27 +367,6 @@ def _find_id(http, path, headers, container, key, match_value)
         error = true
     end
     return uuid,error
-end
-
-
-private
-def _find_tenant_id(http, path, headers, tenant_name)
-    tenant_uuid = nil
-    error = false
-    resp = http.request_get(path, headers)
-    if resp.is_a?(Net::HTTPOK)
-        data = JSON.parse(resp.body)
-        data['tenants'].each do |tenant|
-            tenant_uuid = tenant['id'] if tenant['name'] == tenant_name
-            break if tenant_uuid
-        end
-    else
-        Chef::Log.error("Unknown response from the Keystone Server")
-        Chef::Log.error("Response Code: #{resp.code}")
-        Chef::Log.error("Response Message: #{resp.message}")
-        error = true
-    end
-    return tenant_uuid,error
 end
 
 

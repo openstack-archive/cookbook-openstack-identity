@@ -2,8 +2,8 @@
 # Cookbook Name:: keystone
 # Recipe:: server
 #
-# Copyright 2009-2012 Rackspace Hosting, Inc.
-# Copyright 2012 Opscode, Inc.
+# Copyright 2012, Rackspace Hosting, Inc.
+# Copyright 2012, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -116,6 +116,7 @@ template "/etc/keystone/logging.conf" do
   notifies :restart, resources(:service => "keystone"), :immediately
 end
 
++#TODO(shep): this should probably be derived from keystone.users hash keys
 node["keystone"]["tenants"].each do |tenant_name|
   ## Add openstack tenant ##
   keystone_register "Register '#{tenant_name}' Tenant" do

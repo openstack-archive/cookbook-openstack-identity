@@ -2,6 +2,7 @@
 # Cookbook Name:: keystone
 # Recipe:: default
 #
+# Copyright 2012, Rackspace Hosting, Inc.
 # Copyright 2012, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
