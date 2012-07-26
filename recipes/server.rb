@@ -19,7 +19,9 @@
 #
 
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
+include_recipe "keystone::keystone-rsyslog"
 include_recipe "mysql::client"
+include_recipe "osops-utils"
 
 # Allow for using a well known db password
 if node["developer_mode"]
@@ -86,7 +88,6 @@ end
 ks_admin_endpoint = get_bind_endpoint("keystone", "admin-api")
 ks_service_endpoint = get_bind_endpoint("keystone", "service-api")
 
-
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
   owner "root"
@@ -102,7 +103,9 @@ template "/etc/keystone/keystone.conf" do
             :db_ipaddress => mysql_info["bind_address"],
             :service_port => ks_service_endpoint["port"],
             :admin_port => ks_admin_endpoint["port"],
-            :admin_token => node["keystone"]["admin_token"]
+            :admin_token => node["keystone"]["admin_token"],
+            :use_syslog => node["keystone"]["syslog"]["use"],
+            :log_facility => node["keystone"]["syslog"]["facility"]
             )
   notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
   notifies :restart, resources(:service => "keystone"), :immediately
@@ -116,7 +119,7 @@ template "/etc/keystone/logging.conf" do
   notifies :restart, resources(:service => "keystone"), :immediately
 end
 
-+#TODO(shep): this should probably be derived from keystone.users hash keys
+#TODO(shep): this should probably be derived from keystone.users hash keys
 node["keystone"]["tenants"].each do |tenant_name|
   ## Add openstack tenant ##
   keystone_register "Register '#{tenant_name}' Tenant" do
