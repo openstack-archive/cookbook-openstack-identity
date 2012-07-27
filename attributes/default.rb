@@ -28,7 +28,7 @@ default["keystone"]["services"]["service-api"]["port"] = "5000"
 default["keystone"]["services"]["service-api"]["path"] = "/v2.0"
 
 # Logging stuff
-default["keystone"]["syslog"]["use"] = true
+default["keystone"]["syslog"]["use"] = false
 default["keystone"]["syslog"]["facility"] = "LOG_LOCAL3"
 default["keystone"]["syslog"]["config_facility"] = "local3"
 
