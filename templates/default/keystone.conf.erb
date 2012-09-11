@@ -9,8 +9,8 @@ admin_port = <%= @admin_port %>
 admin_token = <%= @admin_token %>
 bind_host = <%= @ip_address %>
 compute_port = 8774
-verbose = True
-debug = True
+verbose = <%= @verbose %>
+debug = <%= @debug %>
 <% if @use_syslog == true %>
 # log_config = /etc/keystone/logging.conf
 <% else %>
