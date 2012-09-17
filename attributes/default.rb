@@ -62,11 +62,12 @@ default["keystone"]["users"] = {
 
 # platform defaults
 case platform
-when "fedora", "redhat"                                 # :pragma-foodcritic: ~FC024 - won't fix this
+when "fedora", "redhat", "centos"                                 # :pragma-foodcritic: ~FC024 - won't fix this
   default["keystone"]["platform"] = {
     "mysql_python_packages" => [ "MySQL-python" ],
     "keystone_packages" => [ "openstack-keystone" ],
     "keystone_service" => "openstack-keystone",
+    "keystone_process_name" => "keystone-all",
     "package_options" => ""
   }
 when "ubuntu"
@@ -74,6 +75,7 @@ when "ubuntu"
     "mysql_python_packages" => [ "python-mysqldb" ],
     "keystone_packages" => [ "keystone" ],
     "keystone_service" => "keystone",
+    "keystone_process_name" => "keystone-all",
     "package_options" => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
   }
 end

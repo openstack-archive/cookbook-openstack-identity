@@ -2,7 +2,7 @@
 # Cookbook Name:: keystone
 # Provider:: register
 #
-# Copyright 2012, Rackspace Hosting, Inc.
+# Copyright 2012, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ action :create_service do
 
     # Build out the required header info
     headers = _build_headers(new_resource.auth_token)
-    
+
     # Construct the extension path
     path = "/#{new_resource.api_ver}/OS-KSADM/services"
 
@@ -73,7 +73,7 @@ action :create_endpoint do
 
     # Build out the required header info
     headers = _build_headers(new_resource.auth_token)
-    
+
     # Construct the extension path
     path = "/#{new_resource.api_ver}/endpoints"
 
@@ -141,7 +141,7 @@ action :create_tenant do
 
     # Build out the required header info
     headers = _build_headers(new_resource.auth_token)
-    
+
     # Construct the extension path
     path = "/#{new_resource.api_ver}/tenants"
 
@@ -184,7 +184,7 @@ action :create_role do
 
     # Build out the required header info
     headers = _build_headers(new_resource.auth_token)
-    
+
     # Construct the extension path
     path = "/#{new_resource.api_ver}/OS-KSADM/roles"
 
@@ -224,7 +224,7 @@ action :create_user do
 
     # Build out the required header info
     headers = _build_headers(new_resource.auth_token)
-    
+
     # lookup tenant_uuid
     tenant_container = "tenants"
     tenant_key = "name"
