@@ -24,24 +24,13 @@ end
 
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 
-# Allow for using a well known db password
 if node["developer_mode"]
-  node.set_unless["keystone"]["db"]["password"] = "keystone"
-  node.set_unless["keystone"]["db"]["super_password"] = "root"
   node.set_unless["keystone"]["admin_token"] = "999888777666"
 else
-  node.set_unless["keystone"]["db"]["password"] = secure_password
-  node.set_unless["keystone"]["db"]["super_password"] = secure_password
   node.set_unless["keystone"]["admin_token"] = secure_password
 end
 
 platform_options = node["keystone"]["platform"]
-
-db_create_with_user("identity",
-                    node["keystone"]["db"]["super_user"],
-                    node["keystone"]["db"]["super_password"],
-                    node["keystone"]["db"]["username"],
-                    node["keystone"]["db"]["password"])
 
 ##### NOTE #####
 # https://bugs.launchpad.net/ubuntu/+source/keystone/+bug/931236
@@ -90,6 +79,10 @@ end
 
 identity_admin_endpoint = endpoint('identity-admin')
 identity_endpoint = endpoint('identity-api')
+db_user = node["keystone"]["db"]["username"]
+db_pass = node["keystone"]["db"]["password"]
+
+sql_connection = db_uri("identity", db_user, db_pass)
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
@@ -100,7 +93,7 @@ template "/etc/keystone/keystone.conf" do
             "custom_template_banner" => node["keystone"]["custom_template_banner"],
             :debug => node["keystone"]["debug"],
             :verbose => node["keystone"]["verbose"],
-            "sql_connection" => db_uri("identity"),
+            "sql_connection" => sql_connection,
             :ip_address => identity_endpoint["host"],
             :service_port => identity_endpoint["port"],
             :admin_port => identity_admin_endpoint["port"],
@@ -198,12 +191,12 @@ end
 ## Add Endpoints ##
 
 node["keystone"]["adminURL"] = identity_admin_endpoint["uri"]
-node["keystone"]["internalURL"] = ks_service_endpoint["uri"]
-node["keystone"]["publicURL"] = ks_service_endpoint["uri"]
+node["keystone"]["internalURL"] = identity_endpoint["uri"]
+node["keystone"]["publicURL"] = identity_endpoint["uri"]
 
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint["uri"]}"
-Chef::Log.info "Keystone InternalURL: #{ks_service_endpoint["uri"]}"
-Chef::Log.info "Keystone PublicURL: #{ks_service_endpoint["uri"]}"
+Chef::Log.info "Keystone InternalURL: #{identity_endpoint["uri"]}"
+Chef::Log.info "Keystone PublicURL: #{identity_endpoint["uri"]}"
 
 keystone_register "Register Identity Endpoint" do
   auth_host identity_admin_endpoint["host"]
