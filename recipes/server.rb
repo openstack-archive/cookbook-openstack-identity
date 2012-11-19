@@ -20,9 +20,8 @@
 
 class ::Chef::Recipe
   include ::Openstack
+  include ::Opscode::OpenSSL::Password
 end
-
-::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 
 if node["developer_mode"]
   node.set_unless["keystone"]["admin_token"] = "999888777666"
