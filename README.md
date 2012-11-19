@@ -23,7 +23,7 @@ The following cookbooks are dependencies:
 
 * database
 * mysql
-* osops-utils
+* openstack-common
 
 Resources/Providers
 ===================
@@ -218,15 +218,15 @@ Create EC2 credentials for a given user in the specified tenant
 Recipes
 =======
 
-default
--------
-
-The default recipe will install the Keystone Server
-
 server
 ------
 
-Installs the Keystone Server
+Installs and Configures Keystone Service
+
+db
+--
+
+Configures database for use with keystone
 
 Attributes
 ==========

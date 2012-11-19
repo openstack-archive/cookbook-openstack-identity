@@ -10,8 +10,8 @@ name             "keystone"
   supports os
 end
 
-recipe           "db", ""
-recipe           "server", ""
+recipe           "keystone::db", "Configures database for use with keystone"
+recipe           "keystone::server", "Installs and Configures Keystone Service"
 
 depends          "database"
 depends          "mysql"
