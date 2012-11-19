@@ -15,4 +15,5 @@ recipe           "keystone::server", "Installs and Configures Keystone Service"
 
 depends          "database"
 depends          "mysql"
+depends          "openssl"
 depends          "openstack-common"
