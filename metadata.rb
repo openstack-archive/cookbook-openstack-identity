@@ -10,6 +10,9 @@ name             "keystone"
   supports os
 end
 
+recipe           "db"
+recipe           "server"
+
 depends          "database"
 depends          "mysql"
-depends          "osops-common"
+depends          "openstack-common"
