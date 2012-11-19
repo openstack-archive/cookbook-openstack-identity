@@ -23,6 +23,7 @@ The following cookbooks are dependencies:
 
 * database
 * mysql
+* openssl
 * openstack-common
 
 Resources/Providers
