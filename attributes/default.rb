@@ -3,6 +3,9 @@
 default["developer_mode"] = false  # we want secure passwords by default
 ########################################################################
 
+# The name of the Chef role that knows about the message db server
+default["nova"]["db_server_chef_role"] = "nova-db"
+
 # Set to some text value if you want templated config files
 # to contain a custom banner at the top of the written file
 default["keystone"]["custom_template_banner"] = "

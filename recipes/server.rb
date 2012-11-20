@@ -76,10 +76,11 @@ execute "keystone-manage db_sync" do
   action :nothing
 end
 
+db_config = config_by_role(node["nova"]["db_server_chef_role"], 'keystone')
 identity_admin_endpoint = endpoint('identity-admin')
 identity_endpoint = endpoint('identity-api')
 db_user = node["keystone"]["db"]["username"]
-db_pass = node["keystone"]["db"]["password"]
+db_pass = db_config["db"]["password"]
 
 sql_connection = db_uri("identity", db_user, db_pass)
 
