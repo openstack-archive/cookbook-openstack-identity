@@ -90,17 +90,18 @@ template "/etc/keystone/keystone.conf" do
   group "root"
   mode "0644"
   variables(
-            "custom_template_banner" => node["keystone"]["custom_template_banner"],
-            :debug => node["keystone"]["debug"],
-            :verbose => node["keystone"]["verbose"],
-            "sql_connection" => sql_connection,
-            :ip_address => identity_endpoint["host"],
-            :service_port => identity_endpoint["port"],
-            :admin_port => identity_admin_endpoint["port"],
-            :admin_token => node["keystone"]["admin_token"],
-            :use_syslog => node["keystone"]["syslog"]["use"],
-            :log_facility => node["keystone"]["syslog"]["facility"]
-            )
+    :custom_template_banner => node["keystone"]["custom_template_banner"],
+    :debug => node["keystone"]["debug"],
+    :verbose => node["keystone"]["verbose"],
+    :sql_connection => sql_connection,
+    :ip_address => identity_endpoint["host"],
+    :service_port => identity_endpoint["port"],
+    :admin_port => identity_admin_endpoint["port"],
+    :admin_token => node["keystone"]["admin_token"],
+    :use_syslog => node["keystone"]["syslog"]["use"],
+    :log_facility => node["keystone"]["syslog"]["facility"]
+  )
+
   notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
   notifies :restart, resources(:service => "keystone"), :immediately
 end
@@ -110,6 +111,7 @@ template "/etc/keystone/logging.conf" do
   owner "root"
   group "root"
   mode "0644"
+
   notifies :restart, resources(:service => "keystone"), :immediately
 end
 
