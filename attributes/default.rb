@@ -3,6 +3,8 @@
 default["developer_mode"] = false  # we want secure passwords by default
 ########################################################################
 
+default["keystone"]["db_server_chef_role"] = "nova-db"
+
 # Set to some text value if you want templated config files
 # to contain a custom banner at the top of the written file
 default["keystone"]["custom_template_banner"] = "
