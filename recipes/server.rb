@@ -77,8 +77,8 @@ execute "keystone-manage db_sync" do
 end
 
 db_config = config_by_role(node["keystone"]["db_server_chef_role"], 'keystone')
-identity_admin_endpoint = endpoint_url('identity-admin', raw=true)
-identity_endpoint = endpoint_url('identity-api', raw=true)
+identity_admin_endpoint = endpoint_uri('identity-admin')
+identity_endpoint = endpoint_uri('identity-api')
 db_user = node["keystone"]["db"]["username"]
 db_pass = db_config["db"]["password"]
 
