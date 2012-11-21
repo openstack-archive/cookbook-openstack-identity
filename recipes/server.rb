@@ -84,7 +84,7 @@ db_pass = db_config["db"]["password"]
 
 sql_connection = db_uri("identity", db_user, db_pass)
 
-listen_interface = node["keystone"]["listen_interface"]
+bind_interface = node["keystone"]["listen_interface"]
 interface_node = node["network"]["interfaces"][listen_interface]["addresses"]
 
 template "/etc/keystone/keystone.conf" do
