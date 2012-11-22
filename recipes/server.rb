@@ -43,28 +43,33 @@ end
 
 platform_options["keystone_packages"].each do |pkg|
   package pkg do
-    action :upgrade
     options platform_options["package_options"]
+
+    action :upgrade
   end
 end
 
 execute "Keystone: sleep" do
   command "sleep 10s"
+
   action :nothing
 end
 
 service "keystone" do
   service_name platform_options["keystone_service"]
   supports :status => true, :restart => true
+
   action [ :enable ]
+
   notifies :run, resources(:execute => "Keystone: sleep"), :immediately
 end
 
 directory "/etc/keystone" do
-  action :create
   owner "root"
   group "root"
-  mode "0755"
+  mode  00755
+
+  action :create
 end
 
 file "/var/lib/keystone/keystone.db" do
@@ -73,16 +78,15 @@ end
 
 execute "keystone-manage db_sync" do
   command "keystone-manage db_sync"
+
   action :nothing
 end
 
-db_config = config_by_role(node["keystone"]["db_server_chef_role"], 'keystone')
-identity_admin_endpoint = endpoint_uri('identity-admin')
-identity_endpoint = endpoint_uri('identity-api')
+db_config = config_by_role node["keystone"]["db_server_chef_role"], "keystone"
+identity_admin_endpoint = endpoint_uri "identity-admin"
+identity_endpoint = endpoint_uri "identity-api"
 db_user = node["keystone"]["db"]["username"]
 db_pass = db_config["db"]["password"]
-
-sql_connection = db_uri("identity", db_user, db_pass)
 
 bind_interface = node["keystone"]["bind_interface"]
 interface_node = node["network"]["interfaces"][bind_interface]["addresses"]
@@ -92,9 +96,9 @@ end[0][0]
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
-  owner node["keystone"]["user"]
-  group "root"
-  mode "0640"
+  owner  node["keystone"]["user"]
+  group  "root"
+  mode   00640
   variables(
     :custom_template_banner  => node["keystone"]["custom_template_banner"],
     :debug                   => node["keystone"]["debug"],
@@ -114,9 +118,9 @@ end
 
 template "/etc/keystone/logging.conf" do
   source "keystone-logging.conf.erb"
-  owner "root"
-  group "root"
-  mode "0644"
+  owner  "root"
+  group  "root"
+  mode   00644
 
   notifies :restart, resources(:service => "keystone"), :immediately
 end
@@ -147,6 +151,7 @@ node["keystone"]["roles"].each do |role_key|
     api_ver identity_admin_endpoint.path
     auth_token node["keystone"]["admin_token"]
     role_name role_key
+
     action :create_role
   end
 end
@@ -162,6 +167,7 @@ node["keystone"]["users"].each do |username, user_info|
     user_pass user_info["password"]
     tenant_name user_info["default_tenant"]
     user_enabled "true" # Not required as this is the default
+
     action :create_user
   end
 
@@ -176,10 +182,10 @@ node["keystone"]["users"].each do |username, user_info|
         user_name username
         role_name rolename
         tenant_name tenantname
+
         action :grant_role
       end
     end
-
   end
 end
 
@@ -194,6 +200,7 @@ keystone_register "Register Identity Service" do
   service_name "keystone"
   service_type "identity"
   service_description "Keystone Identity Service"
+
   action :create_service
 end
 
@@ -218,6 +225,7 @@ keystone_register "Register Identity Endpoint" do
   endpoint_adminurl node["keystone"]["adminURL"]
   endpoint_internalurl node["keystone"]["adminURL"]
   endpoint_publicurl node["keystone"]["publicURL"]
+
   action :create_endpoint
 end
 
