@@ -100,7 +100,7 @@ template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
   owner  "root"
   group  "root"
-  mode   00640
+  mode   00644
   variables(
     :custom_template_banner  => node["keystone"]["custom_template_banner"],
     :debug                   => node["keystone"]["debug"],
