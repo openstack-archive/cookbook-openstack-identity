@@ -65,9 +65,9 @@ service "keystone" do
 end
 
 directory "/etc/keystone" do
-  owner "root"
-  group "root"
-  mode  00755
+  owner node['keystone']['user']
+  group node['keystone']['group']
+  mode  00700
 
   action :create
 end
@@ -96,7 +96,7 @@ end[0][0]
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
-  owner  node["keystone"]["user"]
+  owner  "root"
   group  "root"
   mode   00640
   variables(
