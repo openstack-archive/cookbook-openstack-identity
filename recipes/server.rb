@@ -82,11 +82,13 @@ execute "keystone-manage db_sync" do
   action :nothing
 end
 
-db_config = config_by_role node["keystone"]["db_server_chef_role"], "keystone"
 identity_admin_endpoint = endpoint_uri "identity-admin"
 identity_endpoint = endpoint_uri "identity-api"
+
+db_config = config_by_role node["keystone"]["db_server_chef_role"], "keystone"
 db_user = node["keystone"]["db"]["username"]
 db_pass = db_config["db"]["password"]
+sql_connection = db_uri("identity", db_user, db_pass)
 
 bind_interface = node["keystone"]["bind_interface"]
 interface_node = node["network"]["interfaces"][bind_interface]["addresses"]
@@ -103,7 +105,7 @@ template "/etc/keystone/keystone.conf" do
     :custom_template_banner  => node["keystone"]["custom_template_banner"],
     :debug                   => node["keystone"]["debug"],
     :verbose                 => node["keystone"]["verbose"],
-    :sql_connection          => db_uri("identity", db_user, db_pass),
+    :sql_connection          => sql_connection,
     :ip_address              => ip_address,
     :service_port            => node["keystone"]["service_port"],
     :admin_port              => node["keystone"]["admin_port"],
