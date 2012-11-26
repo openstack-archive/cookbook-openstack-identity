@@ -82,8 +82,8 @@ execute "keystone-manage db_sync" do
   action :nothing
 end
 
-identity_admin_endpoint = endpoint_uri "identity-admin"
-identity_endpoint = endpoint_uri "identity-api"
+identity_admin_endpoint = endpoint "identity-admin"
+identity_endpoint = endpoint "identity-api"
 
 db_config = config_by_role node["keystone"]["db_server_chef_role"], "keystone"
 db_user = node["keystone"]["db"]["username"]
