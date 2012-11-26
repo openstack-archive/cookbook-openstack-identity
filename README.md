@@ -234,6 +234,10 @@ Attributes
 
 * `keystone["db_server_chef_role"]` - The name of the Chef role that knows about the db server
 * `keystone["bind_interface"]` - Interface to bind keystone to
+* `keystone["service_port"]` - Port to listen on for client functions
+* `keystone["admin_port"]` - Port to listen on for admin functions
+* `keystone["user"]` - User keystone runs as
+* `keystone["group"]` - Group keystone runs as
 * `keystone["db"]` - Name of keystone database
 * `keystone["db_user"]` - Username for keystone database access
 * `keystone["db_passwd"]` - Password for keystone database access

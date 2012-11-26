@@ -38,5 +38,6 @@ else
 end
 
 db_create_with_user("identity",
-                    node["keystone"]["db"]["username"],
-                    node["keystone"]["db"]["password"])
+  node["keystone"]["db"]["username"],
+  node["keystone"]["db"]["password"]
+)

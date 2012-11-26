@@ -3,10 +3,6 @@
 default["developer_mode"] = false  # we want secure passwords by default
 ########################################################################
 
-default["keystone"]["db_server_chef_role"] = "nova-db"
-
-default["keystone"]["bind_interface"] = "lo"
-
 # Set to some text value if you want templated config files
 # to contain a custom banner at the top of the written file
 default["keystone"]["custom_template_banner"] = "
@@ -26,6 +22,14 @@ default["keystone"]["db"]["username"] = "keystone"
 
 default["keystone"]["verbose"] = "False"
 default["keystone"]["debug"] = "False"
+
+default["keystone"]["service_port"] = "5000"
+default["keystone"]["admin_port"] = "35357"
+default['keystone']['user'] = "keystone"
+default['keystone']['group'] = "keystone"
+
+default["keystone"]["db_server_chef_role"] = "nova-db"
+default["keystone"]["bind_interface"] = "lo"
 
 # Logging stuff
 default["keystone"]["syslog"]["use"] = false
@@ -79,4 +83,3 @@ when "ubuntu"
     "package_options" => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
   }
 end
-
