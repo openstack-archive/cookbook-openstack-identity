@@ -102,16 +102,8 @@ template "/etc/keystone/keystone.conf" do
   group  "root"
   mode   00644
   variables(
-    :custom_template_banner  => node["keystone"]["custom_template_banner"],
-    :debug                   => node["keystone"]["debug"],
-    :verbose                 => node["keystone"]["verbose"],
-    :sql_connection          => sql_connection,
-    :ip_address              => ip_address,
-    :service_port            => node["keystone"]["service_port"],
-    :admin_port              => node["keystone"]["admin_port"],
-    :admin_token             => node["keystone"]["admin_token"],
-    :use_syslog              => node["keystone"]["syslog"]["use"],
-    :log_facility            => node["keystone"]["syslog"]["facility"]
+    :sql_connection => sql_connection,
+    :ip_address => ip_address
   )
 
   notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
