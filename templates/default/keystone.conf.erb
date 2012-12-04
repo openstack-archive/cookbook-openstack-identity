@@ -8,7 +8,7 @@ bind_host = <%= @ip_address %>
 compute_port = 8774
 verbose = <%= node["keystone"]["verbose"] %>
 debug = <%= node["keystone"]["debug"] %>
-<% if node["keystone"]["syslog"]["use"] == true %>
+<% if node["keystone"]["syslog"]["use"] %>
 # log_config = /etc/keystone/logging.conf
 <% else %>
 log_config = /etc/keystone/logging.conf
@@ -20,7 +20,7 @@ log_config = /etc/keystone/logging.conf
 use_syslog = <%= node["keystone"]["syslog"]["use"] %>
 
 # Facility to use. If unset defaults to LOG_USER.
-<% if node["keystone"]["syslog"]["use"] == true %>
+<% if node["keystone"]["syslog"]["use"] %>
 syslog_log_facility = <%= node["keystone"]["syslog"]["facility"] %>
 <% else %>
 # syslog_log_facility = LOG_USER
