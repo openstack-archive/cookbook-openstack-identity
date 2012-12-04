@@ -1,9 +1,0 @@
-<%= node["keystone"]["custom_template_banner"] %>
-
-$DirGroup adm
-$DirCreateMode 0755
-$FileGroup adm
-
-$template KeystoneLog, "/var/log/keystone/keystone.log"
-
-<%= @log_facility %>.* 		-?KeystoneLog
