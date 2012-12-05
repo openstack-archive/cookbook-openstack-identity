@@ -1,13 +1,14 @@
-<%= @custom_template_banner %>
+<%= node["keystone"]["custom_template_banner"] %>
+
 [DEFAULT]
-public_port = <%= @service_port %>
-admin_port = <%= @admin_port %>
-admin_token = <%= @admin_token %>
+public_port = <%= node["keystone"]["service_port"] %>
+admin_port = <%= node["keystone"]["admin_port"] %>
+admin_token = <%= node["keystone"]["admin_token"] %>
 bind_host = <%= @ip_address %>
 compute_port = 8774
-verbose = <%= @verbose %>
-debug = <%= @debug %>
-<% if @use_syslog == true %>
+verbose = <%= node["keystone"]["verbose"] %>
+debug = <%= node["keystone"]["debug"] %>
+<% if node["keystone"]["syslog"]["use"] %>
 # log_config = /etc/keystone/logging.conf
 <% else %>
 log_config = /etc/keystone/logging.conf
@@ -16,11 +17,11 @@ log_config = /etc/keystone/logging.conf
 # ================= Syslog Options ============================
 # Send logs to syslog (/dev/log) instead of to file specified
 # by `log-file`
-use_syslog = <%= @use_syslog %>
+use_syslog = <%= node["keystone"]["syslog"]["use"] %>
 
 # Facility to use. If unset defaults to LOG_USER.
-<% if @use_syslog == true %>
-syslog_log_facility = <%= @log_facility %>
+<% if node["keystone"]["syslog"]["use"] %>
+syslog_log_facility = <%= node["keystone"]["syslog"]["facility"] %>
 <% else %>
 # syslog_log_facility = LOG_USER
 <% end %>
