@@ -200,9 +200,9 @@ end
 
 ## Add Endpoints ##
 
-node["keystone"]["adminURL"] = identity_admin_endpoint.to_s
-node["keystone"]["internalURL"] = identity_admin_endpoint.to_s
-node["keystone"]["publicURL"] = identity_endpoint.to_s
+node.set["keystone"]["adminURL"] = identity_admin_endpoint.to_s
+node.set["keystone"]["internalURL"] = identity_admin_endpoint.to_s
+node.set["keystone"]["publicURL"] = identity_endpoint.to_s
 
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint.to_s}"
 Chef::Log.info "Keystone InternalURL: #{identity_admin_endpoint.to_s}"
