@@ -107,6 +107,7 @@ template "/etc/keystone/keystone.conf" do
   )
 
   notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
+  notifies :run, resources(:execute => "keystone-manage pki_setup"), :immediately
   notifies :restart, resources(:service => "keystone"), :immediately
 end
 
