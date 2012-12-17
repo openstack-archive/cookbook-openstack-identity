@@ -82,6 +82,12 @@ execute "keystone-manage db_sync" do
   action :nothing
 end
 
+execute "keystone-manage pki_setup" do
+  command "keystone-manage pki_setup"
+
+  action :nothing
+end
+
 identity_admin_endpoint = endpoint "identity-admin"
 identity_endpoint = endpoint "identity-api"
 
