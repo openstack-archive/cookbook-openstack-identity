@@ -69,7 +69,7 @@ default["keystone"]["signing"]["token_format"] = "UUID"
 default["keystone"]["signing"]["certfile"] = "/etc/keystone/ssl/certs/signing_cert.pem"
 default["keystone"]["signing"]["keyfile"] = "/etc/keystone/ssl/private/signing_key.pem"
 default["keystone"]["signing"]["ca_certs"] = "/etc/keystone/ssl/certs/ca.pem"
-default["keystone"]["signing"]["key_size"] = "1024"
+default["keystone"]["signing"]["key_size"] = "2048"
 default["keystone"]["signing"]["valid_days"] = "3650"
 default["keystone"]["signing"]["ca_password"] = nil
 
