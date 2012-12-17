@@ -215,7 +215,7 @@ keystone_register "Register Identity Endpoint" do
   api_ver identity_admin_endpoint.path
   auth_token node["keystone"]["admin_token"]
   service_type "identity"
-  endpoint_region "RegionOne"
+  endpoint_region node["keystone"]["region"]
   endpoint_adminurl node["keystone"]["adminURL"]
   endpoint_internalurl node["keystone"]["adminURL"]
   endpoint_publicurl node["keystone"]["publicURL"]

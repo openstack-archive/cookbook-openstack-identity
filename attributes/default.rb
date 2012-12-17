@@ -27,6 +27,7 @@ default["keystone"]["service_port"] = "5000"
 default["keystone"]["admin_port"] = "35357"
 default['keystone']['user'] = "keystone"
 default['keystone']['group'] = "keystone"
+default["keystone"]["region"] = "RegionOne"
 
 default["keystone"]["db_server_chef_role"] = "nova-db"
 default["keystone"]["bind_interface"] = "lo"
