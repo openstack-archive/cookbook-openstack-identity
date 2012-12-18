@@ -64,6 +64,15 @@ default["keystone"]["users"] = {
     }
 }
 
+# O.F. Add the default values in preparation for over-riding with PKI 
+# Need to add some sort of dependency on the running of "keystone-manage pki_setup"
+default["keystone"]["signing"]["token_format"] = "UUID"
+default["keystone"]["signing"]["certfile"] = "/etc/keystone/ssl/certs/signing_cert.pem"
+default["keystone"]["signing"]["keyfile"] = "/etc/keystone/ssl/private/signing_key.pem"
+default["keystone"]["signing"]["ca_certs"] = "/etc/keystone/ssl/certs/ca.pem"
+default["keystone"]["signing"]["key_size"] = "1024"
+default["keystone"]["signing"]["valid_days"] = "3650"
+default["keystone"]["signing"]["ca_password"] = nil
 
 # platform defaults
 case platform
@@ -84,3 +93,5 @@ when "ubuntu"
     "package_options" => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
   }
 end
+
+

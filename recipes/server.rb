@@ -82,6 +82,13 @@ execute "keystone-manage db_sync" do
   action :nothing
 end
 
+execute "keystone-manage pki_setup" do
+  command "keystone-manage pki_setup"
+
+  action :nothing
+  not_if node["keystone"]["signing"]["token_format"] == "UUID"
+end
+
 identity_admin_endpoint = endpoint "identity-admin"
 identity_endpoint = endpoint "identity-api"
 
@@ -107,6 +114,7 @@ template "/etc/keystone/keystone.conf" do
   )
 
   notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
+  notifies :run, resources(:execute => "keystone-manage pki_setup"), :immediately
   notifies :restart, resources(:service => "keystone"), :immediately
 end
 
