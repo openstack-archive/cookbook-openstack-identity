@@ -26,11 +26,10 @@ def initialize(*args)
   @action = :create
 end
 
-attribute :auth_protocol, :kind_of => String, :equal_to => [ "http", "https" ]
-attribute :auth_host, :kind_of => String
-attribute :auth_port, :kind_of => String
-attribute :api_ver, :kind_of => String, :default => "/v2.0"
-attribute :auth_token, :kind_of => String
+attribute :auth_uri, :kind_of => String
+attribute :admin_user, :kind_of => String
+attribute :admin_password, :kind_of => String
+attribute :admin_tenant_name, :kind_of => String
 
 # Used by both :create_service and :create_endpoint
 attribute :service_type, :kind_of => String, :equal_to => [ "image", "identity", "compute", "storage", "ec2", "volume", "object-store" ]

@@ -29,7 +29,6 @@ default['keystone']['user'] = "keystone"
 default['keystone']['group'] = "keystone"
 default["keystone"]["region"] = "RegionOne"
 
-default["keystone"]["db_server_chef_role"] = "nova-db"
 default["keystone"]["bind_interface"] = "lo"
 
 # Logging stuff
@@ -47,6 +46,7 @@ default["keystone"]["admin_user"] = "admin"
 
 default["keystone"]["users"] = {
     default["keystone"]["admin_user"]  => {
+        #TODO(jaypipes): create user_password routine in openstack-common for these...
         "password" => "secrete",
         "default_tenant" => "admin",
         "roles" => {
@@ -93,5 +93,3 @@ when "ubuntu"
     "package_options" => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
   }
 end
-
-
