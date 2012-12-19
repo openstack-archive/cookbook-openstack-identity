@@ -19,12 +19,8 @@ log_config = /etc/keystone/logging.conf
 # by `log-file`
 use_syslog = <%= node["keystone"]["syslog"]["use"] %>
 
-# Facility to use. If unset defaults to LOG_USER.
-<% if node["keystone"]["syslog"]["use"] %>
+# Facility to use. If unset defaults to LOG_LOCAL2
 syslog_log_facility = <%= node["keystone"]["syslog"]["facility"] %>
-<% else %>
-# syslog_log_facility = LOG_USER
-<% end %>
 
 [sql]
 connection = <%= @sql_connection %>
