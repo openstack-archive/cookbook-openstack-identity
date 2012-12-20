@@ -1,8 +1,3 @@
-########################################################################
-# Toggles - These can be overridden at the environment level
-default["developer_mode"] = false  # we want secure passwords by default
-########################################################################
-
 # Set to some text value if you want templated config files
 # to contain a custom banner at the top of the written file
 default["keystone"]["custom_template_banner"] = "
@@ -43,12 +38,13 @@ default["keystone"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneSe
 default["keystone"]["tenants"] = [ "admin", "service"]
 
 default["keystone"]["admin_user"] = "admin"
+default["keystone"]["admin_tenant_name"] = "admin"
 
 default["keystone"]["users"] = {
     default["keystone"]["admin_user"]  => {
         #TODO(jaypipes): create user_password routine in openstack-common for these...
         "password" => "secrete",
-        "default_tenant" => "admin",
+        "default_tenant" => default["keystone"]["admin_tenant_name"],
         "roles" => {
             "admin" => [ "admin" ],
             "KeystoneAdmin" => [ "admin" ],
