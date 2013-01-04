@@ -18,34 +18,22 @@
 #
 
 action :create_ec2 do
-    Chef::Log.debug("Keystone/Providers/Credentials.rb")
-    Chef::Log.debug("Create_EC2 actions")
-
-    # construct a HTTP object
-    http = Net::HTTP.new(new_resource.auth_host, new_resource.auth_port)
-
-    # Check to see if connection is http or https
-    if new_resource.auth_protocol == "https"
-        http.use_ssl = true
-    end
-
-    # Build out the required header info
-    headers = _build_headers(new_resource.auth_token)
+    http = _new_http new_resource
 
     # lookup tenant_uuid
     Chef::Log.debug("Looking up Tenant_UUID for Tenant_Name: #{new_resource.tenant_name}")
     tenant_container = "tenants"
     tenant_key = "name"
-    tenant_path = "/#{new_resource.api_ver}/tenants"
-    tenant_uuid, tenant_error = _find_id(http, tenant_path, headers, tenant_container, tenant_key, new_resource.tenant_name)
+    tenant_path = "/tenants"
+    tenant_uuid, tenant_error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
     Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if tenant_error
 
     # lookup user_uuid
     Chef::Log.debug("Looking up User_UUID for User_Name: #{new_resource.user_name}")
     user_container = "users"
     user_key = "name"
-    user_path = "/#{new_resource.api_ver}/tenants/#{tenant_uuid}/users"
-    user_uuid, user_error = _find_id(http, user_path, headers, user_container, user_key, new_resource.user_name)
+    user_path = "/tenants/#{tenant_uuid}/users"
+    user_uuid, user_error = _find_id(new_resource, http, user_path, user_container, user_key, new_resource.user_name)
     Chef::Log.error("There was an error looking up User '#{new_resource.user_name}'") if user_error
 
     Chef::Log.debug("Found Tenant UUID: #{tenant_uuid}")
@@ -54,18 +42,19 @@ action :create_ec2 do
     # See if a set of credentials already exists for this user/tenant combo
     cred_container = "credentials"
     cred_key = "tenant_id"
-    cred_path = "/#{new_resource.api_ver}/users/#{user_uuid}/credentials/OS-EC2"
-    cred_tenant_uuid, cred_error = _find_cred_id(http, cred_path, headers, cred_container, cred_key, tenant_uuid)
+    cred_path = "/users/#{user_uuid}/credentials/OS-EC2"
+    cred_tenant_uuid, cred_error = _find_cred_id(new_resource, http, cred_path, cred_container, cred_key, tenant_uuid)
     Chef::Log.error("There was an error looking up EC2 Credentials for User '#{new_resource.user_name}' and Tenant '#{new_resource.tenant_name}'") if cred_error
 
     error = (tenant_error or user_error or cred_error)
     unless cred_tenant_uuid or error
         # Construct the extension path
-        path = "/#{new_resource.api_ver}/users/#{user_uuid}/credentials/OS-EC2"
+        path = "/users/#{user_uuid}/credentials/OS-EC2"
 
         payload = _build_credentials_obj(tenant_uuid)
 
-        resp = http.send_request('POST', path, JSON.generate(payload), headers)
+        req = _http_post new_resource, path
+        resp = http.request req, JSON.generate(payload)
         if resp.is_a?(Net::HTTPOK)
             Chef::Log.info("Created EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
             # Need to parse the output here and update node attributes
@@ -88,10 +77,11 @@ end
 
 
 private
-def _find_id(http, path, headers, container, key, match_value)
+def _find_id(resource, http, path, container, key, match_value)
     uuid = nil
     error = false
-    resp = http.request_get(path, headers)
+    req = _http_get resource, path
+    resp = http.request req
     if resp.is_a?(Net::HTTPOK)
         data = JSON.parse(resp.body)
         data[container].each do |obj|
@@ -109,10 +99,11 @@ end
 
 
 private
-def _find_cred_id(http, path, headers, container, key, match_value)
+def _find_cred_id(resource, http, path, container, key, match_value)
     uuid = nil
     error = false
-    resp = http.request_get(path, headers)
+    req = _http_get resource, path
+    resp = http.request req
     if resp.is_a?(Net::HTTPOK)
         data = JSON.parse(resp.body)
         data[container].each do |obj|
@@ -136,11 +127,88 @@ def _build_credentials_obj(tenant_uuid)
 end
 
 
+# Return a Net::HTTP object the caller can use to call paths
+# on the Keystone Admin API endpoint. Admin token validation
+# will already be handled and the x-auth-token header already
+# set in the returned HTTP object's headers.
 private
-def _build_headers(token)
-    ret = Hash.new
-    ret.store('X-Auth-Token', token)
-    ret.store('Content-type', 'application/json')
-    ret.store('user-agent', 'Chef keystone_credentials')
-    return ret
+def _new_http resource
+  uri = ::URI.parse(resource.auth_uri)
+  http = Net::HTTP.new(uri)
+  http.read_timeout = 3
+  http.open_timeout = 3
+  http
+end
+
+
+# Short-cut for returning an Net::HTTP::Post to a path on the admin API endpoint.
+# Headers and admin token validation are already performed. All
+# the caller needs to do is call http.request, supplying the returned object
+private
+def _http_post resource, path
+  request = Net::HTTP::Post.new(path)
+  _build_request resource, request
+end
+
+
+# Short-cut for returning an Net::HTTP::Put to a path on the admin API endpoint.
+# Headers and admin token validation are already performed. All
+# the caller needs to do is call http.request, supplying the returned object
+private
+def _http_put resource, path
+  request = Net::HTTP::Put.new(path)
+  _build_request resource, request
+end
+
+
+# Short-cut for returning an Net::HTTP::Get to a path on the admin API endpoint.
+# Headers and admin token validation are already performed. All
+# the caller needs to do is call http.request, supplying the returned object
+private
+def _http_get resource, path
+  request = Net::HTTP::Get.new(path)
+  _build_request resource, request
+end
+
+
+# Returns a token for use by a Keystone Admin user when
+# issuing requests to the Keystone Admin API
+private
+def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_password
+  # Construct a HTTP object from the supplied URI pointing to the
+  # Keystone Admin API endpoint.
+  if not cached_admin_token.nil?
+    return cached_admin_token
+  end
+  uri = ::URI.parse(auth_admin_uri)
+  http = Net::HTTP.new(uri)
+  path = "/tokens"
+
+  payload = Hash.new
+  payload['auth'] = Hash.new
+  payload['auth']['passwordCredentials'] = Hash.new
+  payload['auth']['passwordCredentials']['username'] = admin_user
+  payload['auth']['passwordCredentials']['password'] = admin_password
+  payload['auth']['tenantName'] = admin_tenant_name
+  
+  resp = http.send_request 'POST', path, JSON.generate(payload)
+  if resp.is_a?(Net::HTTPOK)
+    data = JSON.parse resp.body
+    token = data['access']['token']['id']
+    cached_admin_token = token
+  else
+    Chef::Log.error("Unable to get admin token.")
+    Chef::Log.error("Response Code: #{resp.code}")
+    Chef::Log.error("Response Message: #{resp.message}")
+  end
+end
+
+# Constructs the request object with all the requisite headers added
+private
+def _build_request resource, request
+  admin_token = _get_admin_token resource.auth_uri, resource.admin_tenant_name, resource.admin_user, resource.admin_password
+  request.add_field 'x-auth-token', admin_token
+  request.add_field 'content-type', 'application/json'
+  request.add_field 'user-agent', 'Chef keystone_credentials'
+  request
 end

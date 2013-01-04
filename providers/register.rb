@@ -228,7 +228,7 @@ action :create_user do
             # Construct the extension path using the found tenant_uuid
             path = "/users"
             req = _http_post new_resource, path
-            resp = http.request JSON.generate(payload)
+            resp = http.request req, JSON.generate(payload)
             if resp.is_a?(Net::HTTPOK)
                 Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
                 new_resource.updated_by_last_action(true)
@@ -313,7 +313,7 @@ def _find_id(resource, http, path, container, key, match_value)
     uuid = nil
     error = false
     req = _http_get resource, path
-    resp = http.request(req)
+    resp = http.request req
     if resp.is_a?(Net::HTTPOK)
         data = JSON.parse(resp.body)
         data[container].each do |obj|
@@ -474,7 +474,7 @@ private
 def _build_request resource, request
   admin_token = _get_admin_token resource.auth_uri, resource.admin_tenant_name, resource.admin_user, resource.admin_password
   request.add_field 'x-auth-token', admin_token
-  request.add_field 'tontent-type', 'application/json'
+  request.add_field 'content-type', 'application/json'
   request.add_field 'user-agent', 'Chef keystone_register'
   request
 end
