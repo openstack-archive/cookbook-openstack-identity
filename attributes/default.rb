@@ -72,7 +72,7 @@ default["keystone"]["signing"]["ca_password"] = nil
 
 # platform defaults
 case platform
-when "fedora", "redhat", "centos"                                 # :pragma-foodcritic: ~FC024 - won't fix this
+when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this
   default["keystone"]["platform"] = {
     "mysql_python_packages" => [ "MySQL-python" ],
     "keystone_packages" => [ "openstack-keystone" ],
