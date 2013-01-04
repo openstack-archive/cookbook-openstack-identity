@@ -20,7 +20,7 @@
 
 require "uri"
 
-cached_admin_token = nil
+@cached_admin_token = nil
 
 action :create_service do
     http = _new_http new_resource
@@ -37,7 +37,8 @@ action :create_service do
         # Service does not exist yet
         payload = _build_service_object(new_resource.service_type, new_resource.service_name, new_resource.service_description)
         req = _http_post new_resource, service_path
-        resp = http.request req, JSON.generate(payload)
+        req.body = JSON.generate(payload)
+        resp = http.request req
         if resp.is_a?(Net::HTTPOK)
             Chef::Log.info("Created service '#{new_resource.service_name}'")
             new_resource.updated_by_last_action(true)
@@ -98,7 +99,8 @@ action :create_endpoint do
                       new_resource.endpoint_internalurl,
                       new_resource.endpoint_adminurl)
             req = _http_post new_resource, path
-            resp = http.request req, JSON.generate(payload)
+            req.body = JSON.generate(payload)
+            resp = http.request req
             if resp.is_a?(Net::HTTPOK)
                 Chef::Log.info("Created endpoint for service type '#{new_resource.service_type}'")
                 new_resource.updated_by_last_action(true)
@@ -134,7 +136,8 @@ action :create_tenant do
         # Construct the extension path
         path = "/tenants"
         req = _http_post new_resource, path
-        resp = http.request req, JSON.generate(payload)
+        req.body = JSON.generate(payload)
+        resp = http.request req
         if resp.is_a?(Net::HTTPOK)
             Chef::Log.info("Created tenant '#{new_resource.tenant_name}'")
             new_resource.updated_by_last_action(true)
@@ -167,7 +170,8 @@ action :create_role do
         # role does not exist yet
         payload = _build_role_obj(new_resource.role_name)
         req = _http_post new_resource, path
-        resp = http.request req, JSON.generate(payload)
+        req.body = JSON.generate(payload)
+        resp = http.request req
         if resp.is_a?(Net::HTTPOK)
             Chef::Log.info("Created Role '#{new_resource.role_name}'")
             new_resource.updated_by_last_action(true)
@@ -228,7 +232,8 @@ action :create_user do
             # Construct the extension path using the found tenant_uuid
             path = "/users"
             req = _http_post new_resource, path
-            resp = http.request req, JSON.generate(payload)
+            req.body = JSON.generate(payload)
+            resp = http.request req
             if resp.is_a?(Net::HTTPOK)
                 Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
                 new_resource.updated_by_last_action(true)
@@ -290,7 +295,8 @@ action :grant_role do
 
         # needs a '' for the body, or it throws a 500
         req = _http_put new_resource, path
-        resp = http.request req, ''
+        req.body = ''
+        resp = http.request req
         if resp.is_a?(Net::HTTPOK)
             Chef::Log.info("Granted Role '#{new_resource.role_name}' to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
             new_resource.updated_by_last_action(true)
@@ -394,7 +400,7 @@ end
 # set in the returned HTTP object's headers.
 def _new_http resource
   uri = ::URI.parse(resource.auth_uri)
-  http = Net::HTTP.new(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
   http.read_timeout = 3
   http.open_timeout = 3
   http
@@ -433,11 +439,11 @@ end
 def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_password
   # Construct a HTTP object from the supplied URI pointing to the
   # Keystone Admin API endpoint.
-  if not cached_admin_token.nil?
-    return cached_admin_token
+  if not @cached_admin_token.nil?
+    return @cached_admin_token
   end
   uri = ::URI.parse(auth_admin_uri)
-  http = Net::HTTP.new(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
   path = "/tokens"
 
   payload = Hash.new
@@ -447,11 +453,13 @@ def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_passwo
   payload['auth']['passwordCredentials']['password'] = admin_password
   payload['auth']['tenantName'] = admin_tenant_name
   
-  resp = http.send_request 'POST', path, JSON.generate(payload)
+  req = Net::HTTP::Post.new(path)
+  req.body = JSON.generate(payload)
+  resp = http.request req
   if resp.is_a?(Net::HTTPOK)
     data = JSON.parse resp.body
     token = data['access']['token']['id']
-    cached_admin_token = token
+    @cached_admin_token = token
   else
     Chef::Log.error("Unable to get admin token.")
     Chef::Log.error("Response Code: #{resp.code}")

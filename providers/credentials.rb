@@ -3,6 +3,7 @@
 # Provider:: credentials
 #
 # Copyright 2012, Rackspace US, Inc.
+# Copyright 2012, AT&T, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +17,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+require "uri"
+
+@cached_admin_token = nil
 
 action :create_ec2 do
     http = _new_http new_resource
@@ -54,7 +59,8 @@ action :create_ec2 do
         payload = _build_credentials_obj(tenant_uuid)
 
         req = _http_post new_resource, path
-        resp = http.request req, JSON.generate(payload)
+        req.body = JSON.generate(payload)
+        resp = http.request req
         if resp.is_a?(Net::HTTPOK)
             Chef::Log.info("Created EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
             # Need to parse the output here and update node attributes
@@ -131,7 +137,7 @@ end
 # set in the returned HTTP object's headers.
 def _new_http resource
   uri = ::URI.parse(resource.auth_uri)
-  http = Net::HTTP.new(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
   http.read_timeout = 3
   http.open_timeout = 3
   http
@@ -170,11 +176,11 @@ end
 def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_password
   # Construct a HTTP object from the supplied URI pointing to the
   # Keystone Admin API endpoint.
-  if not cached_admin_token.nil?
-    return cached_admin_token
+  if not @cached_admin_token.nil?
+    return @cached_admin_token
   end
   uri = ::URI.parse(auth_admin_uri)
-  http = Net::HTTP.new(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
   path = "/tokens"
 
   payload = Hash.new
@@ -184,11 +190,13 @@ def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_passwo
   payload['auth']['passwordCredentials']['password'] = admin_password
   payload['auth']['tenantName'] = admin_tenant_name
   
-  resp = http.send_request 'POST', path, JSON.generate(payload)
+  req = Net::HTTP::Post.new(path)
+  req.body = JSON.generate(payload)
+  resp = http.request req
   if resp.is_a?(Net::HTTPOK)
     data = JSON.parse resp.body
     token = data['access']['token']['id']
-    cached_admin_token = token
+    @cached_admin_token = token
   else
     Chef::Log.error("Unable to get admin token.")
     Chef::Log.error("Response Code: #{resp.code}")
