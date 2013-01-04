@@ -98,7 +98,6 @@ def _find_id(resource, http, path, container, key, match_value)
 end
 
 
-private
 def _find_cred_id(resource, http, path, container, key, match_value)
     uuid = nil
     error = false
@@ -119,7 +118,6 @@ def _find_cred_id(resource, http, path, container, key, match_value)
     return uuid,error
 end
 
-private
 def _build_credentials_obj(tenant_uuid)
     ret = Hash.new
     ret.store("tenant_id", tenant_uuid)
@@ -131,7 +129,6 @@ end
 # on the Keystone Admin API endpoint. Admin token validation
 # will already be handled and the x-auth-token header already
 # set in the returned HTTP object's headers.
-private
 def _new_http resource
   uri = ::URI.parse(resource.auth_uri)
   http = Net::HTTP.new(uri)
@@ -144,7 +141,6 @@ end
 # Short-cut for returning an Net::HTTP::Post to a path on the admin API endpoint.
 # Headers and admin token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
-private
 def _http_post resource, path
   request = Net::HTTP::Post.new(path)
   _build_request resource, request
@@ -154,7 +150,6 @@ end
 # Short-cut for returning an Net::HTTP::Put to a path on the admin API endpoint.
 # Headers and admin token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
-private
 def _http_put resource, path
   request = Net::HTTP::Put.new(path)
   _build_request resource, request
@@ -164,7 +159,6 @@ end
 # Short-cut for returning an Net::HTTP::Get to a path on the admin API endpoint.
 # Headers and admin token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
-private
 def _http_get resource, path
   request = Net::HTTP::Get.new(path)
   _build_request resource, request
@@ -173,7 +167,6 @@ end
 
 # Returns a token for use by a Keystone Admin user when
 # issuing requests to the Keystone Admin API
-private
 def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_password
   # Construct a HTTP object from the supplied URI pointing to the
   # Keystone Admin API endpoint.
@@ -204,7 +197,6 @@ def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_passwo
 end
 
 # Constructs the request object with all the requisite headers added
-private
 def _build_request resource, request
   admin_token = _get_admin_token resource.auth_uri, resource.admin_tenant_name, resource.admin_user, resource.admin_password
   request.add_field 'x-auth-token', admin_token
