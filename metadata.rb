@@ -6,12 +6,12 @@ description      "The OpenStack Identity service Keystone."
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "2012.2.0"
 
-%w{ ubuntu fedora }.each do |os|
-  supports os
-endt
-
 recipe           "keystone::db", "Configures database for use with keystone"
 recipe           "keystone::server", "Installs and Configures Keystone Service"
+
+%w{ ubuntu fedora redhat centos }.each do |os|
+  supports os
+end
 
 depends          "database"
 depends          "mysql"
