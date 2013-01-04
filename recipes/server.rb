@@ -81,7 +81,7 @@ execute "keystone-manage pki_setup" do
   command "keystone-manage pki_setup"
 
   action :nothing
-  not_if node["keystone"]["signing"]["token_format"] == "UUID"
+  not_if { node["keystone"]["signing"]["token_format"] == "UUID" }
 end
 
 identity_admin_endpoint = endpoint "identity-admin"
