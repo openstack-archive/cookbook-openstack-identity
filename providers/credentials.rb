@@ -136,6 +136,8 @@ end
 def _new_http resource
   uri = ::URI.parse(resource.auth_uri)
   http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true if uri.scheme == 'https'
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   http.read_timeout = 3
   http.open_timeout = 3
   http
@@ -188,6 +190,8 @@ def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_passwo
   # Keystone Admin API endpoint.
   uri = ::URI.parse(auth_admin_uri)
   http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true if uri.scheme == 'https'
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   path = _path uri, "tokens"
 
   payload = Hash.new
