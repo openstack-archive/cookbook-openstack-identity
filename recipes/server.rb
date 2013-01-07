@@ -96,6 +96,8 @@ db_user = node["keystone"]["db"]["username"]
 db_pass = db_password "keystone"
 sql_connection = db_uri("identity", db_user, db_pass)
 
+bootstrap_token = secret "secrets", "keystone_bootstrap_token"
+
 bind_interface = node["keystone"]["bind_interface"]
 interface_node = node["network"]["interfaces"][bind_interface]["addresses"]
 ip_address = interface_node.select do |address, data|
@@ -109,7 +111,8 @@ template "/etc/keystone/keystone.conf" do
   mode   00644
   variables(
     :sql_connection => sql_connection,
-    :ip_address => ip_address
+    :ip_address => ip_address,
+    "bootstrap_token" => bootstrap_token
   )
 
   notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
@@ -124,6 +127,30 @@ template "/etc/keystone/logging.conf" do
   mode   00644
 
   notifies :restart, resources(:service => "keystone"), :immediately
+end
+
+# We need to bootstrap the keystone admin user so that calls
+# to keystone_register will succeed, since those provider calls
+# use the admin tenant/user/pass to get an admin token.
+bash "bootstrap-keystone-admin" do
+  # A shortcut bootstrap command was added to python-keystoneclient
+  # in early Grizzly timeframe... but we need to do all the commands
+  # here manually since the python-keystoneclient package included
+  # in CloudArchive (for now) doesn't have it...
+  #command "keystone bootstrap --os-token=#{bootstrap_token} --user-name=#{admin_user} --tenant-name=#{admin_tenant_name} --pass=#{admin_pass}"
+  base_ks_cmd = "keystone --endpoint=#{auth_uri} --token=#{bootstrap_token}"
+  code <<-EOF
+set -e
+set -x
+function get_id () {
+    echo `"$@" | grep ' id ' | awk '{print $4}'`
+}
+ADMIN_TENANT=$(get_id #{base_ks_cmd} tenant-create --name=#{admin_tenant_name})
+ADMIN_ROLE=$(get_id #{base_ks_cmd} role-create --name=admin)
+ADMIN_USER=$(get_id #{base_ks_cmd} user-create --name=admin --pass="#{admin_pass}" --email=admin@example.com)
+#{base_ks_cmd} user-role-add --user_id $ADMIN_USER --role_id $ADMIN_ROLE --tenant_id $ADMIN_TENANT
+  EOF
+  not_if "#{base_ks_cmd} user-list | grep #{admin_user}"
 end
 
 #TODO(shep): this should probably be derived from keystone.users hash keys

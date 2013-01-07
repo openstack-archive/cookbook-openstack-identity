@@ -30,8 +30,9 @@ include_recipe "mysql::client"
 include_recipe "mysql::ruby"
 
 db_pass = db_password "keystone"
+db_user = node["keystone"]["db"]["username"]
 
 db_create_with_user("identity",
-  node["keystone"]["db"]["username"],
+  db_user,
   db_pass
 )

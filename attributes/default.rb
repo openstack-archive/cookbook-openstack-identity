@@ -10,10 +10,7 @@ default["keystone"]["custom_template_banner"] = "
 default["credentials"]["EC2"]["admin"]["access"] = ""
 default["credentials"]["EC2"]["admin"]["secret"] = ""
 
-default["keystone"]["db"]["name"] = "keystone"
 default["keystone"]["db"]["username"] = "keystone"
-# Replacing with OpenSSL::Password in recipes/server.rb
-# default["keystone"]["db"]["password"] = "keystone"
 
 default["keystone"]["verbose"] = "False"
 default["keystone"]["debug"] = "False"
