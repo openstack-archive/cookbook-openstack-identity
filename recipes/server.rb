@@ -147,7 +147,7 @@ function get_id () {
 }
 ADMIN_TENANT=$(get_id #{base_ks_cmd} tenant-create --name=#{admin_tenant_name})
 ADMIN_ROLE=$(get_id #{base_ks_cmd} role-create --name=admin)
-ADMIN_USER=$(get_id #{base_ks_cmd} user-create --name=admin --pass="#{admin_pass}" --email=admin@example.com)
+ADMIN_USER=$(get_id #{base_ks_cmd} user-create --name=#{admin_user} --pass="#{admin_pass}" --email=#{admin_user}@example.com)
 #{base_ks_cmd} user-role-add --user_id $ADMIN_USER --role_id $ADMIN_ROLE --tenant_id $ADMIN_TENANT
   EOF
   not_if "#{base_ks_cmd} user-list | grep #{admin_user}"
