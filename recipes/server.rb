@@ -140,17 +140,34 @@ bash "bootstrap-keystone-admin" do
   #command "keystone bootstrap --os-token=#{bootstrap_token} --user-name=#{admin_user} --tenant-name=#{admin_tenant_name} --pass=#{admin_pass}"
   base_ks_cmd = "keystone --endpoint=#{auth_uri} --token=#{bootstrap_token}"
   code <<-EOF
-set -e
 set -x
 function get_id () {
     echo `"$@" | grep ' id ' | awk '{print $4}'`
 }
-ADMIN_TENANT=$(get_id #{base_ks_cmd} tenant-create --name=#{admin_tenant_name})
-ADMIN_ROLE=$(get_id #{base_ks_cmd} role-create --name=admin)
-ADMIN_USER=$(get_id #{base_ks_cmd} user-create --name=#{admin_user} --pass="#{admin_pass}" --email=#{admin_user}@example.com)
-#{base_ks_cmd} user-role-add --user_id $ADMIN_USER --role_id $ADMIN_ROLE --tenant_id $ADMIN_TENANT
-  EOF
-  not_if "#{base_ks_cmd} user-list | grep #{admin_user}"
+#{base_ks_cmd} tenant-list | grep #{admin_tenant_name}
+if [[ $? -eq 1 ]]; then
+  ADMIN_TENANT=$(get_id #{base_ks_cmd} tenant-create --name=#{admin_tenant_name})
+else
+  ADMIN_TENANT=$(#{base_ks_cmd} tenant-list | grep #{admin_tenant_name} | awk '{print $2}')
+fi
+#{base_ks_cmd} role-list | grep admin
+if [[ $? -eq 1 ]]; then
+  ADMIN_ROLE=$(get_id #{base_ks_cmd} role-create --name=admin)
+else
+  ADMIN_ROLE=$(#{base_ks_cmd} role-list | grep admin | awk '{print $2}')
+fi
+#{base_ks_cmd} user-list | grep #{admin_user}
+if [[ $? -eq 1 ]]; then
+  ADMIN_USER=$(get_id #{base_ks_cmd} user-create --name=#{admin_user} --pass="#{admin_pass}" --email=#{admin_user}@example.com)
+else
+  ADMIN_USER=$(#{base_ks_cmd} user-list | grep #{admin_user} | awk '{print $2}')
+fi
+#{base_ks_cmd} user-role-list --user-id=$ADMIN_USER --tenant-id=$ADMIN_TENANT | grep admin
+if [[ $? -eq 1 ]]; then
+  #{base_ks_cmd} user-role-add --user-id $ADMIN_USER --role-id $ADMIN_ROLE --tenant-id $ADMIN_TENANT
+fi
+exit 0
+EOF
 end
 
 #TODO(shep): this should probably be derived from keystone.users hash keys
