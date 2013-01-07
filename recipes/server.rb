@@ -56,7 +56,7 @@ service "keystone" do
 
   action [ :enable ]
 
-  notifies :run, execute['Keystone: sleep'], :immediately
+  notifies :run, resources(:execute => "Keystone: sleep"), :immediately
 end
 
 directory "/etc/keystone" do
@@ -115,9 +115,9 @@ template "/etc/keystone/keystone.conf" do
     "bootstrap_token" => bootstrap_token
   )
 
-  notifies :run, execute['keystone-manage db_sync'], :immediately
-  notifies :run, execute['keystone-manage pki_setup'], :immediately
-  notifies :restart, service['keystone'], :immediately
+  notifies :run, resources(:execute => "keystone-manage db_sync"), :immediately
+  notifies :run, resources(:execute => "keystone-manage pki_setup"), :immediately
+  notifies :restart, resources(:service => "keystone"), :immediately
 end
 
 template "/etc/keystone/logging.conf" do
@@ -126,7 +126,7 @@ template "/etc/keystone/logging.conf" do
   group node["keystone"]["group"]
   mode   00644
 
-  notifies :restart, service['keystone'], :immediately
+  notifies :restart, resources(:service => "keystone"), :immediately
 end
 
 # We need to bootstrap the keystone admin user so that calls
