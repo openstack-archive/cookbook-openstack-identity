@@ -28,7 +28,7 @@ action :create_service do
     # lookup service_uuid
     service_container = "OS-KSADM:services"
     service_key = "type"
-    service_path = "/OS-KSADM/services"
+    service_path = "OS-KSADM/services"
     service_uuid, service_error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
     Chef::Log.error("There was an error looking up Service '#{new_resource.service_type}'") if service_error
 
@@ -63,7 +63,7 @@ action :create_endpoint do
     # lookup service_uuid
     service_container = "OS-KSADM:services"
     service_key = "type"
-    service_path = "/OS-KSADM/services"
+    service_path = "OS-KSADM/services"
     service_uuid, service_error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
     Chef::Log.error("There was an error looking up Service '#{new_resource.service_type}'") if service_error
 
@@ -73,7 +73,7 @@ action :create_endpoint do
     end
 
     # Construct the extension path
-    path = "/endpoints"
+    path = "endpoints"
     req = _http_get new_resource, path
 
     # Make sure this endpoint does not already exist
@@ -125,7 +125,7 @@ action :create_tenant do
     # lookup tenant_uuid
     tenant_container = "tenants"
     tenant_key = "name"
-    tenant_path = "/tenants"
+    tenant_path = "tenants"
     tenant_uuid, tenant_error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
     Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if tenant_error
 
@@ -134,7 +134,7 @@ action :create_tenant do
         payload = _build_tenant_object(new_resource.tenant_name, new_resource.service_description, new_resource.tenant_enabled)
 
         # Construct the extension path
-        path = "/tenants"
+        path = "tenants"
         req = _http_post new_resource, path
         req.body = JSON.generate(payload)
         resp = http.request req
@@ -159,7 +159,7 @@ action :create_role do
     http = _new_http new_resource
 
     # Construct the extension path
-    path = "/OS-KSADM/roles"
+    path = "OS-KSADM/roles"
 
     container = "roles"
     key = "name"
@@ -194,7 +194,7 @@ action :create_user do
     # lookup tenant_uuid
     tenant_container = "tenants"
     tenant_key = "name"
-    tenant_path = "/tenants"
+    tenant_path = "tenants"
     tenant_uuid, tenant_error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
     Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if tenant_error
 
@@ -204,7 +204,7 @@ action :create_user do
     end
 
     # Construct the extension path using the found tenant_uuid
-    path = "/tenants/#{tenant_uuid}/users"
+    path = "tenants/#{tenant_uuid}/users"
 
     # Make sure this endpoint does not already exist
     req = _http_get new_resource, path
@@ -230,7 +230,7 @@ action :create_user do
                       new_resource.user_enabled)
 
             # Construct the extension path using the found tenant_uuid
-            path = "/users"
+            path = "users"
             req = _http_post new_resource, path
             req.body = JSON.generate(payload)
             resp = http.request req
@@ -258,7 +258,7 @@ action :grant_role do
     # lookup tenant_uuid
     tenant_container = "tenants"
     tenant_key = "name"
-    tenant_path = "/tenants"
+    tenant_path = "tenants"
     tenant_uuid, tenant_error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
     Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if tenant_error
 
@@ -266,14 +266,14 @@ action :grant_role do
     user_container = "users"
     user_key = "name"
     # user_path = "/tenants/#{tenant_uuid}/users"
-    user_path = "/users"
+    user_path = "users"
     user_uuid, user_error = _find_id(new_resource, http, user_path, user_container, user_key, new_resource.user_name)
     Chef::Log.error("There was an error looking up User '#{new_resource.user_name}'") if user_error
 
     # lookup role_uuid
     role_container = "roles"
     role_key = "name"
-    role_path = "/OS-KSADM/roles"
+    role_path = "OS-KSADM/roles"
     role_uuid, role_error = _find_id(new_resource, http, role_path, role_container, role_key, new_resource.role_name)
     Chef::Log.error("There was an error looking up Role '#{new_resource.role_name}'") if role_error
 
@@ -284,14 +284,14 @@ action :grant_role do
     # lookup roles assigned to user/tenant
     assigned_container = "roles"
     assigned_key = "name"
-    assigned_path = "/tenants/#{tenant_uuid}/users/#{user_uuid}/roles"
+    assigned_path = "tenants/#{tenant_uuid}/users/#{user_uuid}/roles"
     assigned_role_uuid, assigned_error = _find_id(new_resource, http, assigned_path, assigned_container, assigned_key, new_resource.role_name)
     Chef::Log.error("There was an error looking up Assigned Role '#{new_resource.role_name}' for User '#{new_resource.user_name}' and Tenant '#{new_resource.tenant_name}'") if assigned_error
 
     error = (tenant_error or user_error or role_error or assigned_error)
     unless role_uuid == assigned_role_uuid or error
         # Construct the extension path
-        path = "/tenants/#{tenant_uuid}/users/#{user_uuid}/roles/OS-KSADM/#{role_uuid}"
+        path = "tenants/#{tenant_uuid}/users/#{user_uuid}/roles/OS-KSADM/#{role_uuid}"
 
         # needs a '' for the body, or it throws a 500
         req = _http_put new_resource, path
@@ -407,6 +407,12 @@ def _new_http resource
 end
 
 
+# Just cats the request URI with the supplied path, returning a string
+def _path uri, subject
+  [uri.request_uri, subject].join
+end
+
+
 # Short-cut for returning an Net::HTTP::Post to a path on the admin API endpoint.
 # Headers and admin token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
@@ -444,7 +450,7 @@ def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_passwo
   end
   uri = ::URI.parse(auth_admin_uri)
   http = Net::HTTP.new(uri.host, uri.port)
-  path = "/tokens"
+  path = _path uri, "tokens"
 
   payload = Hash.new
   payload['auth'] = Hash.new
@@ -464,6 +470,7 @@ def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_passwo
     Chef::Log.error("Unable to get admin token.")
     Chef::Log.error("Response Code: #{resp.code}")
     Chef::Log.error("Response Message: #{resp.message}")
+    Chef::Log.error("Response Body: #{resp.body}")
   end
 end
 

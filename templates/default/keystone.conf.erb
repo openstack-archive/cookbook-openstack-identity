@@ -3,7 +3,7 @@
 [DEFAULT]
 public_port = <%= node["keystone"]["service_port"] %>
 admin_port = <%= node["keystone"]["admin_port"] %>
-admin_token = <%= node["keystone"]["admin_token"] %>
+admin_token = <%= @bootstrap_token %>
 bind_host = <%= @ip_address %>
 compute_port = 8774
 verbose = <%= node["keystone"]["verbose"] %>
@@ -96,7 +96,7 @@ paste.app_factory = keystone.service:public_app_factory
 paste.app_factory = keystone.service:admin_app_factory
 
 [pipeline:public_api]
-pipeline = token_auth admin_token_auth xml_body json_body debug ec2_extension public_service
+pipeline = token_auth xml_body json_body debug ec2_extension public_service
 
 [pipeline:admin_api]
 pipeline = token_auth admin_token_auth xml_body json_body debug ec2_extension crud_extension admin_service
