@@ -57,15 +57,18 @@ default["keystone"]["users"] = {
     }
 }
 
-# O.F. Add the default values in preparation for over-riding with PKI 
-# Need to add some sort of dependency on the running of "keystone-manage pki_setup"
-default["keystone"]["signing"]["token_format"] = "UUID"
+default["keystone"]["nova"]["pki"]["enabled"] = false
+if node["keystone"]["nova"]["pki"]["enabled"]
+  node.set["keystone"]["signing"]["token_format"] = "PKI"
+else
+  node.set["keystone"]["signing"]["token_format"] = "UUID"
+end
 default["keystone"]["signing"]["certfile"] = "/etc/keystone/ssl/certs/signing_cert.pem"
 default["keystone"]["signing"]["keyfile"] = "/etc/keystone/ssl/private/signing_key.pem"
 default["keystone"]["signing"]["ca_certs"] = "/etc/keystone/ssl/certs/ca.pem"
 default["keystone"]["signing"]["key_size"] = "1024"
 default["keystone"]["signing"]["valid_days"] = "3650"
-default["keystone"]["signing"]["ca_password"] = nil
+default["keystone"]["signing"]["ca_password"] = "None"
 
 # platform defaults
 case platform

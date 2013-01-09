@@ -72,16 +72,15 @@ file "/var/lib/keystone/keystone.db" do
 end
 
 execute "keystone-manage db_sync" do
-  command "keystone-manage db_sync"
-
   action :nothing
 end
 
 execute "keystone-manage pki_setup" do
-  command "keystone-manage pki_setup"
+  user node['keystone']['user']
 
   action :nothing
-  not_if { node["keystone"]["signing"]["token_format"] == "UUID" }
+
+  only_if { node["keystone"]["nova"]["pki"]["enabled"] }
 end
 
 identity_admin_endpoint = endpoint "identity-admin"

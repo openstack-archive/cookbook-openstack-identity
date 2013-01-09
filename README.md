@@ -250,6 +250,7 @@ Attributes
 * `keystone["admin_token"]` - Admin token for bootstraping keystone server
 * `keystone["roles"]` - Array of roles to create in the keystone server
 * `keystone["users"]` - Array of users to create in the keystone server
+* `keystone["pki"]["enabled"]` - Defaults to false.  Set to true to enable PKI in `auth_token` middleware.
 
 License and Author
 ==================
