@@ -80,7 +80,7 @@ execute "keystone-manage pki_setup" do
 
   action :nothing
 
-  only_if { node["keystone"]["nova"]["pki"]["enabled"] }
+  only_if { node["openstack"]["signing"]["pki"] }
 end
 
 identity_admin_endpoint = endpoint "identity-admin"
