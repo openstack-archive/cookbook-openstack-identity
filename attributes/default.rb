@@ -25,8 +25,8 @@ default["keystone"]["bind_interface"] = "lo"
 
 # Logging stuff
 default["keystone"]["syslog"]["use"] = false
-default["keystone"]["syslog"]["facility"] = "LOG_LOCAL3"
-default["keystone"]["syslog"]["config_facility"] = "local3"
+default["keystone"]["syslog"]["facility"] = "LOG_LOCAL2"
+default["keystone"]["syslog"]["config_facility"] = "local2"
 
 # default["keystone"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin", "sysadmin", "netadmin" ]
 default["keystone"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin" ]
@@ -39,8 +39,6 @@ default["keystone"]["admin_tenant_name"] = "admin"
 
 default["keystone"]["users"] = {
     default["keystone"]["admin_user"]  => {
-        #TODO(jaypipes): create user_password routine in openstack-common for these...
-        "password" => "secrete",
         "default_tenant" => default["keystone"]["admin_tenant_name"],
         "roles" => {
             "admin" => [ "admin" ],
@@ -57,6 +55,9 @@ default["keystone"]["users"] = {
     }
 }
 
+# PKI signing. Corresponds to the [signing] section of keystone.conf
+# Note this section is only written if node["openstack"]["auth"]["straegy"] == "pki"
+default["keystone"]["signing"]["basedir"] = "/etc/keystone/ssl"
 default["keystone"]["signing"]["certfile"] = "/etc/keystone/ssl/certs/signing_cert.pem"
 default["keystone"]["signing"]["keyfile"] = "/etc/keystone/ssl/private/signing_key.pem"
 default["keystone"]["signing"]["ca_certs"] = "/etc/keystone/ssl/certs/ca.pem"

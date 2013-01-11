@@ -75,12 +75,27 @@ execute "keystone-manage db_sync" do
   action :nothing
 end
 
-execute "keystone-manage pki_setup" do
-  user node['keystone']['user']
+# Note that the directory resource in Chef doesn't
+# allow recursive chown'ing, which is why this is
+# a simple execute block...
+execute "chown-ssl-dir" do
+  action :nothing
+  user "root"
+  ssl_dir = node["keystone"]["signing"]["basedir"]
+  command "chown -R #{node["keystone"]["user"]} #{ssl_dir}"
+  only_if ::Dir.exists?(ssl_dir)
+end
 
+execute "keystone-manage pki_setup" do
+  user "root"
   action :nothing
 
-  only_if { node["openstack"]["auth"]["strategy"] == "pki" }
+  notifies :run, "execute[chown-ssl-dir]", :immediately
+  only_if {
+    node["openstack"]["auth"]["strategy"] == "pki" and
+    not node["openstack"]["auth"]["validate_certs"] and
+    not ::FileTest.exists?(node["keystone"]["signing"]["keyfile"])
+  }
 end
 
 identity_admin_endpoint = endpoint "identity-admin"
