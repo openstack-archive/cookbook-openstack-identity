@@ -67,6 +67,15 @@ directory "/etc/keystone" do
   action :create
 end
 
+directory node["keystone"]["signing"]["basedir"] do
+  owner node['keystone']['user']
+  group node['keystone']['group']
+  mode  00700
+
+  action :create
+  only_if { node["openstack"]["auth"]["strategy"] == "pki" }
+end
+
 file "/var/lib/keystone/keystone.db" do
   action :delete
 end
