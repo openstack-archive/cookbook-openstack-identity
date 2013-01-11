@@ -67,6 +67,15 @@ directory "/etc/keystone" do
   action :create
 end
 
+directory node["keystone"]["signing"]["basedir"] do
+  owner node['keystone']['user']
+  group node['keystone']['group']
+  mode  00700
+
+  action :create
+  only_if { node["openstack"]["auth"]["strategy"] == "pki" }
+end
+
 file "/var/lib/keystone/keystone.db" do
   action :delete
 end
@@ -152,7 +161,8 @@ bash "bootstrap-keystone-admin" do
   # here manually since the python-keystoneclient package included
   # in CloudArchive (for now) doesn't have it...
   #command "keystone bootstrap --os-token=#{bootstrap_token} --user-name=#{admin_user} --tenant-name=#{admin_tenant_name} --pass=#{admin_pass}"
-  base_ks_cmd = "keystone --endpoint=#{auth_uri} --token=#{bootstrap_token}"
+  insecure = node["openstack"]["auth"]["validate_certs"] ? " --insecure" : ""
+  base_ks_cmd = "keystone#{insecure} --endpoint=#{auth_uri} --token=#{bootstrap_token}"
   code <<-EOF
 set -x
 function get_id () {
