@@ -63,8 +63,6 @@ directory "/etc/keystone" do
   owner node['keystone']['user']
   group node['keystone']['group']
   mode  00700
-
-  action :create
 end
 
 directory node["keystone"]["signing"]["basedir"] do
@@ -72,7 +70,6 @@ directory node["keystone"]["signing"]["basedir"] do
   group node['keystone']['group']
   mode  00700
 
-  action :create
   only_if { node["openstack"]["auth"]["strategy"] == "pki" }
 end
 
@@ -185,6 +182,7 @@ node["keystone"]["tenants"].each do |tenant_name|
     tenant_name tenant_name
     tenant_description "#{tenant_name} Tenant"
     tenant_enabled "true" # Not required as this is the default
+
     action :create_tenant
   end
 end
