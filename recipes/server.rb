@@ -63,8 +63,6 @@ directory "/etc/keystone" do
   owner node['keystone']['user']
   group node['keystone']['group']
   mode  00700
-
-  action :create
 end
 
 directory node["keystone"]["signing"]["basedir"] do
@@ -72,7 +70,6 @@ directory node["keystone"]["signing"]["basedir"] do
   group node['keystone']['group']
   mode  00700
 
-  action :create
   only_if { node["openstack"]["auth"]["strategy"] == "pki" }
 end
 
@@ -80,31 +77,13 @@ file "/var/lib/keystone/keystone.db" do
   action :delete
 end
 
-execute "keystone-manage db_sync" do
-  action :nothing
-end
-
-# Note that the directory resource in Chef doesn't
-# allow recursive chown'ing, which is why this is
-# a simple execute block...
-execute "chown-ssl-dir" do
-  action :nothing
-  user "root"
-  ssl_dir = node["keystone"]["signing"]["basedir"]
-  command "chown -R #{node["keystone"]["user"]} #{ssl_dir}"
-  only_if ::Dir.exists?(ssl_dir)
-end
+execute "keystone-manage db_sync" # idempotent
 
 execute "keystone-manage pki_setup" do
-  user "root"
-  action :nothing
+  user node["keystone"]["user"]
 
-  notifies :run, "execute[chown-ssl-dir]", :immediately
-  only_if {
-    node["openstack"]["auth"]["strategy"] == "pki" and
-    not node["openstack"]["auth"]["validate_certs"] and
-    not ::FileTest.exists?(node["keystone"]["signing"]["keyfile"])
-  }
+  only_if { node["openstack"]["auth"]["strategy"] == "pki" }
+  not_if { ::FileTest.exists? node["keystone"]["signing"]["keyfile"] }
 end
 
 identity_admin_endpoint = endpoint "identity-admin"
@@ -138,8 +117,6 @@ template "/etc/keystone/keystone.conf" do
     "bootstrap_token" => bootstrap_token
   )
 
-  notifies :run, "execute[keystone-manage db_sync]", :immediately
-  notifies :run, "execute[keystone-manage pki_setup]", :immediately
   notifies :restart, "service[keystone]", :immediately
 end
 
@@ -205,6 +182,7 @@ node["keystone"]["tenants"].each do |tenant_name|
     tenant_name tenant_name
     tenant_description "#{tenant_name} Tenant"
     tenant_enabled "true" # Not required as this is the default
+
     action :create_tenant
   end
 end
