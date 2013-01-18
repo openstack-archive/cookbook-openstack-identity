@@ -138,7 +138,7 @@ bash "bootstrap-keystone-admin" do
   # here manually since the python-keystoneclient package included
   # in CloudArchive (for now) doesn't have it...
   #command "keystone bootstrap --os-token=#{bootstrap_token} --user-name=#{admin_user} --tenant-name=#{admin_tenant_name} --pass=#{admin_pass}"
-  insecure = node["openstack"]["auth"]["validate_certs"] ? " --insecure" : ""
+  insecure = node["openstack"]["auth"]["validate_certs"] ? "" : " --insecure"
   base_ks_cmd = "keystone#{insecure} --endpoint=#{auth_uri} --token=#{bootstrap_token}"
   code <<-EOF
 set -x
