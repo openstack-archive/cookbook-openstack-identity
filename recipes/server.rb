@@ -77,8 +77,6 @@ file "/var/lib/keystone/keystone.db" do
   action :delete
 end
 
-execute "keystone-manage db_sync" # idempotent
-
 execute "keystone-manage pki_setup" do
   user node["keystone"]["user"]
 
@@ -119,6 +117,9 @@ template "/etc/keystone/keystone.conf" do
 
   notifies :restart, "service[keystone]", :immediately
 end
+
+# sync db after keystone.conf is generated
+execute "keystone-manage db_sync" # idempotent
 
 template "/etc/keystone/logging.conf" do
   source "keystone-logging.conf.erb"
