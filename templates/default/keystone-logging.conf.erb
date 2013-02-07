@@ -1,7 +1,7 @@
 <%= node["keystone"]["custom_template_banner"] %>
 
 [loggers]
-keys=keystone
+keys=root,keystone,combined
 
 [formatters]
 keys=normal,normal_with_name,debug
@@ -11,7 +11,7 @@ keys=production,file,devel
 
 [logger_root]
 level=NOTSET
-handlers=file
+handlers=devel
 
 [logger_keystone]
 level=DEBUG
