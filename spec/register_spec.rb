@@ -44,7 +44,7 @@ describe Chef::Provider::Execute do
     provider = Chef::Provider::OpenstackIdentityRegister.new(@tenant_resource, @run_context)
     provider.stub!(:identity_uuid).with(@tenant_resource, "tenant", "name", "tenant1")
     provider.stub!(:identity_command).with(@tenant_resource, "tenant-create",
-      {"name" => "tenant1", "description" => "tenant1 Tenant", "enabled" => "true"})
+      {"name" => "tenant1", "description" => "tenant1 Tenant", "enabled" => true})
     provider.run_action(:create_tenant)
     @tenant_resource.should be_updated
   end
@@ -123,7 +123,7 @@ describe Chef::Provider::Execute do
     provider.stub!(:identity_uuid).with(@user_resource, "tenant", "name", "tenant1").and_return("1234567890ABCDEFGH")
     provider.stub!(:identity_command).with(@user_resource, "user-list", {"tenant-id" => "1234567890ABCDEFGH"})
     provider.stub!(:identity_command).with(@user_resource, "user-create",
-      {"name" => "user1", "tenant-id" => "1234567890ABCDEFGH", "pass" => "password", "enabled" => "true"})
+      {"name" => "user1", "tenant-id" => "1234567890ABCDEFGH", "pass" => "password", "enabled" => true})
     provider.stub!(:prettytable_to_array).and_return([])
     provider.run_action(:create_user)
     @user_resource.should be_updated
