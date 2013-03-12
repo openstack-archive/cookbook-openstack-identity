@@ -24,6 +24,10 @@ class ::Chef::Recipe
   include ::Openstack
 end
 
+if node["keystone"]["syslog"]["use"]
+  include_recipe "openstack-common::logging"
+end
+
 platform_options = node["keystone"]["platform"]
 
 ##### NOTE #####
@@ -120,15 +124,6 @@ end
 
 # sync db after keystone.conf is generated
 execute "keystone-manage db_sync" # idempotent
-
-template "/etc/keystone/logging.conf" do
-  source "keystone-logging.conf.erb"
-  owner node["keystone"]["user"]
-  group node["keystone"]["group"]
-  mode   00644
-
-  notifies :restart, "service[keystone]", :immediately
-end
 
 # We need to bootstrap the keystone admin user so that calls
 # to keystone_register will succeed, since those provider calls

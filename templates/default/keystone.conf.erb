@@ -9,18 +9,10 @@ compute_port = 8774
 verbose = <%= node["keystone"]["verbose"] %>
 debug = <%= node["keystone"]["debug"] %>
 <% if node["keystone"]["syslog"]["use"] %>
-# log_config = /etc/keystone/logging.conf
+log_config = /etc/openstack/logging.conf
 <% else %>
-log_config = /etc/keystone/logging.conf
+log_file = /var/log/keystone/keystone.log
 <% end %>
-
-# ================= Syslog Options ============================
-# Send logs to syslog (/dev/log) instead of to file specified
-# by `log-file`
-use_syslog = <%= node["keystone"]["syslog"]["use"] %>
-
-# Facility to use. If unset defaults to LOG_LOCAL2
-syslog_log_facility = <%= node["keystone"]["syslog"]["facility"] %>
 
 [sql]
 connection = <%= @sql_connection %>
