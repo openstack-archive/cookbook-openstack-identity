@@ -114,6 +114,15 @@ ip_address = node["network"]["ipaddress_#{node["openstack"]["identity"]["bind_in
 # memcache.servers attribute.
 memcache_servers = memcached_servers.join ","  # from openstack-common lib
 
+uris = {
+  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25','%'),
+  'identity' => identity_endpoint.to_s.gsub('%25','%'),
+  'image' => image_endpoint.to_s.gsub('%25','%'),
+  'compute' => compute_endpoint.to_s.gsub('%25','%'),
+  'ec2' => ec2_endpoint.to_s.gsub('%25','%'),
+  'volume' => volume_endpoint.to_s.gsub('%25','%')
+}
+
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
   owner node["openstack"]["identity"]["user"]
@@ -123,20 +132,12 @@ template "/etc/keystone/keystone.conf" do
     :sql_connection => sql_connection,
     :ip_address => ip_address,
     "bootstrap_token" => bootstrap_token,
-    "memcache_servers" => memcache_servers
+    "memcache_servers" => memcache_servers,
+    "uris" => uris
   )
 
   notifies :restart, "service[keystone]", :immediately
 end
-
-uris = {
-  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25','%'),
-  'identity' => identity_endpoint.to_s.gsub('%25','%'),
-  'image' => image_endpoint.to_s.gsub('%25','%'),
-  'compute' => compute_endpoint.to_s.gsub('%25','%'),
-  'ec2' => ec2_endpoint.to_s.gsub('%25','%'),
-  'volume' => volume_endpoint.to_s.gsub('%25','%')
-}
 
 template "/etc/keystone/default_catalog.templates" do
   source "default_catalog.templates.erb"
