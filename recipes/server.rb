@@ -108,7 +108,8 @@ end[0][0]
 # servers via a Chef search. If not, we look at the
 # memcache.servers attribute.
 memcache_servers = 
-case node['keystone']['memcache']['search_role']
+case 
+when node['keystone']['memcache']['search_role']
   role = node['keystone']['memcache']['search_role']
   query = "roles:#{role} AND chef_environment:#{node.chef_environment}"
   results, _, _ = ::Chef::Search::Query.new.search :node, query
@@ -124,10 +125,11 @@ case node['keystone']['memcache']['search_role']
     end
     ",".join servers
   end
-case node['keystone']['memcache']['servers']
+when node['keystone']['memcache']['servers']
   node['keystone']['memcache']['servers']
 else
   nil
+end
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
