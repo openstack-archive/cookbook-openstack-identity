@@ -129,12 +129,12 @@ template "/etc/keystone/keystone.conf" do
 end
 
 uris = {
-  'identity-admin' => identity_admin_endpoint.to_s,
-  'identity' => identity_endpoint.to_s,
-  'image' => image_endpoint.to_s,
-  'compute' => compute_endpoint.to_s,
-  'ec2' => ec2_endpoint.to_s,
-  'volume' => volume_endpoint.to_s
+  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25','%'),
+  'identity' => identity_endpoint.to_s.gsub('%25','%'),
+  'image' => image_endpoint.to_s.gsub('%25','%'),
+  'compute' => compute_endpoint.to_s.gsub('%25','%'),
+  'ec2' => ec2_endpoint.to_s.gsub('%25','%'),
+  'volume' => volume_endpoint.to_s.gsub('%25','%')
 }
 
 template "/etc/keystone/default_catalog.templates" do
