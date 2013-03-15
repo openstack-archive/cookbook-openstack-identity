@@ -124,6 +124,20 @@ template "/etc/keystone/keystone.conf" do
   notifies :restart, "service[keystone]", :immediately
 end
 
+endpoints = endpoints
+template "/etc/keystone/default_catalog.templates" do
+  source "default_catalog.templates.erb"
+  owner node["keystone"]["user"]
+  group node["keystone"]["group"]
+  mode   00644
+  variables(
+    "endpoints": endpoints
+  )
+
+  notifies :restart, "service[keystone]", :immediately
+  only_if { node['keystone']['catalog']['backend'] == 'templates' }
+end
+
 # sync db after keystone.conf is generated
 execute "keystone-manage db_sync" # idempotent
 

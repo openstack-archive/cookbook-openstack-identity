@@ -1,0 +1,24 @@
+catalog.<%= node['keystone']['region'] %>.identity.publicURL = <%= @endpoints['identity'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.adminURL = <%= @endpoints['identity'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.internalURL = <%= @endpoints['identity'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.name = Identity Service
+
+catalog.<%= node['keystone']['region'] %>.compute.publicURL = <%= @endpoints['compute'].to_s %>
+catalog.<%= node['keystone']['region'] %>.compute.adminURL = <%= @endpoints['compute'].to_s %>
+catalog.<%= node['keystone']['region'] %>.compute.internalURL = <%= @endpoints['compute'].to_s %>
+catalog.<%= node['keystone']['region'] %>.compute.name = Compute Service
+
+catalog.<%= node['keystone']['region'] %>.volume.publicURL = <%= @endpoints['volume'].to_s %>
+catalog.<%= node['keystone']['region'] %>.volume.adminURL = <%= @endpoints['volume'].to_s %>
+catalog.<%= node['keystone']['region'] %>.volume.internalURL = <%= @endpoints['volume'].to_s %>
+catalog.<%= node['keystone']['region'] %>.volume.name = Volume Service
+
+catalog.<%= node['keystone']['region'] %>.ec2.publicURL = <%= @endpoints['ec2'].to_s %>
+catalog.<%= node['keystone']['region'] %>.ec2.adminURL = <%= @endpoints['ec2'].to_s %>
+catalog.<%= node['keystone']['region'] %>.ec2.internalURL = <%= @endpoints['ec2'].to_s %>
+catalog.<%= node['keystone']['region'] %>.ec2.name = EC2 Service
+
+catalog.<%= node['keystone']['region'] %>.image.publicURL = <%= @endpoints['image'].to_s %>
+catalog.<%= node['keystone']['region'] %>.image.adminURL = <%= @endpoints['image'].to_s %>
+catalog.<%= node['keystone']['region'] %>.image.internalURL = <%= @endpoints['image'].to_s %>
+catalog.<%= node['keystone']['region'] %>.image.name = Image Service

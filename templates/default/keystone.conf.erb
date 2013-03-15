@@ -49,6 +49,7 @@ driver = keystone.identity.backends.<%= node['keystone']['identity']['backend'] 
 
 [catalog]
 driver = keystone.catalog.backends.<%= node['keystone']['catalog']['backend'] %>.Catalog
+template_file = /etc/keystone/default_catalog.template
 
 [token]
 driver = keystone.token.backends.<%= node['keystone']['token']['backend'] %>.Token
