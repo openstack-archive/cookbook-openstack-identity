@@ -107,7 +107,7 @@ end[0][0]
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
 # memcache.servers attribute.
-memcache_servers = memcached_servers  # from openstack-common lib
+memcache_servers = memcached_servers.join ","  # from openstack-common lib
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
