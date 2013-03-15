@@ -131,7 +131,7 @@ template "/etc/keystone/default_catalog.templates" do
   group node["keystone"]["group"]
   mode   00644
   variables(
-    "endpoints": endpoints
+    "endpoints" => endpoints
   )
 
   notifies :restart, "service[keystone]", :immediately
