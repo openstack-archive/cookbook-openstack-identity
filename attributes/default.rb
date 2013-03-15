@@ -65,6 +65,15 @@ default["keystone"]["signing"]["key_size"] = "1024"
 default["keystone"]["signing"]["valid_days"] = "3650"
 default["keystone"]["signing"]["ca_password"] = nil
 
+# These switches set the various drivers for the different Keystone components
+default['keystone']['identity']['backend'] = 'sql'
+default['keystone']['token']['backend'] = 'sql'
+default['keystone']['catalog']['backend'] = 'sql'
+
+# If any of the backend drivers are memcache, this should be set to a
+# comma-delimited string of server addresses to find memcache servers.
+default['keystone']['memcache']['servers'] = nil
+
 # platform defaults
 case platform
 when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this

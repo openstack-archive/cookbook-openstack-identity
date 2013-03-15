@@ -22,6 +22,11 @@ use_syslog = <%= node["keystone"]["syslog"]["use"] %>
 # Facility to use. If unset defaults to LOG_LOCAL2
 syslog_log_facility = <%= node["keystone"]["syslog"]["facility"] %>
 
+<% if node['keystone']['memcache']['servers'] -%>
+[memcache]
+servers = <%= node['keystone']['memcache']['servers'] %>
+<% end -%>
+
 [sql]
 connection = <%= @sql_connection %>
 idle_timeout = 200
@@ -40,13 +45,13 @@ pool_timeout = 200
 #suffix = cn=example,cn=com
 
 [identity]
-driver = keystone.identity.backends.sql.Identity
+driver = keystone.identity.backends.<%= node['keystone']['identity']['backend'] %>.Identity
 
 [catalog]
-driver = keystone.catalog.backends.sql.Catalog
+driver = keystone.catalog.backends.<%= node['keystone']['catalog']['backend'] %>.Catalog
 
 [token]
-driver = keystone.token.backends.sql.Token
+driver = keystone.token.backends.<%= node['keystone']['token']['backend'] %>.Token
 
 # Amount of time a token should remain valid (in seconds)
 expiration = 86400
