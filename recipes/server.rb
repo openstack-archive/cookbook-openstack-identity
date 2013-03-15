@@ -123,7 +123,7 @@ when node['keystone']['memcache']['search_role']
     results.each do | result |
       servers << "#{result['network']["ipaddress_#{iface}"]}:11211"
     end
-    ",".join servers
+    servers.join ","
   end
 when node['keystone']['memcache']['servers']
   node['keystone']['memcache']['servers']
