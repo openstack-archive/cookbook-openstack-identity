@@ -70,15 +70,6 @@ default['keystone']['identity']['backend'] = 'sql'
 default['keystone']['token']['backend'] = 'sql'
 default['keystone']['catalog']['backend'] = 'sql'
 
-# If any of the backend drivers are memcache, this should be set to a
-# comma-delimited string of server addresses to find memcache servers.
-default['keystone']['memcache']['servers'] = nil
-# If the following is set to a role name, then the above servers
-# attribute value will be automatically filled with the IP addresses
-# from the corresponding bind_interface of any server having that role.
-default['keystone']['memcache']['search_role'] = nil
-default['keystone']['memcache']['bind_interface'] = 'eth0'
-
 # platform defaults
 case platform
 when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this
