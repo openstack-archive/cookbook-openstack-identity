@@ -104,6 +104,31 @@ ip_address = interface_node.select do |address, data|
   data['family'] == "inet"
 end[0][0]
 
+# If the search role is set, we search for memcache
+# servers via a Chef search. If not, we look at the
+# memcache.servers attribute.
+memcache_servers = 
+case node['keystone']['memcache']['search_role']
+  role = node['keystone']['memcache']['search_role']
+  query = "roles:#{role} AND chef_environment:#{node.chef_environment}"
+  results, _, _ = ::Chef::Search::Query.new.search :node, query
+
+  if results.empty?
+    log("Searched for role #{role} by found no nodes with that role in run list.") { level :debug }
+    nil
+  else
+    servers = []
+    iface = node['keystone']['memcache']['bind_interface']
+    results.each do | result |
+      servers << "#{result['network']["ipaddress_#{iface}"]}:11211"
+    end
+    ",".join servers
+  end
+case node['keystone']['memcache']['servers']
+  node['keystone']['memcache']['servers']
+else
+  nil
+
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
   owner node["keystone"]["user"]
@@ -112,7 +137,8 @@ template "/etc/keystone/keystone.conf" do
   variables(
     :sql_connection => sql_connection,
     :ip_address => ip_address,
-    "bootstrap_token" => bootstrap_token
+    "bootstrap_token" => bootstrap_token,
+    "memcache_servers" => memcache_servers
   )
 
   notifies :restart, "service[keystone]", :immediately
