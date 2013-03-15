@@ -86,6 +86,10 @@ end
 
 identity_admin_endpoint = endpoint "identity-admin"
 identity_endpoint = endpoint "identity-api"
+compute_endpoint = endpoint "compute-api"
+ec2_endpoint = endpoint "compute-ec2-api"
+image_endpoint = endpoint "image-api"
+volume_endpoint = endpoint "volume-api"
 
 admin_tenant_name = node["keystone"]["admin_tenant_name"]
 admin_user = node["keystone"]["admin_user"]
@@ -124,14 +128,22 @@ template "/etc/keystone/keystone.conf" do
   notifies :restart, "service[keystone]", :immediately
 end
 
-endpoints = endpoints
+uris = {
+  'identity-admin': identity_admin_endpoint.to_s,
+  'identity': identity_endpoint.to_s,
+  'image': image_endpoint.to_s,
+  'compute': compute_endpoint.to_s,
+  'ec2': ec2_endpoint.to_s,
+  'volume': volume_endpoint.to_s
+}
+
 template "/etc/keystone/default_catalog.templates" do
   source "default_catalog.templates.erb"
   owner node["keystone"]["user"]
   group node["keystone"]["group"]
   mode   00644
   variables(
-    "endpoints" => endpoints
+    "uris" => uris
   )
 
   notifies :restart, "service[keystone]", :immediately
