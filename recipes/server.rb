@@ -147,7 +147,7 @@ template "/etc/keystone/default_catalog.templates" do
   )
 
   notifies :restart, "service[keystone]", :immediately
-  only_if { node['keystone']['catalog']['backend'] == 'templates' }
+  only_if { node['keystone']['catalog']['backend'] == 'templated' }
 end
 
 # sync db after keystone.conf is generated
