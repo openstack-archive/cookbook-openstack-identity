@@ -21,6 +21,11 @@
 require "uri"
 
 action :create_service do
+    if node['keystone']['catalog']['backend'] == 'templated'
+      Chef::Log.info("Skipping service creation - templated catalog backend in use.")
+      new_resource.updated_by_last_action(false)
+      return
+    end
     http = _new_http new_resource
 
     # lookup service_uuid
@@ -56,6 +61,11 @@ end
 
 
 action :create_endpoint do
+    if node['keystone']['catalog']['backend'] == 'templated'
+      Chef::Log.info("Skipping endpoint creation - templated catalog backend in use.")
+      new_resource.updated_by_last_action(false)
+      return
+    end
     http = _new_http new_resource
 
     # lookup service_uuid
