@@ -65,6 +65,11 @@ default["keystone"]["signing"]["key_size"] = "1024"
 default["keystone"]["signing"]["valid_days"] = "3650"
 default["keystone"]["signing"]["ca_password"] = nil
 
+# These switches set the various drivers for the different Keystone components
+default['keystone']['identity']['backend'] = 'sql'
+default['keystone']['token']['backend'] = 'sql'
+default['keystone']['catalog']['backend'] = 'sql'
+
 # platform defaults
 case platform
 when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this

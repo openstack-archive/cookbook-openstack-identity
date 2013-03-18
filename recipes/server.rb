@@ -108,6 +108,11 @@ ip_address = interface_node.select do |address, data|
   data['family'] == "inet"
 end[0][0]
 
+# If the search role is set, we search for memcache
+# servers via a Chef search. If not, we look at the
+# memcache.servers attribute.
+memcache_servers = memcached_servers  # from openstack-common lib
+
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
   owner node["keystone"]["user"]
@@ -116,7 +121,8 @@ template "/etc/keystone/keystone.conf" do
   variables(
     :sql_connection => sql_connection,
     :ip_address => ip_address,
-    "bootstrap_token" => bootstrap_token
+    "bootstrap_token" => bootstrap_token,
+    "memcache_servers" => memcache_servers
   )
 
   notifies :restart, "service[keystone]", :immediately

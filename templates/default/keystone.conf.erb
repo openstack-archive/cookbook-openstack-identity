@@ -14,6 +14,11 @@ log_config = /etc/openstack/logging.conf
 log_file = /var/log/keystone/keystone.log
 <% end %>
 
+<% if @memcache_servers -%>
+[memcache]
+servers = <%= @memcache_servers %>
+
+<% end -%>
 [sql]
 connection = <%= @sql_connection %>
 idle_timeout = 200
@@ -32,13 +37,13 @@ pool_timeout = 200
 #suffix = cn=example,cn=com
 
 [identity]
-driver = keystone.identity.backends.sql.Identity
+driver = keystone.identity.backends.<%= node['keystone']['identity']['backend'] %>.Identity
 
 [catalog]
-driver = keystone.catalog.backends.sql.Catalog
+driver = keystone.catalog.backends.<%= node['keystone']['catalog']['backend'] %>.Catalog
 
 [token]
-driver = keystone.token.backends.sql.Token
+driver = keystone.token.backends.<%= node['keystone']['token']['backend'] %>.Token
 
 # Amount of time a token should remain valid (in seconds)
 expiration = 86400
