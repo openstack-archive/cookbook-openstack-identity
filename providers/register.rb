@@ -423,7 +423,7 @@ end
 
 
 # Short-cut for returning an Net::HTTP::Post to a path on the admin API endpoint.
-# Headers and admin token validation are already performed. All
+# Headers and bootstrap token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
 def _http_post resource, path
   uri = ::URI.parse(resource.auth_uri)
@@ -434,7 +434,7 @@ end
 
 
 # Short-cut for returning an Net::HTTP::Put to a path on the admin API endpoint.
-# Headers and admin token validation are already performed. All
+# Headers and bootstrap token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
 def _http_put resource, path
   uri = ::URI.parse(resource.auth_uri)
@@ -454,44 +454,9 @@ def _http_get resource, path
   _build_request resource, request
 end
 
-
-# Returns a token for use by a Keystone Admin user when
-# issuing requests to the Keystone Admin API
-def _get_admin_token auth_admin_uri, admin_tenant_name, admin_user, admin_password
-  # Construct a HTTP object from the supplied URI pointing to the
-  # Keystone Admin API endpoint.
-  uri = ::URI.parse(auth_admin_uri)
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true if uri.scheme == 'https'
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-  path = _path uri, "tokens"
-
-  payload = Hash.new
-  payload['auth'] = Hash.new
-  payload['auth']['passwordCredentials'] = Hash.new
-  payload['auth']['passwordCredentials']['username'] = admin_user
-  payload['auth']['passwordCredentials']['password'] = admin_password
-  payload['auth']['tenantName'] = admin_tenant_name
-  
-  req = Net::HTTP::Post.new(path)
-  req.add_field 'Content-type', 'application/json'
-  req.add_field 'user-agent', 'Chef keystone_register admin_token'
-  req.body = JSON.generate(payload)
-  resp = http.request req
-  if resp.is_a?(Net::HTTPOK)
-    data = JSON.parse resp.body
-    token = data['access']['token']['id']
-  else
-    Chef::Log.error("Unable to get admin token.")
-    Chef::Log.error("Response Code: #{resp.code}")
-    Chef::Log.error("Response Message: #{resp.message}")
-    Chef::Log.error("Response Body: #{resp.body}")
-  end
-end
-
 # Constructs the request object with all the requisite headers added
 def _build_request resource, request
-  admin_token = _get_admin_token resource.auth_uri, resource.admin_tenant_name, resource.admin_user, resource.admin_password
+  admin_token = resource.bootstrap_token
   request.add_field 'X-Auth-Token', admin_token
   request.add_field 'Content-type', 'application/json'
   request.add_field 'user-agent', 'Chef keystone_register'
