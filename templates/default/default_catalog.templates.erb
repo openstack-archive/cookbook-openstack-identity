@@ -1,0 +1,24 @@
+catalog.<%= node['keystone']['region'] %>.identity.publicURL = <%= @uris['identity'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.adminURL = <%= @uris['identity'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.internalURL = <%= @uris['identity-admin'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.name = Identity Service
+
+catalog.<%= node['keystone']['region'] %>.compute.publicURL = <%= @uris['compute'].to_s %>
+catalog.<%= node['keystone']['region'] %>.compute.adminURL = <%= @uris['compute'].to_s %>
+catalog.<%= node['keystone']['region'] %>.compute.internalURL = <%= @uris['compute'].to_s %>
+catalog.<%= node['keystone']['region'] %>.compute.name = Compute Service
+
+catalog.<%= node['keystone']['region'] %>.volume.publicURL = <%= @uris['volume'].to_s %>
+catalog.<%= node['keystone']['region'] %>.volume.adminURL = <%= @uris['volume'].to_s %>
+catalog.<%= node['keystone']['region'] %>.volume.internalURL = <%= @uris['volume'].to_s %>
+catalog.<%= node['keystone']['region'] %>.volume.name = Volume Service
+
+catalog.<%= node['keystone']['region'] %>.ec2.publicURL = <%= @uris['ec2'].to_s %>
+catalog.<%= node['keystone']['region'] %>.ec2.adminURL = <%= @uris['ec2'].to_s %>
+catalog.<%= node['keystone']['region'] %>.ec2.internalURL = <%= @uris['ec2'].to_s %>
+catalog.<%= node['keystone']['region'] %>.ec2.name = EC2 Service
+
+catalog.<%= node['keystone']['region'] %>.image.publicURL = <%= @uris['image'].to_s %>
+catalog.<%= node['keystone']['region'] %>.image.adminURL = <%= @uris['image'].to_s %>
+catalog.<%= node['keystone']['region'] %>.image.internalURL = <%= @uris['image'].to_s %>
+catalog.<%= node['keystone']['region'] %>.image.name = Image Service

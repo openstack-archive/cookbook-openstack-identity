@@ -90,6 +90,10 @@ end
 
 identity_admin_endpoint = endpoint "identity-admin"
 identity_endpoint = endpoint "identity-api"
+compute_endpoint = endpoint "compute-api"
+ec2_endpoint = endpoint "compute-ec2-api"
+image_endpoint = endpoint "image-api"
+volume_endpoint = endpoint "volume-api"
 
 admin_tenant_name = node["keystone"]["admin_tenant_name"]
 admin_user = node["keystone"]["admin_user"]
@@ -111,7 +115,7 @@ end[0][0]
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
 # memcache.servers attribute.
-memcache_servers = memcached_servers  # from openstack-common lib
+memcache_servers = memcached_servers.join ","  # from openstack-common lib
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
@@ -126,6 +130,28 @@ template "/etc/keystone/keystone.conf" do
   )
 
   notifies :restart, "service[keystone]", :immediately
+end
+
+uris = {
+  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25','%'),
+  'identity' => identity_endpoint.to_s.gsub('%25','%'),
+  'image' => image_endpoint.to_s.gsub('%25','%'),
+  'compute' => compute_endpoint.to_s.gsub('%25','%'),
+  'ec2' => ec2_endpoint.to_s.gsub('%25','%'),
+  'volume' => volume_endpoint.to_s.gsub('%25','%')
+}
+
+template "/etc/keystone/default_catalog.templates" do
+  source "default_catalog.templates.erb"
+  owner node["keystone"]["user"]
+  group node["keystone"]["group"]
+  mode   00644
+  variables(
+    "uris" => uris
+  )
+
+  notifies :restart, "service[keystone]", :immediately
+  only_if { node['keystone']['catalog']['backend'] == 'templated' }
 end
 
 # sync db after keystone.conf is generated

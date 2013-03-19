@@ -21,100 +21,110 @@
 require "uri"
 
 action :create_service do
-    http = _new_http new_resource
-
-    # lookup service_uuid
-    service_container = "OS-KSADM:services"
-    service_key = "type"
-    service_path = "OS-KSADM/services"
-    service_uuid, error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
-
-    # See if the service exists yet
-    unless service_uuid or error
-        # Service does not exist yet
-        payload = _build_service_object(new_resource.service_type, new_resource.service_name, new_resource.service_description)
-        req = _http_post new_resource, service_path
-        req.body = JSON.generate(payload)
-        resp = http.request req
-        if resp.is_a?(Net::HTTPOK)
-            Chef::Log.info("Created service '#{new_resource.service_name}'")
-            new_resource.updated_by_last_action(true)
-        else
-            Chef::Log.error("Unable to create service '#{new_resource.service_name}'")
-            Chef::Log.error("Response Code: #{resp.code}")
-            Chef::Log.error("Response Message: #{resp.message}")
-            Chef::Log.error("Response Body: #{resp.body}")
-            new_resource.updated_by_last_action(false)
-        end
+    if node['keystone']['catalog']['backend'] == 'templated'
+      Chef::Log.info("Skipping service creation - templated catalog backend in use.")
+      new_resource.updated_by_last_action(false)
     else
-        Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.") if service_uuid
-        Chef::Log.info("Service UUID: #{service_uuid}") if service_uuid
-        Chef::Log.error("There was an error looking up service '#{new_resource.service_name}':") if error
-        new_resource.updated_by_last_action(false)
+      http = _new_http new_resource
+
+      # lookup service_uuid
+      service_container = "OS-KSADM:services"
+      service_key = "type"
+      service_path = "OS-KSADM/services"
+      service_uuid, error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
+
+      # See if the service exists yet
+      unless service_uuid or error
+          # Service does not exist yet
+          payload = _build_service_object(new_resource.service_type, new_resource.service_name, new_resource.service_description)
+          req = _http_post new_resource, service_path
+          req.body = JSON.generate(payload)
+          resp = http.request req
+          if resp.is_a?(Net::HTTPOK)
+              Chef::Log.info("Created service '#{new_resource.service_name}'")
+              new_resource.updated_by_last_action(true)
+          else
+              Chef::Log.error("Unable to create service '#{new_resource.service_name}'")
+              Chef::Log.error("Response Code: #{resp.code}")
+              Chef::Log.error("Response Message: #{resp.message}")
+              Chef::Log.error("Response Body: #{resp.body}")
+              new_resource.updated_by_last_action(false)
+          end
+      else
+          Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.") if service_uuid
+          Chef::Log.info("Service UUID: #{service_uuid}") if service_uuid
+          Chef::Log.error("There was an error looking up service '#{new_resource.service_name}':") if error
+          new_resource.updated_by_last_action(false)
+      end
     end
 end
 
 
 action :create_endpoint do
-    http = _new_http new_resource
-
-    # lookup service_uuid
-    service_container = "OS-KSADM:services"
-    service_key = "type"
-    service_path = "OS-KSADM/services"
-    service_uuid, error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
-
-    unless service_uuid or error
-        Chef::Log.error("Unable to find service type '#{new_resource.service_type}'") if error
-        new_resource.updated_by_last_action(false)
-    end
-
-    # Construct the extension path
-    path = "endpoints"
-    req = _http_get new_resource, path
-
-    # Make sure this endpoint does not already exist
-    resp = http.request req
-    if resp.is_a?(Net::HTTPOK)
-        endpoint_exists = false
-        data = JSON.parse(resp.body)
-        data['endpoints'].each do |endpoint|
-            if endpoint['service_id'] == service_uuid
-                # Match found
-                endpoint_exists = true
-                break
-            end
-        end
-        if endpoint_exists
-            Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}' already exists.. Not creating.")
-            new_resource.updated_by_last_action(false)
-        else
-            payload = _build_endpoint_object(
-                      new_resource.endpoint_region,
-                      service_uuid,
-                      new_resource.endpoint_publicurl,
-                      new_resource.endpoint_internalurl,
-                      new_resource.endpoint_adminurl)
-            req = _http_post new_resource, path
-            req.body = JSON.generate(payload)
-            resp = http.request req
-            if resp.is_a?(Net::HTTPOK)
-                Chef::Log.info("Created endpoint for service type '#{new_resource.service_type}'")
-                new_resource.updated_by_last_action(true)
-            else
-                Chef::Log.error("Unable to create endpoint for service type '#{new_resource.service_type}'")
-                Chef::Log.error("Response Code: #{resp.code}")
-                Chef::Log.error("Response Message: #{resp.message}")
-                Chef::Log.error("Response Body: #{resp.body}")
-                new_resource.updated_by_last_action(false)
-            end
-        end
+    if node['keystone']['catalog']['backend'] == 'templated'
+      Chef::Log.info("Skipping endpoint creation - templated catalog backend in use.")
+      new_resource.updated_by_last_action(false)
     else
-        Chef::Log.error("Unknown response from the Keystone Server")
-        Chef::Log.error("Response Code: #{resp.code}")
-        Chef::Log.error("Response Message: #{resp.message}")
-        Chef::Log.error("Response Body: #{resp.body}")
-        new_resource.updated_by_last_action(false)
+      http = _new_http new_resource
+
+      # lookup service_uuid
+      service_container = "OS-KSADM:services"
+      service_key = "type"
+      service_path = "OS-KSADM/services"
+      service_uuid, error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
+
+      unless service_uuid or error
+          Chef::Log.error("Unable to find service type '#{new_resource.service_type}'") if error
+          new_resource.updated_by_last_action(false)
+      end
+
+      # Construct the extension path
+      path = "endpoints"
+      req = _http_get new_resource, path
+
+      # Make sure this endpoint does not already exist
+      resp = http.request req
+      if resp.is_a?(Net::HTTPOK)
+          endpoint_exists = false
+          data = JSON.parse(resp.body)
+          data['endpoints'].each do |endpoint|
+              if endpoint['service_id'] == service_uuid
+                  # Match found
+                  endpoint_exists = true
+                  break
+              end
+          end
+          if endpoint_exists
+              Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}' already exists.. Not creating.")
+              new_resource.updated_by_last_action(false)
+          else
+              payload = _build_endpoint_object(
+                        new_resource.endpoint_region,
+                        service_uuid,
+                        new_resource.endpoint_publicurl,
+                        new_resource.endpoint_internalurl,
+                        new_resource.endpoint_adminurl)
+              req = _http_post new_resource, path
+              req.body = JSON.generate(payload)
+              resp = http.request req
+              if resp.is_a?(Net::HTTPOK)
+                  Chef::Log.info("Created endpoint for service type '#{new_resource.service_type}'")
+                  new_resource.updated_by_last_action(true)
+              else
+                  Chef::Log.error("Unable to create endpoint for service type '#{new_resource.service_type}'")
+                  Chef::Log.error("Response Code: #{resp.code}")
+                  Chef::Log.error("Response Message: #{resp.message}")
+                  Chef::Log.error("Response Body: #{resp.body}")
+                  new_resource.updated_by_last_action(false)
+              end
+          end
+      else
+          Chef::Log.error("Unknown response from the Keystone Server")
+          Chef::Log.error("Response Code: #{resp.code}")
+          Chef::Log.error("Response Message: #{resp.message}")
+          Chef::Log.error("Response Body: #{resp.body}")
+          new_resource.updated_by_last_action(false)
+      end
     end
 end
 

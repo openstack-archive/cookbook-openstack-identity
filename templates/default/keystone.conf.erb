@@ -40,7 +40,13 @@ pool_timeout = 200
 driver = keystone.identity.backends.<%= node['keystone']['identity']['backend'] %>.Identity
 
 [catalog]
+<% if node['keystone']['catalog']['backend'] == 'templated' -%>
+# templated driver uses different class name :(
+driver = keystone.catalog.backends.templated.TemplatedCatalog
+<% else -%>
 driver = keystone.catalog.backends.<%= node['keystone']['catalog']['backend'] %>.Catalog
+<% end -%>
+template_file = /etc/keystone/default_catalog.templates
 
 [token]
 driver = keystone.token.backends.<%= node['keystone']['token']['backend'] %>.Token
