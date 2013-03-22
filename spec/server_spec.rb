@@ -26,6 +26,14 @@ describe "openstack-identity::server" do
       expect(@chef_run).to install_package "python-mysqldb"
     end
 
+    it "installs postgresql python packages if explicitly told" do
+      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      node = chef_run.node
+      node.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
+      chef_run.converge "openstack-identity::server"
+      expect(chef_run).to install_package "python-psycopg2"
+    end
+
     it "installs memcache python packages" do
       expect(@chef_run).to install_package "python-memcache"
     end

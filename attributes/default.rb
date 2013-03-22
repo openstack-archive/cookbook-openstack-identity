@@ -95,6 +95,7 @@ when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this
   default["openstack"]["identity"]["group"] = "keystone"
   default["openstack"]["identity"]["platform"] = {
     "mysql_python_packages" => [ "MySQL-python" ],
+    "postgresql_python_packages" => [ "python-psycopg2" ],
     "memcache_python_packages" => [ "python-memcached" ],
     "keystone_packages" => [ "openstack-keystone" ],
     "keystone_service" => "openstack-keystone",
@@ -106,6 +107,7 @@ when "suse"
   default["openstack"]["identity"]["group"] = "openstack-keystone"
   default["openstack"]["identity"]["platform"] = {
     "mysql_python_packages" => [ "python-mysql" ],
+    "postgresql_python_packages" => [ "python-psycopg2" ],
     "memcache_python_packages" => [ "python-python-memcached" ],
     "keystone_packages" => [ "openstack-keystone" ],
     "keystone_service" => "openstack-keystone",
@@ -117,6 +119,7 @@ when "ubuntu"
   default["openstack"]["identity"]["group"] = "keystone"
   default["openstack"]["identity"]["platform"] = {
     "mysql_python_packages" => [ "python-mysqldb" ],
+    "postgresql_python_packages" => [ "python-psycopg2" ],
     "memcache_python_packages" => [ "python-memcache" ],
     "keystone_packages" => [ "keystone" ],
     "keystone_service" => "keystone",
