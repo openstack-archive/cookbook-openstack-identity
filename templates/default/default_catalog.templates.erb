@@ -1,6 +1,6 @@
 catalog.<%= node['keystone']['region'] %>.identity.publicURL = <%= @uris['identity'].to_s %>
-catalog.<%= node['keystone']['region'] %>.identity.adminURL = <%= @uris['identity'].to_s %>
-catalog.<%= node['keystone']['region'] %>.identity.internalURL = <%= @uris['identity-admin'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.adminURL = <%= @uris['identity-admin'].to_s %>
+catalog.<%= node['keystone']['region'] %>.identity.internalURL = <%= @uris['identity'].to_s %>
 catalog.<%= node['keystone']['region'] %>.identity.name = Identity Service
 
 catalog.<%= node['keystone']['region'] %>.compute.publicURL = <%= @uris['compute'].to_s %>
