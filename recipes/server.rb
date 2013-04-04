@@ -40,6 +40,12 @@ platform_options["mysql_python_packages"].each do |pkg|
   end
 end
 
+platform_options["memcache_python_packages"].each do |pkg|
+  package pkg do
+    action :install
+  end
+end
+
 platform_options["keystone_packages"].each do |pkg|
   package pkg do
     options platform_options["package_options"]
