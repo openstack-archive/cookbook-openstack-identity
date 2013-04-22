@@ -82,7 +82,7 @@ node["openstack"]["identity"]["tenants"].each do |tenant_name|
     bootstrap_token bootstrap_token
     tenant_name tenant_name
     tenant_description "#{tenant_name} Tenant"
-    tenant_enabled "true" # Not required as this is the default
+    tenant_enabled true # Not required as this is the default
 
     action :create_tenant
   end
@@ -105,7 +105,7 @@ node["openstack"]["identity"]["users"].each do |username, user_info|
     user_name username
     user_pass user_info["password"]
     tenant_name user_info["default_tenant"]
-    user_enabled "true" # Not required as this is the default
+    user_enabled true # Not required as this is the default
 
     action :create_user
   end
