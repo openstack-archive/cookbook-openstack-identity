@@ -107,11 +107,7 @@ sql_connection = db_uri("identity", db_user, db_pass)
 
 bootstrap_token = secret "secrets", "keystone_bootstrap_token"
 
-bind_interface = node["keystone"]["bind_interface"]
-interface_node = node["network"]["interfaces"][bind_interface]["addresses"]
-ip_address = interface_node.select do |address, data|
-  data['family'] == "inet"
-end[0][0]
+ip_address = node["network"]["ipaddress_#{node["keystone"]["bind_interface"]}"]
 
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
