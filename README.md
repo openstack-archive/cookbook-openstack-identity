@@ -8,13 +8,8 @@ http://keystone.openstack.org/
 Requirements
 ============
 
-Chef 0.10.0 or higher required (for Chef environment use)
-
-Platform
---------
-
-* Ubuntu-12.04
-* Fedora-17
+* Chef 0.10.0 or higher required (for Chef environment use)
+* [Network Addr](https://gist.github.com/jtimberman/1040543) Ohai plugin.
 
 Cookbooks
 ---------
@@ -25,6 +20,31 @@ The following cookbooks are dependencies:
 * mysql
 * openssl
 * openstack-common
+
+Usage
+=====
+
+db
+--
+
+Configures database for use with keystone
+
+```json
+"run_list": [
+    "recipe[keystone::db]"
+]
+```
+
+server
+------
+
+Installs and Configures Keystone Service
+
+```json
+"run_list": [
+    "recipe[keystone::server]"
+]
+```
 
 Resources/Providers
 ===================
@@ -216,19 +236,6 @@ Create EC2 credentials for a given user in the specified tenant
       tenant_name "openstack"
     end
 
-Recipes
-=======
-
-server
-------
-
-Installs and Configures Keystone Service
-
-db
---
-
-Configures database for use with keystone
-
 Attributes
 ==========
 
@@ -251,6 +258,15 @@ Attributes
 * `keystone["roles"]` - Array of roles to create in the keystone server
 * `keystone["users"]` - Array of users to create in the keystone server
 
+Testing
+=====
+
+This cookbook is using [ChefSpec](https://github.com/acrmp/chefspec) for
+testing. Run the following before commiting. It will run your tests,
+and check for lint errors.
+
+    $ ./run_tests.bash
+
 License and Author
 ==================
 
@@ -262,9 +278,12 @@ Author:: William Kelly (<william.kelly@rackspace.com>)
 Author:: Darren Birkett (<darren.birkett@rackspace.co.uk>)
 Author:: Evan Callicoat (<evan.callicoat@rackspace.com>)
 Author:: Matt Ray (<matt@opscode.com>)
+Author:: Jay Pipes (<jaypipes@att.com>)
+Author:: John Dewey (<jdewey@att.com>)
 
 Copyright 2012, Rackspace US, Inc.
 Copyright 2012, Opscode, Inc.
+Copyright 2012-2013, AT&T Services, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
