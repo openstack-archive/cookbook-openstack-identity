@@ -42,7 +42,7 @@ Installs and Configures Keystone Service
 
 ```json
 "run_list": [
-    "recipe[keystone::db]"
+    "recipe[keystone::server]"
 ]
 ```
 

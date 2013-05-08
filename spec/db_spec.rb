@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe "horizon::db" do
+describe "keystone::db" do
   it "installs mysql packages" do
     @chef_run = converge
 
