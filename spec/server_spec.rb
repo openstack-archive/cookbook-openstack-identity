@@ -15,6 +15,13 @@ describe "keystone::server" do
       expect(@chef_run).to include_recipe "openstack-common::logging"
     end
 
+    it "doesn't run logging recipe" do
+      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      chef_run.converge "keystone::server"
+
+      expect(chef_run).not_to include_recipe "openstack-common::logging"
+    end
+
     it "installs mysql python packages" do
       expect(@chef_run).to install_package "python-mysqldb"
     end
