@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: keystone
+# Cookbook Name:: openstack-identity
 # Provider:: register
 #
 # Copyright 2012, Rackspace US, Inc.
@@ -21,7 +21,7 @@
 require "uri"
 
 action :create_service do
-    if node['keystone']['catalog']['backend'] == 'templated'
+    if node["openstack-identity"]["catalog"]["backend"] == "templated"
       Chef::Log.info("Skipping service creation - templated catalog backend in use.")
       new_resource.updated_by_last_action(false)
     else
@@ -61,7 +61,7 @@ end
 
 
 action :create_endpoint do
-    if node['keystone']['catalog']['backend'] == 'templated'
+    if node["openstack-identity"]["catalog"]["backend"] == "templated"
       Chef::Log.info("Skipping endpoint creation - templated catalog backend in use.")
       new_resource.updated_by_last_action(false)
     else

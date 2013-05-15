@@ -1,14 +1,14 @@
-<%= node["keystone"]["custom_template_banner"] %>
+<%= node["openstack-identity"]["custom_template_banner"] %>
 
 [DEFAULT]
-public_port = <%= node["keystone"]["service_port"] %>
-admin_port = <%= node["keystone"]["admin_port"] %>
+public_port = <%= node["openstack-identity"]["service_port"] %>
+admin_port = <%= node["openstack-identity"]["admin_port"] %>
 admin_token = <%= @bootstrap_token %>
 bind_host = <%= @ip_address %>
 compute_port = 8774
-verbose = <%= node["keystone"]["verbose"] %>
-debug = <%= node["keystone"]["debug"] %>
-<% if node["keystone"]["syslog"]["use"] %>
+verbose = <%= node["openstack-identity"]["verbose"] %>
+debug = <%= node["openstack-identity"]["debug"] %>
+<% if node["openstack-identity"]["syslog"]["use"] %>
 log_config = /etc/openstack/logging.conf
 <% else %>
 log_file = /var/log/keystone/keystone.log
@@ -37,19 +37,19 @@ pool_timeout = 200
 #suffix = cn=example,cn=com
 
 [identity]
-driver = keystone.identity.backends.<%= node['keystone']['identity']['backend'] %>.Identity
+driver = keystone.identity.backends.<%= node["openstack-identity"]["identity"]["backend"] %>.Identity
 
 [catalog]
-<% if node['keystone']['catalog']['backend'] == 'templated' -%>
+<% if node["openstack-identity"]["catalog"]["backend"] == "templated" -%>
 # templated driver uses different class name :(
 driver = keystone.catalog.backends.templated.TemplatedCatalog
 <% else -%>
-driver = keystone.catalog.backends.<%= node['keystone']['catalog']['backend'] %>.Catalog
+driver = keystone.catalog.backends.<%= node["openstack-identity"]["catalog"]["backend"] %>.Catalog
 <% end -%>
 template_file = /etc/keystone/default_catalog.templates
 
 [token]
-driver = keystone.token.backends.<%= node['keystone']['token']['backend'] %>.Token
+driver = keystone.token.backends.<%= node["openstack-identity"]["token"]["backend"] %>.Token
 
 # Amount of time a token should remain valid (in seconds)
 expiration = 86400
@@ -63,12 +63,12 @@ driver = keystone.contrib.ec2.backends.sql.Ec2
 [signing]
 <% if node["openstack"]["auth"]["strategy"] == "pki" -%>
 token_format = PKI
-certfile = <%= node["keystone"]["signing"]["certfile"] %>
-keyfile = <%= node["keystone"]["signing"]["keyfile"] %>
-ca_certs = <%= node["keystone"]["signing"]["ca_certs"] %>
-key_size = <%= node["keystone"]["signing"]["key_size"] %>
-valid_days = <%= node["keystone"]["signing"]["valid_days"] %>
-ca_password = <%= node["keystone"]["signing"]["ca_password"] %>
+certfile = <%= node["openstack-identity"]["signing"]["certfile"] %>
+keyfile = <%= node["openstack-identity"]["signing"]["keyfile"] %>
+ca_certs = <%= node["openstack-identity"]["signing"]["ca_certs"] %>
+key_size = <%= node["openstack-identity"]["signing"]["key_size"] %>
+valid_days = <%= node["openstack-identity"]["signing"]["valid_days"] %>
+ca_password = <%= node["openstack-identity"]["signing"]["ca_password"] %>
 <% else -%>
 token_format = UUID
 <% end -%>

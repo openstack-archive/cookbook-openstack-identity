@@ -1,4 +1,4 @@
 require "spec_helper"
 
-describe "keystone::default" do
+describe "openstack-identity::default" do
 end

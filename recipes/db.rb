@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: keystone
+# Cookbook Name:: openstack-identity
 # Recipe:: db
 #
 # Copyright 2012-2013, AT&T Services, Inc.
@@ -30,7 +30,7 @@ include_recipe "mysql::client"
 include_recipe "mysql::ruby"
 
 db_pass = db_password "keystone"
-db_user = node["keystone"]["db"]["username"]
+db_user = node["openstack-identity"]["db"]["username"]
 
 db_create_with_user("identity",
   db_user,

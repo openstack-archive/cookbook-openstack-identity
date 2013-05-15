@@ -1,14 +1,14 @@
 require "spec_helper"
 
-describe "keystone::server" do
+describe "openstack-identity::server" do
   describe "ubuntu" do
     before do
       keystone_stubs
       @chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
       @node = @chef_run.node
-      @node.set["keystone"]["syslog"]["use"] = true
+      @node.set["openstack-identity"]["syslog"]["use"] = true
       @node.set["network"]["ipaddress_lo"] = "10.10.10.10"
-      @chef_run.converge "keystone::server"
+      @chef_run.converge "openstack-identity::server"
     end
 
     it "runs logging recipe if node attributes say to" do
@@ -17,7 +17,7 @@ describe "keystone::server" do
 
     it "doesn't run logging recipe" do
       chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
-      chef_run.converge "keystone::server"
+      chef_run.converge "openstack-identity::server"
 
       expect(chef_run).not_to include_recipe "openstack-common::logging"
     end

@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: keystone
+# Cookbook Name:: openstack-identity
 # Resource:: credentials
 #
 # Copyright 2012, Rackspace US, Inc.

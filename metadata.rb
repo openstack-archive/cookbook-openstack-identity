@@ -1,4 +1,4 @@
-name             "keystone"
+name             "openstack-identity"
 maintainer       "Opscode, Inc."
 maintainer_email "matt@opscode.com"
 license          "Apache 2.0"
@@ -6,9 +6,9 @@ description      "The OpenStack Identity service Keystone."
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "2012.2.1"
 
-recipe           "keystone::db", "Configures database for use with keystone"
-recipe           "keystone::server", "Installs and Configures Keystone Service"
-recipe           "keystone::registration", "Adds user, tenant, role and endpoint records to Keystone"
+recipe           "openstack-identity::db", "Configures database for use with keystone"
+recipe           "openstack-identity::server", "Installs and Configures Keystone Service"
+recipe           "openstack-identity::registration", "Adds user, tenant, role and endpoint records to Keystone"
 
 %w{ ubuntu fedora redhat centos }.each do |os|
   supports os

@@ -31,7 +31,7 @@ Configures database for use with keystone
 
 ```json
 "run_list": [
-    "recipe[keystone::db]"
+    "recipe[openstack-identity::db]"
 ]
 ```
 
@@ -42,7 +42,7 @@ Installs and Configures Keystone Service
 
 ```json
 "run_list": [
-    "recipe[keystone::server]"
+    "recipe[openstack-identity::server]"
 ]
 ```
 
@@ -122,7 +122,7 @@ Register users, tenants, roles, services and endpoints with Keystone
 ### Examples
 
     # Create 'openstack' tenant
-    keystone_register "Register 'openstack' Tenant" do
+    openstack_identity_register "Register 'openstack' Tenant" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -135,7 +135,7 @@ Register users, tenants, roles, services and endpoints with Keystone
     end
 
     # Create 'admin' user
-    keystone_register "Register 'admin' User" do
+    openstack_identity_register "Register 'admin' User" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -149,7 +149,7 @@ Register users, tenants, roles, services and endpoints with Keystone
     end
 
     # Create 'admin' role
-    keystone_register "Register 'admin' Role" do
+    openstack_identity_register "Register 'admin' Role" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -161,7 +161,7 @@ Register users, tenants, roles, services and endpoints with Keystone
 
 
     # Grant 'admin' role to 'admin' user in the 'openstack' tenant
-    keystone_register "Grant 'admin' Role to 'admin' User" do
+    openstack_identity_register "Grant 'admin' Role to 'admin' User" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -174,7 +174,7 @@ Register users, tenants, roles, services and endpoints with Keystone
     end
 
     # Create 'identity' service
-    keystone_register "Register Identity Service" do
+    openstack_identity_register "Register Identity Service" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -187,7 +187,7 @@ Register users, tenants, roles, services and endpoints with Keystone
     end
 
     # Create 'identity' endpoint
-    keystone_register "Register Identity Endpoint" do
+    openstack_identity_register "Register Identity Endpoint" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -226,7 +226,7 @@ Create EC2 credentials for a given user in the specified tenant
 
 ### Examples
 
-    keystone_credentials "Create EC2 credentials for 'admin' user" do
+    openstack_identity_credentials "Create EC2 credentials for 'admin' user" do
       auth_host "192.168.1.10"
       auth_port "35357"
       auth_protocol "http"
@@ -239,24 +239,24 @@ Create EC2 credentials for a given user in the specified tenant
 Attributes
 ==========
 
-* `keystone["db_server_chef_role"]` - The name of the Chef role that knows about the db server
-* `keystone["bind_interface"]` - Interface to bind keystone to
-* `keystone["service_port"]` - Port to listen on for client functions
-* `keystone["admin_port"]` - Port to listen on for admin functions
-* `keystone["user"]` - User keystone runs as
-* `keystone["group"]` - Group keystone runs as
-* `keystone["db"]` - Name of keystone database
-* `keystone["db_user"]` - Username for keystone database access
-* `keystone["db_passwd"]` - Password for keystone database access
-* `keystone["db_ipaddress"]` - IP address of the keystone database
-* `keystone["api_ipaddress"]` - IP address for the keystone API to bind to. _TODO_: Rename to bind_address
-* `keystone["verbose"]` - Enables/disables verbose output for keystone API server
-* `keystone["debug"]` - Enables/disables debug output for keystone API server
-* `keystone["service_port"]` - Port for the keystone service API to bind to
-* `keystone["admin_port"]` - Port for the keystone admin service to bind to
-* `keystone["admin_token"]` - Admin token for bootstraping keystone server
-* `keystone["roles"]` - Array of roles to create in the keystone server
-* `keystone["users"]` - Array of users to create in the keystone server
+* `openstack-identity["db_server_chef_role"]` - The name of the Chef role that knows about the db server
+* `openstack-identity["bind_interface"]` - Interface to bind keystone to
+* `openstack-identity["service_port"]` - Port to listen on for client functions
+* `openstack-identity["admin_port"]` - Port to listen on for admin functions
+* `openstack-identity["user"]` - User keystone runs as
+* `openstack-identity["group"]` - Group keystone runs as
+* `openstack-identity["db"]` - Name of keystone database
+* `openstack-identity["db_user"]` - Username for keystone database access
+* `openstack-identity["db_passwd"]` - Password for keystone database access
+* `openstack-identity["db_ipaddress"]` - IP address of the keystone database
+* `openstack-identity["api_ipaddress"]` - IP address for the keystone API to bind to. _TODO_: Rename to bind_address
+* `openstack-identity["verbose"]` - Enables/disables verbose output for keystone API server
+* `openstack-identity["debug"]` - Enables/disables debug output for keystone API server
+* `openstack-identity["service_port"]` - Port for the keystone service API to bind to
+* `openstack-identity["admin_port"]` - Port for the keystone admin service to bind to
+* `openstack-identity["admin_token"]` - Admin token for bootstraping keystone server
+* `openstack-identity["roles"]` - Array of roles to create in the keystone server
+* `openstack-identity["users"]` - Array of users to create in the keystone server
 
 Testing
 =====

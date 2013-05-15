@@ -1,11 +1,11 @@
 require "spec_helper"
 
-describe "keystone::server" do
+describe "openstack-identity::server" do
   describe "redhat" do
     before do
       keystone_stubs
       @chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS
-      @chef_run.converge "keystone::server"
+      @chef_run.converge "openstack-identity::server"
     end
 
     it "installs mysql python packages" do

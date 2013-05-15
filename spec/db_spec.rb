@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe "keystone::db" do
+describe "openstack-identity::db" do
   it "installs mysql packages" do
     @chef_run = converge
 
@@ -19,6 +19,6 @@ describe "keystone::db" do
     ::Chef::Recipe.any_instance.stub(:db_password).with("keystone").
       and_return "test-pass"
 
-    ::ChefSpec::ChefRunner.new(::UBUNTU_OPTS).converge "keystone::db"
+    ::ChefSpec::ChefRunner.new(::UBUNTU_OPTS).converge "openstack-identity::db"
   end
 end
