@@ -6,7 +6,7 @@ describe "openstack-identity::server" do
       keystone_stubs
       @chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
       @node = @chef_run.node
-      @node.set["openstack-identity"]["syslog"]["use"] = true
+      @node.set["openstack"]["identity"]["syslog"]["use"] = true
       @node.set["network"]["ipaddress_lo"] = "10.10.10.10"
       @chef_run.converge "openstack-identity::server"
     end

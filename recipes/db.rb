@@ -3,6 +3,7 @@
 # Recipe:: db
 #
 # Copyright 2012-2013, AT&T Services, Inc.
+# Copyright 2013, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +31,7 @@ include_recipe "mysql::client"
 include_recipe "mysql::ruby"
 
 db_pass = db_password "keystone"
-db_user = node["openstack-identity"]["db"]["username"]
+db_user = node["openstack"]["identity"]["db"]["username"]
 
 db_create_with_user("identity",
   db_user,

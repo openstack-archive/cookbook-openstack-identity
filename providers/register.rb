@@ -4,6 +4,7 @@
 #
 # Copyright 2012, Rackspace US, Inc.
 # Copyright 2012-2013, AT&T Services, Inc.
+# Copyright 2013, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +22,7 @@
 require "uri"
 
 action :create_service do
-    if node["openstack-identity"]["catalog"]["backend"] == "templated"
+    if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
       Chef::Log.info("Skipping service creation - templated catalog backend in use.")
       new_resource.updated_by_last_action(false)
     else
@@ -61,7 +62,7 @@ end
 
 
 action :create_endpoint do
-    if node["openstack-identity"]["catalog"]["backend"] == "templated"
+    if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
       Chef::Log.info("Skipping endpoint creation - templated catalog backend in use.")
       new_resource.updated_by_last_action(false)
     else

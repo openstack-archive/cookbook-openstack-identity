@@ -1,7 +1,7 @@
 Description
 ===========
 
-This cookbook installs the OpenStack Identity Service **Keystone** as part of the OpenStack **Essex** reference deployment Chef for OpenStack. The http://github.com/opscode/openstack-chef-repo contains documentation for using this cookbook in the context of a full OpenStack deployment. Keystone is installed from packages, creating the default user, tenant, and roles. It also registers the identity service and identity endpoint.
+This cookbook installs the OpenStack Identity Service **Keystone** as part of the OpenStack reference deployment Chef for OpenStack. The http://github.com/mattray/chef-openstack-repo contains documentation for using this cookbook in the context of a full OpenStack deployment. Keystone is installed from packages, creating the default user, tenant, and roles. It also registers the identity service and identity endpoint.
 
 http://keystone.openstack.org/
 
@@ -239,24 +239,24 @@ Create EC2 credentials for a given user in the specified tenant
 Attributes
 ==========
 
-* `openstack-identity["db_server_chef_role"]` - The name of the Chef role that knows about the db server
-* `openstack-identity["bind_interface"]` - Interface to bind keystone to
-* `openstack-identity["service_port"]` - Port to listen on for client functions
-* `openstack-identity["admin_port"]` - Port to listen on for admin functions
-* `openstack-identity["user"]` - User keystone runs as
-* `openstack-identity["group"]` - Group keystone runs as
-* `openstack-identity["db"]` - Name of keystone database
-* `openstack-identity["db_user"]` - Username for keystone database access
-* `openstack-identity["db_passwd"]` - Password for keystone database access
-* `openstack-identity["db_ipaddress"]` - IP address of the keystone database
-* `openstack-identity["api_ipaddress"]` - IP address for the keystone API to bind to. _TODO_: Rename to bind_address
-* `openstack-identity["verbose"]` - Enables/disables verbose output for keystone API server
-* `openstack-identity["debug"]` - Enables/disables debug output for keystone API server
-* `openstack-identity["service_port"]` - Port for the keystone service API to bind to
-* `openstack-identity["admin_port"]` - Port for the keystone admin service to bind to
-* `openstack-identity["admin_token"]` - Admin token for bootstraping keystone server
-* `openstack-identity["roles"]` - Array of roles to create in the keystone server
-* `openstack-identity["users"]` - Array of users to create in the keystone server
+* `openstack['identity']['db_server_chef_role']` - The name of the Chef role that knows about the db server
+* `openstack['identity']['bind_interface']` - Interface to bind keystone to
+* `openstack['identity']['service_port']` - Port to listen on for client functions
+* `openstack['identity']['admin_port']` - Port to listen on for admin functions
+* `openstack['identity']['user']` - User keystone runs as
+* `openstack['identity']['group']` - Group keystone runs as
+* `openstack['identity']['db']` - Name of keystone database
+* `openstack['identity']['db_user']` - Username for keystone database access
+* `openstack['identity']['db_passwd']` - Password for keystone database access
+* `openstack['identity']['db_ipaddress']` - IP address of the keystone database
+* `openstack['identity']['api_ipaddress']` - IP address for the keystone API to bind to. _TODO_: Rename to bind_address
+* `openstack['identity']['verbose']` - Enables/disables verbose output for keystone API server
+* `openstack['identity']['debug']` - Enables/disables debug output for keystone API server
+* `openstack['identity']['service_port']` - Port for the keystone service API to bind to
+* `openstack['identity']['admin_port']` - Port for the keystone admin service to bind to
+* `openstack['identity']['admin_token']` - Admin token for bootstraping keystone server
+* `openstack['identity']['roles']` - Array of roles to create in the keystone server
+* `openstack['identity']['users']` - Array of users to create in the keystone server
 
 Testing
 =====
@@ -282,7 +282,7 @@ Author:: Jay Pipes (<jaypipes@att.com>)
 Author:: John Dewey (<jdewey@att.com>)
 
 Copyright 2012, Rackspace US, Inc.
-Copyright 2012, Opscode, Inc.
+Copyright 2012-2013, Opscode, Inc.
 Copyright 2012-2013, AT&T Services, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");

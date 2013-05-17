@@ -3,7 +3,7 @@
 # Recipe:: server
 #
 # Copyright 2012, Rackspace US, Inc.
-# Copyright 2012, Opscode, Inc.
+# Copyright 2012-2013, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ class ::Chef::Recipe
   include ::Openstack
 end
 
-if node["openstack-identity"]["syslog"]["use"]
+if node["openstack"]["identity"]["syslog"]["use"]
   include_recipe "openstack-common::logging"
 end
 
-platform_options = node["openstack-identity"]["platform"]
+platform_options = node["openstack"]["identity"]["platform"]
 
 ##### NOTE #####
 # https://bugs.launchpad.net/ubuntu/+source/keystone/+bug/931236
@@ -70,14 +70,14 @@ service "keystone" do
 end
 
 directory "/etc/keystone" do
-  owner node["openstack-identity"]["user"]
-  group node["openstack-identity"]["group"]
+  owner node["openstack"]["identity"]["user"]
+  group node["openstack"]["identity"]["group"]
   mode  00700
 end
 
-directory node["openstack-identity"]["signing"]["basedir"] do
-  owner node["openstack-identity"]["user"]
-  group node["openstack-identity"]["group"]
+directory node["openstack"]["identity"]["signing"]["basedir"] do
+  owner node["openstack"]["identity"]["user"]
+  group node["openstack"]["identity"]["group"]
   mode  00700
 
   only_if { node["openstack"]["auth"]["strategy"] == "pki" }
@@ -88,10 +88,10 @@ file "/var/lib/keystone/keystone.db" do
 end
 
 execute "keystone-manage pki_setup" do
-  user node["openstack-identity"]["user"]
+  user node["openstack"]["identity"]["user"]
 
   only_if { node["openstack"]["auth"]["strategy"] == "pki" }
-  not_if { ::FileTest.exists? node["openstack-identity"]["signing"]["keyfile"] }
+  not_if { ::FileTest.exists? node["openstack"]["identity"]["signing"]["keyfile"] }
 end
 
 identity_admin_endpoint = endpoint "identity-admin"
@@ -101,13 +101,13 @@ ec2_endpoint = endpoint "compute-ec2-api"
 image_endpoint = endpoint "image-api"
 volume_endpoint = endpoint "volume-api"
 
-db_user = node["openstack-identity"]["db"]["username"]
+db_user = node["openstack"]["identity"]["db"]["username"]
 db_pass = db_password "keystone"
 sql_connection = db_uri("identity", db_user, db_pass)
 
 bootstrap_token = secret "secrets", "keystone_bootstrap_token"
 
-ip_address = node["network"]["ipaddress_#{node["openstack-identity"]["bind_interface"]}"]
+ip_address = node["network"]["ipaddress_#{node["openstack"]["identity"]["bind_interface"]}"]
 
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
@@ -116,8 +116,8 @@ memcache_servers = memcached_servers.join ","  # from openstack-common lib
 
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
-  owner node["openstack-identity"]["user"]
-  group node["openstack-identity"]["group"]
+  owner node["openstack"]["identity"]["user"]
+  group node["openstack"]["identity"]["group"]
   mode   00644
   variables(
     :sql_connection => sql_connection,
@@ -140,15 +140,15 @@ uris = {
 
 template "/etc/keystone/default_catalog.templates" do
   source "default_catalog.templates.erb"
-  owner node["openstack-identity"]["user"]
-  group node["openstack-identity"]["group"]
+  owner node["openstack"]["identity"]["user"]
+  group node["openstack"]["identity"]["group"]
   mode   00644
   variables(
     "uris" => uris
   )
 
   notifies :restart, "service[keystone]", :immediately
-  only_if { node["openstack-identity"]["catalog"]["backend"] == "templated" }
+  only_if { node["openstack"]["identity"]["catalog"]["backend"] == "templated" }
 end
 
 # sync db after keystone.conf is generated
