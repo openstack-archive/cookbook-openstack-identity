@@ -20,6 +20,7 @@
 #
 
 require "uri"
+include ::Openstack
 
 action :create_service do
     if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
@@ -417,18 +418,12 @@ def _new_http resource
 end
 
 
-# Just cats the request URI with the supplied path, returning a string
-def _path uri, subject
-  [uri.request_uri, subject].join
-end
-
-
 # Short-cut for returning an Net::HTTP::Post to a path on the admin API endpoint.
 # Headers and bootstrap token validation are already performed. All
 # the caller needs to do is call http.request, supplying the returned object
 def _http_post resource, path
   uri = ::URI.parse(resource.auth_uri)
-  path = _path uri, path
+  path = uri_join_paths uri.request_uri, path
   request = Net::HTTP::Post.new(path)
   _build_request resource, request
 end
@@ -439,7 +434,7 @@ end
 # the caller needs to do is call http.request, supplying the returned object
 def _http_put resource, path
   uri = ::URI.parse(resource.auth_uri)
-  path = _path uri, path
+  path = uri_join_paths uri.request_uri, path
   request = Net::HTTP::Put.new(path)
   _build_request resource, request
 end
@@ -450,7 +445,7 @@ end
 # the caller needs to do is call http.request, supplying the returned object
 def _http_get resource, path
   uri = ::URI.parse(resource.auth_uri)
-  path = _path uri, path
+  path = uri_join_paths uri.request_uri, path
   request = Net::HTTP::Get.new(path)
   _build_request resource, request
 end
