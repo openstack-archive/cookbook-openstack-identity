@@ -5,6 +5,7 @@
 # Copyright 2012, Rackspace US, Inc.
 # Copyright 2012-2013, AT&T Services, Inc.
 # Copyright 2013, Opscode, Inc.
+# Copyright 2013, Craig Tracey <craigtracey@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,442 +20,284 @@
 # limitations under the License.
 #
 
-require "uri"
+require 'chef/mixin/shell_out'
+include Chef::Mixin::ShellOut
 include ::Openstack
 
-action :create_service do
-    if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
-      Chef::Log.info("Skipping service creation - templated catalog backend in use.")
-      new_resource.updated_by_last_action(false)
-    else
-      http = _new_http new_resource
-
-      # lookup service_uuid
-      service_container = "OS-KSADM:services"
-      service_key = "type"
-      service_path = "OS-KSADM/services"
-      service_uuid, error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
-
-      # See if the service exists yet
-      unless service_uuid or error
-          # Service does not exist yet
-          payload = _build_service_object(new_resource.service_type, new_resource.service_name, new_resource.service_description)
-          req = _http_post new_resource, service_path
-          req.body = JSON.generate(payload)
-          resp = http.request req
-          if resp.is_a?(Net::HTTPOK)
-              Chef::Log.info("Created service '#{new_resource.service_name}'")
-              new_resource.updated_by_last_action(true)
-          else
-              Chef::Log.error("Unable to create service '#{new_resource.service_name}'")
-              Chef::Log.error("Response Code: #{resp.code}")
-              Chef::Log.error("Response Message: #{resp.message}")
-              Chef::Log.error("Response Body: #{resp.body}")
-              new_resource.updated_by_last_action(false)
-          end
-      else
-          Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.") if service_uuid
-          Chef::Log.info("Service UUID: #{service_uuid}") if service_uuid
-          Chef::Log.error("There was an error looking up service '#{new_resource.service_name}':") if error
-          new_resource.updated_by_last_action(false)
-      end
-    end
+private
+def generate_creds resource
+  {
+    'OS_SERVICE_ENDPOINT' => resource.auth_uri,
+    'OS_SERVICE_TOKEN' => resource.bootstrap_token
+  }
 end
 
+private
+def identity_command resource, cmd, args={}
+  keystonecmd = ['keystone'] << cmd
+  args.each { |key,val|
+    if val
+      keystonecmd << "--#{key}" << val
+    end
+  }
+  Chef::Log.debug("Running identity command: #{keystonecmd}")
+  rc = shell_out(keystonecmd, :env => generate_creds(resource))
+  if rc.exitstatus != 0
+    raise RuntimeError, "#{rc.stderr} (#{rc.exitstatus})"
+  end
+  rc.stdout
+end
+
+private
+def identity_uuid resource, type, key, value, args={}, uuid_field='id'
+  begin
+    output = identity_command resource, "#{type}-list", args
+    output = prettytable_to_array(output)
+    output.each { |obj|
+     if obj.has_key?(uuid_field) and obj[key] == value
+       return obj[uuid_field]
+     end
+    }
+  rescue RuntimeError => e
+    raise RuntimeError, "Could not lookup uuid for #{type}:#{key}=>#{value}. Error was #{e.message}"
+  end
+  nil
+end
+
+action :create_service do
+  if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
+    Chef::Log.info("Skipping service creation - templated catalog backend in use.")
+    new_resource.updated_by_last_action(false)
+  else
+    begin
+      service_uuid = identity_uuid new_resource, "service", "type", new_resource.service_type
+
+      unless service_uuid
+        identity_command new_resource, "service-create",
+          { 'type' => new_resource.service_type,
+            'name' => new_resource.service_name,
+            'description' => new_resource.service_description }
+        Chef::Log.info("Created service '#{new_resource.service_name}'")
+        new_resource.updated_by_last_action(true)
+      else
+        Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.")
+        Chef::Log.info("Service UUID: #{service_uuid}")
+        new_resource.updated_by_last_action(false)
+      end
+    rescue Exception => e
+      Chef::Log.error("Unable to create service '#{new_resource.service_name}'")
+      Chef::Log.error("Error was: #{e.message}")
+      new_resource.updated_by_last_action(false)
+    end
+  end
+end
 
 action :create_endpoint do
-    if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
-      Chef::Log.info("Skipping endpoint creation - templated catalog backend in use.")
-      new_resource.updated_by_last_action(false)
-    else
-      http = _new_http new_resource
-
-      # lookup service_uuid
-      service_container = "OS-KSADM:services"
-      service_key = "type"
-      service_path = "OS-KSADM/services"
-      service_uuid, error = _find_id(new_resource, http, service_path, service_container, service_key, new_resource.service_type)
-
-      unless service_uuid or error
-          Chef::Log.error("Unable to find service type '#{new_resource.service_type}'") if error
-          new_resource.updated_by_last_action(false)
+  if node["openstack"]["identity"]["catalog"]["backend"] == "templated"
+    Chef::Log.info("Skipping endpoint creation - templated catalog backend in use.")
+    new_resource.updated_by_last_action(false)
+  else
+    begin
+      service_uuid = identity_uuid new_resource, "service", "type", new_resource.service_type
+      unless service_uuid
+        Chef::Log.error("Unable to find service type '#{new_resource.service_type}'")
+        new_resource.updated_by_last_action(false)
+        next
       end
 
-      # Construct the extension path
-      path = "endpoints"
-      req = _http_get new_resource, path
-
-      # Make sure this endpoint does not already exist
-      resp = http.request req
-      if resp.is_a?(Net::HTTPOK)
-          endpoint_exists = false
-          data = JSON.parse(resp.body)
-          data['endpoints'].each do |endpoint|
-              if endpoint['service_id'] == service_uuid
-                  # Match found
-                  endpoint_exists = true
-                  break
-              end
-          end
-          if endpoint_exists
-              Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}' already exists.. Not creating.")
-              new_resource.updated_by_last_action(false)
-          else
-              payload = _build_endpoint_object(
-                        new_resource.endpoint_region,
-                        service_uuid,
-                        new_resource.endpoint_publicurl,
-                        new_resource.endpoint_internalurl,
-                        new_resource.endpoint_adminurl)
-              req = _http_post new_resource, path
-              req.body = JSON.generate(payload)
-              resp = http.request req
-              if resp.is_a?(Net::HTTPOK)
-                  Chef::Log.info("Created endpoint for service type '#{new_resource.service_type}'")
-                  new_resource.updated_by_last_action(true)
-              else
-                  Chef::Log.error("Unable to create endpoint for service type '#{new_resource.service_type}'")
-                  Chef::Log.error("Response Code: #{resp.code}")
-                  Chef::Log.error("Response Message: #{resp.message}")
-                  Chef::Log.error("Response Body: #{resp.body}")
-                  new_resource.updated_by_last_action(false)
-              end
-          end
+      endpoint_uuid = identity_uuid new_resource, "endpoint", "service_id", service_uuid
+      unless endpoint_uuid
+        identity_command new_resource, "endpoint-create",
+          { 'region' => new_resource.endpoint_region,
+            'service_id' => service_uuid,
+            'publicurl' => new_resource.endpoint_publicurl,
+            'internalurl' => new_resource.endpoint_internalurl,
+            'adminurl' => new_resource.endpoint_adminurl }
+        Chef::Log.info("Created endpoint for service type '#{new_resource.service_type}'")
+        new_resource.updated_by_last_action(true)
       else
-          Chef::Log.error("Unknown response from the Keystone Server")
-          Chef::Log.error("Response Code: #{resp.code}")
-          Chef::Log.error("Response Message: #{resp.message}")
-          Chef::Log.error("Response Body: #{resp.body}")
-          new_resource.updated_by_last_action(false)
+        Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}' already exists.. Not creating.")
+        new_resource.updated_by_last_action(false)
       end
+    rescue Exception => e
+      Chef::Log.error("Unable to create endpoint for service type '#{new_resource.service_type}'")
+      Chef::Log.error("Error was: #{e.message}")
+      new_resource.updated_by_last_action(false)
     end
+  end
 end
 
 action :create_tenant do
-    http = _new_http new_resource
+  begin
+    tenant_uuid = identity_uuid new_resource, "tenant", "name", new_resource.tenant_name
 
-    # lookup tenant_uuid
-    tenant_container = "tenants"
-    tenant_key = "name"
-    tenant_path = "tenants"
-    tenant_uuid, error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
-
-    unless tenant_uuid or error
-        # Service does not exist yet
-        payload = _build_tenant_object(new_resource.tenant_name, new_resource.service_description, new_resource.tenant_enabled)
-
-        # Construct the extension path
-        path = "tenants"
-        req = _http_post new_resource, path
-        req.body = JSON.generate(payload)
-        resp = http.request req
-        if resp.is_a?(Net::HTTPOK)
-            Chef::Log.info("Created tenant '#{new_resource.tenant_name}'")
-            new_resource.updated_by_last_action(true)
-        else
-            Chef::Log.error("Unable to create tenant '#{new_resource.tenant_name}'")
-            Chef::Log.error("Response Code: #{resp.code}")
-            Chef::Log.error("Response Message: #{resp.message}")
-            Chef::Log.error("Response Body: #{resp.body}")
-            new_resource.updated_by_last_action(false)
-        end
+    unless tenant_uuid
+      identity_command new_resource, "tenant-create",
+        { 'name' => new_resource.tenant_name,
+          'description' => new_resource.tenant_description,
+          'enabled' => new_resource.tenant_enabled }
+      Chef::Log.info("Created tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(true)
     else
-        Chef::Log.info("Tenant '#{new_resource.tenant_name}' already exists.. Not creating.") if tenant_uuid
-        Chef::Log.info("Tenant UUID: #{tenant_uuid}") if tenant_uuid
-        Chef::Log.error("There was an error looking up tenant '#{new_resource.tenant_name}'") if error
-        new_resource.updated_by_last_action(false)
+      Chef::Log.info("Tenant '#{new_resource.tenant_name}' already exists.. Not creating.")
+      Chef::Log.info("Tenant UUID: #{tenant_uuid}") if tenant_uuid
+      new_resource.updated_by_last_action(false)
     end
+  rescue Exception => e
+    Chef::Log.error("Unable to create tenant '#{new_resource.tenant_name}'")
+    Chef::Log.error("Error was: #{e.message}")
+    new_resource.updated_by_last_action(false)
+  end
 end
 
 action :create_role do
-    http = _new_http new_resource
+  begin
+    role_uuid = identity_uuid new_resource, "role", "name", new_resource.role_name
 
-    # Construct the extension path
-    path = "OS-KSADM/roles"
-
-    container = "roles"
-    key = "name"
-
-    # See if the role exists yet
-    role_uuid, error = _find_id(new_resource, http, path, container, key, new_resource.role_name)
-    unless role_uuid or error
-        # role does not exist yet
-        payload = _build_role_obj(new_resource.role_name)
-        req = _http_post new_resource, path
-        req.body = JSON.generate(payload)
-        resp = http.request req
-        if resp.is_a?(Net::HTTPOK)
-            Chef::Log.info("Created Role '#{new_resource.role_name}'")
-            new_resource.updated_by_last_action(true)
-        else
-            Chef::Log.error("Unable to create role '#{new_resource.role_name}'")
-            Chef::Log.error("Response Code: #{resp.code}")
-            Chef::Log.error("Response Message: #{resp.message}")
-            Chef::Log.error("Response Body: #{resp.body}")
-            new_resource.updated_by_last_action(false)
-        end
+    unless role_uuid
+      identity_command new_resource, "role-create",
+        { 'name' => new_resource.role_name }
+      Chef::Log.info("Created Role '#{new_resource.role_name}'")
+      new_resource.updated_by_last_action(true)
     else
-        Chef::Log.info("Role '#{new_resource.role_name}' already exists.. Not creating.") if role_uuid
-        Chef::Log.info("Role UUID: #{role_uuid}") if role_uuid
-        Chef::Log.error("There was an error looking up role '#{new_resource.role_name}'") if error
-        new_resource.updated_by_last_action(false)
+      Chef::Log.info("Role '#{new_resource.role_name}' already exists.. Not creating.")
+      Chef::Log.info("Role UUID: #{role_uuid}")
+      new_resource.updated_by_last_action(false)
     end
+  rescue Exception => e
+    Chef::Log.error("Unable to create role '#{new_resource.role_name}'")
+    Chef::Log.error("Error was: #{e.message}")
+    new_resource.updated_by_last_action(false)
+  end
 end
 
 action :create_user do
-    http = _new_http new_resource
-
-    # lookup tenant_uuid
-    tenant_container = "tenants"
-    tenant_key = "name"
-    tenant_path = "tenants"
-    tenant_uuid, error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
-
-    unless tenant_uuid or error
-        Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
-        new_resource.updated_by_last_action(false)
+  begin
+    tenant_uuid = identity_uuid new_resource, "tenant", "name", new_resource.tenant_name
+    unless tenant_uuid
+      Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(false)
+      next
     end
 
-    # Construct the extension path using the found tenant_uuid
-    path = "tenants/#{tenant_uuid}/users"
+    output = identity_command new_resource, "user-list", {'tenant-id' => tenant_uuid}
+    users = prettytable_to_array output
+    user_found = false
+    users.each { |user|
+      if user['name'] == new_resource.user_name
+        user_found = true
+      end
+    }
 
-    # Make sure this endpoint does not already exist
-    req = _http_get new_resource, path
-    resp = http.request req
-    if resp.is_a?(Net::HTTPOK)
-        user_exists = false
-        data = JSON.parse(resp.body)
-        data['users'].each do |endpoint|
-            if endpoint['name'] == new_resource.user_name
-                # Match found
-                user_exists = true
-                break
-            end
-        end
-        if user_exists
-            Chef::Log.info("User '#{new_resource.user_name}' already exists for tenant '#{new_resource.tenant_name}'")
-            new_resource.updated_by_last_action(false)
-        else
-            payload = _build_user_object(
-                      tenant_uuid,
-                      new_resource.user_name,
-                      new_resource.user_pass,
-                      new_resource.user_enabled)
-
-            # Construct the extension path using the found tenant_uuid
-            path = "users"
-            req = _http_post new_resource, path
-            req.body = JSON.generate(payload)
-            resp = http.request req
-            if resp.is_a?(Net::HTTPOK)
-                Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
-                new_resource.updated_by_last_action(true)
-            else
-                Chef::Log.error("Unable to create user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
-                Chef::Log.error("Response Code: #{resp.code}")
-                Chef::Log.error("Response Message: #{resp.message}")
-                Chef::Log.error("Response Body: #{resp.body}")
-                new_resource.updated_by_last_action(false)
-            end
-        end
-    else
-        Chef::Log.error("Unknown response from the Keystone Server")
-        Chef::Log.error("Response Code: #{resp.code}")
-        Chef::Log.error("Response Message: #{resp.message}")
-        Chef::Log.error("Response Body: #{resp.body}")
-        new_resource.updated_by_last_action(false)
+    if user_found
+      Chef::Log.info("User '#{new_resource.user_name}' already exists for tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(false)
+      next
     end
+
+    identity_command new_resource, "user-create",
+      { 'name' => new_resource.user_name,
+        'tenant-id' => tenant_uuid,
+        'pass' => new_resource.user_pass,
+        'enabled' => new_resource.user_enabled }
+    Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
+    new_resource.updated_by_last_action(true)
+  rescue Exception => e
+    Chef::Log.error("Unable to create user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
+    Chef::Log.error("Error was: #{e.message}")
+    new_resource.updated_by_last_action(false)
+  end
 end
 
 action :grant_role do
-    http = _new_http new_resource
-
-    # lookup tenant_uuid
-    tenant_container = "tenants"
-    tenant_key = "name"
-    tenant_path = "tenants"
-    tenant_uuid, error = _find_id(new_resource, http, tenant_path, tenant_container, tenant_key, new_resource.tenant_name)
-    Chef::Log.error("There was an error looking up Tenant '#{new_resource.tenant_name}'") if error
-
-    # lookup user_uuid
-    user_container = "users"
-    user_key = "name"
-    # user_path = "/tenants/#{tenant_uuid}/users"
-    user_path = "users"
-    user_uuid, error = _find_id(new_resource, http, user_path, user_container, user_key, new_resource.user_name)
-    Chef::Log.error("There was an error looking up User '#{new_resource.user_name}'") if error
-
-    # lookup role_uuid
-    role_container = "roles"
-    role_key = "name"
-    role_path = "OS-KSADM/roles"
-    role_uuid, error = _find_id(new_resource, http, role_path, role_container, role_key, new_resource.role_name)
-    Chef::Log.error("There was an error looking up Role '#{new_resource.role_name}'") if error
-
-    # lookup roles assigned to user/tenant
-    assigned_container = "roles"
-    assigned_key = "name"
-    assigned_path = "tenants/#{tenant_uuid}/users/#{user_uuid}/roles"
-    assigned_role_uuid, error = _find_id(new_resource, http, assigned_path, assigned_container, assigned_key, new_resource.role_name)
-    Chef::Log.error("There was an error looking up Assigned Role '#{new_resource.role_name}' for User '#{new_resource.user_name}' and Tenant '#{new_resource.tenant_name}'") if error
-
-    unless role_uuid == assigned_role_uuid or error
-        # Construct the extension path
-        path = "tenants/#{tenant_uuid}/users/#{user_uuid}/roles/OS-KSADM/#{role_uuid}"
-
-        # needs a '' for the body, or it throws a 500
-        req = _http_put new_resource, path
-        req.body = ''
-        resp = http.request req
-        if resp.is_a?(Net::HTTPOK)
-            Chef::Log.info("Granted Role '#{new_resource.role_name}' to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
-            new_resource.updated_by_last_action(true)
-        else
-            Chef::Log.error("Unable to grant role '#{new_resource.role_name}'")
-            Chef::Log.error("Response Code: #{resp.code}")
-            Chef::Log.error("Response Message: #{resp.message}")
-            Chef::Log.error("Response Body: #{resp.body}")
-            new_resource.updated_by_last_action(false)
-        end
-    else
-        Chef::Log.error("There was an error looking up '#{new_resource.role_name}'") if error
-        new_resource.updated_by_last_action(false)
+  begin
+    tenant_uuid = identity_uuid new_resource, "tenant", "name", new_resource.tenant_name
+    unless tenant_uuid
+      Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(false)
+      next
     end
-end
 
-
-private
-def _find_id(resource, http, path, container, key, match_value)
-    uuid = nil
-    error = false
-    req = _http_get resource, path
-    resp = http.request req
-    if resp.is_a?(Net::HTTPOK)
-        data = JSON.parse(resp.body)
-        data[container].each do |obj|
-            uuid = obj['id'] if obj[key] == match_value
-            break if uuid
-        end
-    else
-        Chef::Log.error("GET #{path} returned #{resp.code}")
-        Chef::Log.error("Response Message: #{resp.message}")
-        Chef::Log.error("Response Body: #{resp.body}")
-        error = true
+    user_uuid = identity_uuid new_resource, "user", "name", new_resource.user_name
+    unless tenant_uuid
+      Chef::Log.error("Unable to find user '#{new_resource.user_name}'")
+      new_resource.updated_by_last_action(false)
+      next
     end
-    return uuid, error
+
+    role_uuid = identity_uuid new_resource, "role", "name", new_resource.role_name
+    unless tenant_uuid
+      Chef::Log.error("Unable to find role '#{new_resource.role_name}'")
+      new_resource.updated_by_last_action(false)
+      next
+    end
+
+    assigned_role_uuid = identity_uuid new_resource, "user-role", "name", new_resource.role_name,
+      { 'tenant-id' => tenant_uuid,
+        'user-id' => user_uuid }
+    unless role_uuid == assigned_role_uuid
+      identity_command new_resource, "user-role-add",
+        { 'tenant-id' => tenant_uuid,
+          'role-id' => role_uuid,
+          'user-id' => user_uuid }
+      Chef::Log.info("Granted Role '#{new_resource.role_name}' to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(true)
+    else
+      Chef::Log.info("Role '#{new_resource.role_name}' already granted to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(false)
+    end
+  rescue Exception => e
+    Chef::Log.error("Unable to grant role '#{new_resource.role_name}' to user '#{new_resource.user_name}'")
+    Chef::Log.error("Error was: #{e.message}")
+    new_resource.updated_by_last_action(false)
+  end
+end
+
+action :create_ec2_credentials do
+  begin
+    tenant_uuid = identity_uuid new_resource, "tenant", "name", new_resource.tenant_name
+    unless tenant_uuid
+      Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(false)
+      next
+    end
+
+    user_uuid = identity_uuid new_resource, "user", "name", new_resource.user_name, {'tenant-id' => tenant_uuid}
+    unless tenant_uuid
+      Chef::Log.error("Unable to find user '#{new_resource.user_name}'")
+      new_resource.updated_by_last_action(false)
+      next
+    end
+
+    # this is not really a uuid, but this will work nonetheless
+    access = identity_uuid new_resource, "ec2-credentials", "tenant", new_resource.tenant_name, {'user-id' => user_uuid}, "access"
+    unless access
+     output = identity_command new_resource, "ec2-credentials-create",
+        { 'user-id' => user_uuid,
+          'tenant-id' => tenant_uuid }
+      Chef::Log.info("Created EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
+      data = prettytable_to_array(output)
+
+      if data.length != 1
+        Chef::Log.error("Got bad data when creating ec2 credentials for #{new_resource.user_name}")
+        Chef::Log.error("Data: #{data}")
+      else
+        # Update node attributes
+        node.set['credentials']['EC2'][new_resource.user_name]['access'] = data[0]['access']
+        node.set['credentials']['EC2'][new_resource.user_name]['secret'] = data[0]['secret']
+        node.save unless Chef::Config[:solo]
+        new_resource.updated_by_last_action(true)
+      end
+    else
+      Chef::Log.info("EC2 credentials already exist for '#{new_resource.user_name}' in tenant '#{new_resource.tenant_name}'")
+      new_resource.updated_by_last_action(false)
+    end
+  rescue Exception => e
+    Chef::Log.error("Unable to create EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
+    Chef::Log.error("Error was: #{e.message}")
+    new_resource.updated_by_last_action(false)
+  end
 end
 
 
-def _build_service_object(type, name, description)
-    service_obj = Hash.new
-    service_obj.store("type", type)
-    service_obj.store("name", name)
-    service_obj.store("description", description)
-    ret = Hash.new
-    ret.store("OS-KSADM:service", service_obj)
-    return ret
-end
 
-
-def _build_role_obj(name)
-    role_obj = Hash.new
-    role_obj.store("name", name)
-    ret = Hash.new
-    ret.store("role", role_obj)
-    return ret
-end
-
-
-def _build_tenant_object(name, description, enabled)
-    tenant_obj = Hash.new
-    tenant_obj.store("name", name)
-    tenant_obj.store("description", description)
-    tenant_obj.store("enabled", enabled)
-    ret = Hash.new
-    ret.store("tenant", tenant_obj)
-    return ret
-end
-
-
-def _build_endpoint_object(region, service_uuid, publicurl, internalurl, adminurl)
-    endpoint_obj = Hash.new
-    endpoint_obj.store("adminurl", adminurl)
-    endpoint_obj.store("internalurl", internalurl)
-    endpoint_obj.store("publicurl", publicurl)
-    endpoint_obj.store("service_id", service_uuid)
-    endpoint_obj.store("region", region)
-    ret = Hash.new
-    ret.store("endpoint", endpoint_obj)
-    return ret
-end
-
-
-def _build_user_object(tenant_uuid, name, password, enabled)
-    user_obj = Hash.new
-    user_obj.store("tenantId", tenant_uuid)
-    user_obj.store("name", name)
-    user_obj.store("password", password)
-    # Have to provide a null value for this because I dont want to have this in the LWRP
-    user_obj.store("email", nil)
-    user_obj.store("enabled", enabled)
-    ret = Hash.new
-    ret.store("user", user_obj)
-    return ret
-end
-
-
-# Return a Net::HTTP object the caller can use to call paths
-# on the Keystone Admin API endpoint. Admin token validation
-# will already be handled and the x-auth-token header already
-# set in the returned HTTP object's headers.
-def _new_http resource
-  uri = ::URI.parse(resource.auth_uri)
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true if uri.scheme == 'https'
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-  http.read_timeout = 3
-  http.open_timeout = 3
-  http
-end
-
-
-# Short-cut for returning an Net::HTTP::Post to a path on the admin API endpoint.
-# Headers and bootstrap token validation are already performed. All
-# the caller needs to do is call http.request, supplying the returned object
-def _http_post resource, path
-  uri = ::URI.parse(resource.auth_uri)
-  path = uri_join_paths uri.request_uri, path
-  request = Net::HTTP::Post.new(path)
-  _build_request resource, request
-end
-
-
-# Short-cut for returning an Net::HTTP::Put to a path on the admin API endpoint.
-# Headers and bootstrap token validation are already performed. All
-# the caller needs to do is call http.request, supplying the returned object
-def _http_put resource, path
-  uri = ::URI.parse(resource.auth_uri)
-  path = uri_join_paths uri.request_uri, path
-  request = Net::HTTP::Put.new(path)
-  _build_request resource, request
-end
-
-
-# Short-cut for returning an Net::HTTP::Get to a path on the admin API endpoint.
-# Headers and admin token validation are already performed. All
-# the caller needs to do is call http.request, supplying the returned object
-def _http_get resource, path
-  uri = ::URI.parse(resource.auth_uri)
-  path = uri_join_paths uri.request_uri, path
-  request = Net::HTTP::Get.new(path)
-  _build_request resource, request
-end
-
-# Constructs the request object with all the requisite headers added
-def _build_request resource, request
-  admin_token = resource.bootstrap_token
-  request.add_field 'X-Auth-Token', admin_token
-  request.add_field 'Content-type', 'application/json'
-  request.add_field 'user-agent', 'Chef keystone_register'
-  request
-end

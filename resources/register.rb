@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-actions :create_service, :create_endpoint, :create_tenant, :create_user, :create_role, :grant_role
+actions :create_service, :create_endpoint, :create_tenant, :create_user, :create_role, :grant_role, :create_ec2_credentials
 
 # In earlier versions of Chef the LWRP DSL doesn't support specifying
 # a default action, so you need to drop into Ruby.
