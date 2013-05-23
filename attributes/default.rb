@@ -37,8 +37,6 @@ default["openstack"]["identity"]["debug"] = "False"
 
 default["openstack"]["identity"]["service_port"] = "5000"
 default["openstack"]["identity"]["admin_port"] = "35357"
-default["openstack"]["identity"]["user"] = "keystone"
-default["openstack"]["identity"]["group"] = "keystone"
 default["openstack"]["identity"]["region"] = "RegionOne"
 
 default["openstack"]["identity"]["bind_interface"] = "lo"
@@ -93,6 +91,8 @@ default["openstack"]["identity"]["catalog"]["backend"] = "sql"
 # platform defaults
 case platform
 when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this
+  default["openstack"]["identity"]["user"] = "keystone"
+  default["openstack"]["identity"]["group"] = "keystone"
   default["openstack"]["identity"]["platform"] = {
     "mysql_python_packages" => [ "MySQL-python" ],
     "memcache_python_packages" => [ "python-memcached" ],
@@ -101,7 +101,20 @@ when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this
     "keystone_process_name" => "keystone-all",
     "package_options" => ""
   }
+when "suse"
+  default["openstack"]["identity"]["user"] = "openstack-keystone"
+  default["openstack"]["identity"]["group"] = "openstack-keystone"
+  default["openstack"]["identity"]["platform"] = {
+    "mysql_python_packages" => [ "python-mysql" ],
+    "memcache_python_packages" => [ "python-python-memcached" ],
+    "keystone_packages" => [ "openstack-keystone" ],
+    "keystone_service" => "openstack-keystone",
+    "keystone_process_name" => "keystone-all",
+    "package_options" => ""
+  }
 when "ubuntu"
+  default["openstack"]["identity"]["user"] = "keystone"
+  default["openstack"]["identity"]["group"] = "keystone"
   default["openstack"]["identity"]["platform"] = {
     "mysql_python_packages" => [ "python-mysqldb" ],
     "memcache_python_packages" => [ "python-memcache" ],

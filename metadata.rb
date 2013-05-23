@@ -10,7 +10,7 @@ recipe           "openstack-identity::db", "Configures database for use with key
 recipe           "openstack-identity::server", "Installs and Configures Keystone Service"
 recipe           "openstack-identity::registration", "Adds user, tenant, role and endpoint records to Keystone"
 
-%w{ ubuntu fedora redhat centos }.each do |os|
+%w{ ubuntu fedora redhat centos suse }.each do |os|
   supports os
 end
 
