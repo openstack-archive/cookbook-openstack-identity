@@ -156,10 +156,12 @@ openstack_identity_register "Register Identity Endpoint" do
 end
 
 node["openstack"]["identity"]["users"].each do |username, user_info|
-  openstack_identity_credentials "Create EC2 credentials for '#{username}' user" do
+  openstack_identity_register "Create EC2 credentials for '#{username}' user" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
     user_name username
     tenant_name user_info["default_tenant"]
+
+    action :create_ec2_credentials
   end
 end
