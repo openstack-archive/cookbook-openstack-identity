@@ -184,4 +184,22 @@ describe Chef::Provider::Execute do
     provider.run_action(:create_ec2_credentials)
     @ec2_resource.should_not be_updated
   end
+
+  describe "#identity_command" do
+    it "should handle false values and long descriptions" do
+      provider = Chef::Provider::OpenstackIdentityRegister.new(
+        @user_resource, @run_context)
+
+      provider.stub!(:shell_out).with(
+        ["keystone", "user-create", "--enabled", "false",
+          "--description", "more than one word"],
+        {:env => {"OS_SERVICE_ENDPOINT" => nil, "OS_SERVICE_TOKEN" => nil}}
+        ).and_return double("shell_out", :exitstatus => 0, :stdout => "good")
+
+      provider.send(
+        :identity_command, @user_resource, "user-create",
+        {"enabled" => false, "description" => "more than one word"}
+        ).should eq "good"
+    end
+  end
 end

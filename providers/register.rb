@@ -35,10 +35,8 @@ end
 private
 def identity_command resource, cmd, args={}
   keystonecmd = ['keystone'] << cmd
-  args.each { |key,val|
-    if val
-      keystonecmd << "--#{key}" << val
-    end
+  args.each { |key, val|
+    keystonecmd << "--#{key}" << val.to_s
   }
   Chef::Log.debug("Running identity command: #{keystonecmd}")
   rc = shell_out(keystonecmd, :env => generate_creds(resource))
