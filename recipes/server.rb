@@ -106,7 +106,7 @@ db_user = node["openstack"]["identity"]["db"]["username"]
 db_pass = db_password "keystone"
 sql_connection = db_uri("identity", db_user, db_pass)
 
-bootstrap_token = secret "secrets", "keystone_bootstrap_token"
+bootstrap_token = secret "secrets", "openstack_identity_bootstrap_token"
 
 ip_address = node["network"]["ipaddress_#{node["openstack"]["identity"]["bind_interface"]}"]
 

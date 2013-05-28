@@ -32,7 +32,7 @@ admin_user = node["openstack"]["identity"]["admin_user"]
 admin_pass = user_password node["openstack"]["identity"]["admin_user"]
 auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
-bootstrap_token = secret "secrets", "keystone_bootstrap_token"
+bootstrap_token = secret "secrets", "openstack_identity_bootstrap_token"
 
 # We need to bootstrap the keystone admin user so that calls
 # to keystone_register will succeed, since those provider calls
