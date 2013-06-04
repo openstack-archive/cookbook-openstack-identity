@@ -1,3 +1,5 @@
+require_relative "spec_helper"
+
 describe Chef::Provider::Execute do
   before do
     @node = Chef::Node.new
