@@ -1,13 +1,12 @@
 require_relative "spec_helper"
 
 describe "openstack-identity::server" do
+  before { identity_stubs }
   describe "ubuntu" do
     before do
-      keystone_stubs
-      @chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
-      @node = @chef_run.node
-      @node.set["openstack"]["identity"]["syslog"]["use"] = true
-      @node.set["network"]["ipaddress_lo"] = "10.10.10.10"
+      @chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS do |n|
+        n.set["openstack"]["identity"]["syslog"]["use"] = true
+      end
       @chef_run.converge "openstack-identity::server"
     end
 
@@ -31,6 +30,7 @@ describe "openstack-identity::server" do
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
       chef_run.converge "openstack-identity::server"
+
       expect(chef_run).to install_package "python-psycopg2"
     end
 
@@ -65,19 +65,40 @@ describe "openstack-identity::server" do
       end
     end
 
-    #TODO: ChefSpec needs to handle guards better.
-    #      should only be created when pki is enabled
     describe "/etc/keystone/ssl" do
-      before do
-        @dir = @chef_run.directory "/etc/keystone/ssl"
+      before { @dir = "/etc/keystone/ssl" }
+
+      describe "without pki" do
+        it "doesn't create" do
+          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+          chef_run = ::ChefSpec::ChefRunner.new opts
+          chef_run.converge "openstack-identity::server"
+
+          expect(chef_run).not_to create_directory @dir
+        end
       end
 
-      it "has proper owner" do
-        expect(@dir).to be_owned_by "keystone", "keystone"
-      end
+      describe "with pki" do
+        before do
+          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+          @chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+            n.set["openstack"]["auth"]["strategy"] = "pki"
+          end
+          @chef_run.converge "openstack-identity::server"
+          @directory = @chef_run.directory @dir
+        end
 
-      it "has proper modes" do
-        expect(sprintf("%o", @dir.mode)).to eq "700"
+        it "creates" do
+          expect(@chef_run).to create_directory @directory.name
+        end
+
+        it "has proper owner" do
+          expect(@directory).to be_owned_by "keystone", "keystone"
+        end
+
+        it "has proper modes" do
+          expect(sprintf("%o", @directory.mode)).to eq "700"
+        end
       end
     end
 
@@ -85,66 +106,122 @@ describe "openstack-identity::server" do
       expect(@chef_run).to delete_file "/var/lib/keystone/keystone.db"
     end
 
-    #TODO: ChefSpec needs to handle guards better.
-    #      should only be performed when pki is enabled
-    it "runs pki setup" do
-      cmd = "keystone-manage pki_setup"
-      expect(@chef_run).to execute_command(cmd).with(
-        :user => "keystone"
-      )
-    end
+    describe "pki setup" do
+      before { @cmd = "keystone-manage pki_setup" }
 
-    it "doesn't run pki setup when signing dir exists" do
-      pending "TODO: how to test this"
+      describe "without pki" do
+        it "doesn't execute" do
+          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+          chef_run = ::ChefSpec::ChefRunner.new opts
+
+          expect(chef_run).not_to execute_command(@cmd).with(
+            :user => "keystone"
+          )
+        end
+      end
+
+      describe "with pki" do
+        before do
+          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+          @chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+            n.set["openstack"]["auth"]["strategy"] = "pki"
+          end
+        end
+
+        it "executes" do
+          ::FileTest.should_receive(:exists?).
+            with("/etc/keystone/ssl/private/signing_key.pem").
+            and_return(false)
+          @chef_run.converge "openstack-identity::server"
+
+          expect(@chef_run).to execute_command(@cmd).with(
+            :user => "keystone"
+          )
+        end
+
+        it "doesn't execute when dir exists" do
+          ::FileTest.should_receive(:exists?).
+            with("/etc/keystone/ssl/private/signing_key.pem").
+            and_return(true)
+          @chef_run.converge "openstack-identity::server"
+
+          expect(@chef_run).not_to execute_command(@cmd).with(
+            :user => "keystone"
+          )
+        end
+      end
     end
 
     describe "keystone.conf" do
       before do
-        @file = @chef_run.template "/etc/keystone/keystone.conf"
+        @template = @chef_run.template "/etc/keystone/keystone.conf"
       end
 
       it "has proper owner" do
-        expect(@file).to be_owned_by "keystone", "keystone"
+        expect(@template).to be_owned_by "keystone", "keystone"
       end
 
       it "has proper modes" do
-        expect(sprintf("%o", @file.mode)).to eq "644"
+        expect(sprintf("%o", @template.mode)).to eq "644"
       end
 
       it "template contents" do
         pending "TODO: implement"
       end
 
-      it "notifies nova-api-ec2 restart" do
-        expect(@file).to notify "service[keystone]", :restart
+      it "notifies keystone restart" do
+        expect(@template).to notify "service[keystone]", :restart
       end
     end
 
-    #TODO: ChefSpec needs to handle guards better.
     describe "default_catalog.templates" do
-      before do
-        @file = @chef_run.template "/etc/keystone/default_catalog.templates"
+      before { @file = "/etc/keystone/default_catalog.templates" }
+
+      describe "without templated" do
+        it "doesn't create" do
+          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+          chef_run = ::ChefSpec::ChefRunner.new opts
+          chef_run.converge "openstack-identity::server"
+
+          expect(chef_run).not_to create_file @file
+        end
       end
 
-      it "has proper owner" do
-        expect(@file).to be_owned_by "keystone", "keystone"
-      end
+      describe "with templated" do
+        before do
+          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+          @chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+            n.set["openstack"]["identity"]["catalog"]["backend"] = "templated"
+          end
+          @chef_run.converge "openstack-identity::server"
+          @template = @chef_run.template @file
+        end
 
-      it "has proper modes" do
-        expect(sprintf("%o", @file.mode)).to eq "644"
-      end
+        it "creates" do
+          expect(@chef_run).to create_file @file
+        end
 
-      it "template contents" do
-        pending "TODO: implement"
-      end
+        it "has proper owner" do
+          expect(@template).to be_owned_by "keystone", "keystone"
+        end
 
-      it "notifies nova-api-ec2 restart" do
-        expect(@file).to notify "service[keystone]", :restart
+        it "has proper modes" do
+          expect(sprintf("%o", @template.mode)).to eq "644"
+        end
+
+        it "template contents" do
+          pending "TODO: implement"
+        end
+
+        it "notifies keystone restart" do
+          expect(@template).to notify "service[keystone]", :restart
+        end
       end
     end
 
     it "runs db migrations" do
       cmd = "keystone-manage db_sync"
+
       expect(@chef_run).to execute_command cmd
     end
   end

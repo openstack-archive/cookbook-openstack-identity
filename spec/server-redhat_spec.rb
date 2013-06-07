@@ -1,9 +1,9 @@
 require_relative "spec_helper"
 
 describe "openstack-identity::server" do
+  before { identity_stubs }
   describe "redhat" do
     before do
-      keystone_stubs
       @chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS
       @chef_run.converge "openstack-identity::server"
     end
@@ -13,10 +13,11 @@ describe "openstack-identity::server" do
     end
 
     it "installs postgresql python packages if explicitly told" do
-      chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS
-      node = chef_run.node
-      node.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
+      chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS do |n|
+        n.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
+      end
       chef_run.converge "openstack-identity::server"
+
       expect(chef_run).to install_package "python-psycopg2"
     end
 
