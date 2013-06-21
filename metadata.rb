@@ -16,4 +16,4 @@ end
 
 depends          "database"
 depends          "mysql"
-depends          "openstack-common", "~> 0.2.2"
+depends          "openstack-common", "~> 0.3.0"
