@@ -16,23 +16,10 @@ Cookbooks
 
 The following cookbooks are dependencies:
 
-* database
-* mysql
 * openstack-common
 
 Usage
 =====
-
-db
---
-
-Configures database for use with keystone
-
-```json
-"run_list": [
-    "recipe[openstack-identity::db]"
-]
-```
 
 server
 ------
