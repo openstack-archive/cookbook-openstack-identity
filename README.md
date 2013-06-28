@@ -284,7 +284,7 @@ Author:: Matt Ray (<matt@opscode.com>)
 Author:: Jay Pipes (<jaypipes@att.com>)
 Author:: John Dewey (<jdewey@att.com>)
 Author:: Sean Gallagher (<sean.gallagher@att.com>)
-Author:: Ionuț Arțăriși (<iartarisi@suse.cz>)
+Author:: Ionut Artarisi (<iartarisi@suse.cz>)
 
 Copyright 2012, Rackspace US, Inc.
 Copyright 2012-2013, Opscode, Inc.
