@@ -165,8 +165,9 @@ describe "openstack-identity::server" do
         expect(sprintf("%o", @template.mode)).to eq "644"
       end
 
-      it "template contents" do
-        pending "TODO: implement"
+      it "has bind host" do
+        expect(@chef_run).to create_file_with_content @template.name,
+          "bind_host = 127.0.1.1"
       end
 
       it "notifies keystone restart" do

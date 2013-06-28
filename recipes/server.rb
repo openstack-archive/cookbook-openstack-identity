@@ -108,7 +108,7 @@ sql_connection = db_uri("identity", db_user, db_pass)
 
 bootstrap_token = secret "secrets", "openstack_identity_bootstrap_token"
 
-ip_address = node["network"]["ipaddress_#{node["openstack"]["identity"]["bind_interface"]}"]
+ip_address = address_for node["openstack"]["identity"]["bind_interface"]
 
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the

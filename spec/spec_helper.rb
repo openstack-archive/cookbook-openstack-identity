@@ -18,6 +18,9 @@ require "chefspec"
 }
 
 def identity_stubs
+  ::Chef::Recipe.any_instance.stub(:address_for).
+    with("lo").
+    and_return "127.0.1.1"
   ::Chef::Recipe.any_instance.stub(:memcached_servers).and_return []
   ::Chef::Recipe.any_instance.stub(:db_password).and_return String.new
   ::Chef::Recipe.any_instance.stub(:secret).and_return String.new
