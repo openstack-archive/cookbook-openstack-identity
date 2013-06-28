@@ -219,10 +219,24 @@ describe "openstack-identity::server" do
       end
     end
 
-    it "runs db migrations" do
-      cmd = "keystone-manage db_sync"
+    describe "db_sync" do
+      before do
+        @cmd = "keystone-manage db_sync"
+      end
 
-      expect(@chef_run).to execute_command cmd
+      it "runs migrations" do
+        expect(@chef_run).to execute_command @cmd
+      end
+
+      it "doesn't run migrations" do
+        opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+        chef_run = ::ChefSpec::ChefRunner.new(opts) do |n|
+          n.set["openstack"]["identity"]["db"]["migrate"] = false
+        end
+        chef_run.converge "openstack-identity::server"
+
+        expect(chef_run).not_to execute_command @cmd
+      end
     end
   end
 end
