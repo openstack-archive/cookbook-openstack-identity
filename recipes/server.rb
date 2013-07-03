@@ -154,4 +154,6 @@ template "/etc/keystone/default_catalog.templates" do
 end
 
 # sync db after keystone.conf is generated
-execute "keystone-manage db_sync" # idempotent
+execute "keystone-manage db_sync" do
+  only_if { node["openstack"]["identity"]["db"]["migrate"] }
+end
