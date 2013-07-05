@@ -6,7 +6,6 @@ description      "The OpenStack Identity service Keystone."
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "7.0.0"
 
-recipe           "openstack-identity::db", "Configures database for use with keystone"
 recipe           "openstack-identity::server", "Installs and Configures Keystone Service"
 recipe           "openstack-identity::registration", "Adds user, tenant, role and endpoint records to Keystone"
 
@@ -14,6 +13,4 @@ recipe           "openstack-identity::registration", "Adds user, tenant, role an
   supports os
 end
 
-depends          "database"
-depends          "mysql"
 depends          "openstack-common", "~> 0.3.0"

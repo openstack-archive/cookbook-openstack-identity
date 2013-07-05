@@ -2,8 +2,16 @@ require_relative "spec_helper"
 
 describe Chef::Provider::Execute do
   before do
-    @node = Chef::Node.new
-    @node.set["openstack"] = {"identity" => {"catalog" => { "backend" => "sql" }} }
+    @chef_run = ::ChefSpec::ChefRunner.new ::OPENSUSE_OPTS
+    @chef_run.converge "openstack-identity::default"
+    @node = @chef_run.node
+    @node.set["openstack"] = {
+      "identity" => {
+        "catalog" => {
+          "backend" => "sql"
+        }
+      }
+    }
     @cookbook_collection = Chef::CookbookCollection.new([])
     @events = Chef::EventDispatch::Dispatcher.new
     @run_context = Chef::RunContext.new(@node, @cookbook_collection, @events)
