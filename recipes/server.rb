@@ -100,6 +100,7 @@ identity_endpoint = endpoint "identity-api"
 compute_endpoint = endpoint "compute-api"
 ec2_endpoint = endpoint "compute-ec2-api"
 image_endpoint = endpoint "image-api"
+network_endpoint = endpoint "network-api"
 volume_endpoint = endpoint "volume-api"
 
 db_user = node["openstack"]["identity"]["db"]["username"]
@@ -121,6 +122,7 @@ uris = {
   'image' => image_endpoint.to_s.gsub('%25','%'),
   'compute' => compute_endpoint.to_s.gsub('%25','%'),
   'ec2' => ec2_endpoint.to_s.gsub('%25','%'),
+  'network' => network_endpoint.to_s.gsub('%25','%'),
   'volume' => volume_endpoint.to_s.gsub('%25','%')
 }
 

@@ -22,3 +22,8 @@ catalog.<%= node["openstack"]["identity"]["region"] %>.image.publicURL = <%= @ur
 catalog.<%= node["openstack"]["identity"]["region"] %>.image.adminURL = <%= @uris["image"].to_s %>
 catalog.<%= node["openstack"]["identity"]["region"] %>.image.internalURL = <%= @uris["image"].to_s %>
 catalog.<%= node["openstack"]["identity"]["region"] %>.image.name = Image Service
+
+catalog.<%= node["openstack"]["network"]["region"] %>.network.publicURL = <%= @uris["network"].to_s %>
+catalog.<%= node["openstack"]["network"]["region"] %>.network.adminURL = <%= @uris["network"].to_s %>
+catalog.<%= node["openstack"]["network"]["region"] %>.network.internalURL = <%= @uris["network"].to_s %>
+catalog.<%= node["openstack"]["network"]["region"] %>.network.name = Network Service
