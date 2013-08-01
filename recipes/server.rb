@@ -126,6 +126,14 @@ uris = {
   'volume' => volume_endpoint.to_s.gsub('%25','%')
 }
 
+# These configuration endpoints must not have the path (v2.0, etc)
+# added to them, as these values are used in returning the version
+# listing information from the root / endpoint.
+ie = identity_endpoint
+public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
+ae = identity_admin_endpoint
+admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
+
 template "/etc/keystone/keystone.conf" do
   source "keystone.conf.erb"
   owner node["openstack"]["identity"]["user"]
@@ -136,7 +144,9 @@ template "/etc/keystone/keystone.conf" do
     :ip_address => ip_address,
     "bootstrap_token" => bootstrap_token,
     "memcache_servers" => memcache_servers,
-    "uris" => uris
+    "uris" => uris,
+    "public_endpoint" => public_endpoint,
+    "admin_endpoint" => admin_endpoint
   )
 
   notifies :restart, "service[keystone]", :immediately

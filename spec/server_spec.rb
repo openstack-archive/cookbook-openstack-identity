@@ -6,6 +6,16 @@ describe "openstack-identity::server" do
     before do
       @chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS do |n|
         n.set["openstack"]["identity"]["syslog"]["use"] = true
+        n.set["openstack"]["endpoints"]["identity-api"] = {
+          "host" => "127.0.1.1",
+          "port" => "5000",
+          "scheme" => "https"
+        }
+        n.set["openstack"]["endpoints"]["identity-admin"] = {
+          "host" => "127.0.1.1",
+          "port" => "35357",
+          "scheme" => "https"
+        }
       end
       @chef_run.converge "openstack-identity::server"
     end
@@ -168,6 +178,13 @@ describe "openstack-identity::server" do
       it "has bind host" do
         expect(@chef_run).to create_file_with_content @template.name,
           "bind_host = 127.0.1.1"
+      end
+
+      it "has proper public and admin endpoint" do
+        expect(@chef_run).to create_file_with_content @template.name,
+          "public_endpoint = https://127.0.1.1:5000/"
+        expect(@chef_run).to create_file_with_content @template.name,
+          "admin_endpoint = https://127.0.1.1:35357/"
       end
 
       it "notifies keystone restart" do
