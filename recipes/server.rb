@@ -4,6 +4,7 @@
 #
 # Copyright 2012, Rackspace US, Inc.
 # Copyright 2012-2013, Opscode, Inc.
+# Copyright 2013 SUSE LINUX Products GmbH.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -146,7 +147,8 @@ template "/etc/keystone/keystone.conf" do
     "memcache_servers" => memcache_servers,
     "uris" => uris,
     "public_endpoint" => public_endpoint,
-    "admin_endpoint" => admin_endpoint
+    "admin_endpoint" => admin_endpoint,
+    "ldap" => node["openstack"]["identity"]["ldap"]
   )
 
   notifies :restart, "service[keystone]", :immediately
