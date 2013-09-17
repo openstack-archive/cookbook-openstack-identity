@@ -30,10 +30,6 @@ end
 
 platform_options = node["openstack"]["identity"]["platform"]
 
-##### NOTE #####
-# https://bugs.launchpad.net/ubuntu/+source/keystone/+bug/931236
-################
-
 db_type = node['openstack']['db']['identity']['db_type']
 platform_options["#{db_type}_python_packages"].each do |pkg|
   package pkg do
