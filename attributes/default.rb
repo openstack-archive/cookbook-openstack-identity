@@ -92,6 +92,80 @@ default["openstack"]["identity"]["identity"]["backend"] = "sql"
 default["openstack"]["identity"]["token"]["backend"] = "sql"
 default["openstack"]["identity"]["catalog"]["backend"] = "sql"
 
+# LDAP backend general settings
+default["openstack"]["identity"]["ldap"]["url"] = "ldap://localhost"
+default["openstack"]["identity"]["ldap"]["user"] = "dc=Manager,dc=example,dc=com"
+default["openstack"]["identity"]["ldap"]["password"] = nil
+default["openstack"]["identity"]["ldap"]["suffix"] = "cn=example,cn=com"
+default["openstack"]["identity"]["ldap"]["use_dumb_member"] = false
+default["openstack"]["identity"]["ldap"]["allow_subtree_delete"] = false
+default["openstack"]["identity"]["ldap"]["dumb_member"] = "cn=dumb,dc=example,dc=com"
+default["openstack"]["identity"]["ldap"]["page_size"] = 0
+default["openstack"]["identity"]["ldap"]["alias_dereferencing"] = "default"
+default["openstack"]["identity"]["ldap"]["query_scope"] = "one"
+
+# LDAP backend user related settings
+default["openstack"]["identity"]["ldap"]["user_tree_dn"] = nil
+default["openstack"]["identity"]["ldap"]["user_filter"] = nil
+default["openstack"]["identity"]["ldap"]["user_objectclass"] = "inetOrgPerson"
+default["openstack"]["identity"]["ldap"]["user_id_attribute"] = "cn"
+default["openstack"]["identity"]["ldap"]["user_name_attribute"] = "sn"
+default["openstack"]["identity"]["ldap"]["user_mail_attribute"] = "email"
+default["openstack"]["identity"]["ldap"]["user_pass_attribute"] = "userPassword"
+default["openstack"]["identity"]["ldap"]["user_enabled_attribute"] = "enabled"
+default["openstack"]["identity"]["ldap"]["user_domain_id_attribute"] = "businessCategory"
+default["openstack"]["identity"]["ldap"]["user_enabled_mask"] = 0
+default["openstack"]["identity"]["ldap"]["user_enabled_default"] = "true"
+default["openstack"]["identity"]["ldap"]["user_attribute_ignore"] = "tenant_id,tenants"
+default["openstack"]["identity"]["ldap"]["user_allow_create"] = true
+default["openstack"]["identity"]["ldap"]["user_allow_update"] = true
+default["openstack"]["identity"]["ldap"]["user_allow_delete"] = true
+default["openstack"]["identity"]["ldap"]["user_enabled_emulation"] = false
+default["openstack"]["identity"]["ldap"]["user_enabled_emulation_dn"] = nil
+
+# LDAP backend tenant related settings
+default["openstack"]["identity"]["ldap"]["tenant_tree_dn"] = nil
+default["openstack"]["identity"]["ldap"]["tenant_filter"] = nil
+default["openstack"]["identity"]["ldap"]["tenant_objectclass"] = "groupOfNames"
+default["openstack"]["identity"]["ldap"]["tenant_id_attribute"] = "cn"
+default["openstack"]["identity"]["ldap"]["tenant_member_attribute"] = "member"
+default["openstack"]["identity"]["ldap"]["tenant_name_attribute"] = "ou"
+default["openstack"]["identity"]["ldap"]["tenant_desc_attribute"] = "description"
+default["openstack"]["identity"]["ldap"]["tenant_enabled_attribute"] = "enabled"
+default["openstack"]["identity"]["ldap"]["tenant_domain_id_attribute"] = "businessCategory"
+default["openstack"]["identity"]["ldap"]["tenant_attribute_ignore"] = nil
+default["openstack"]["identity"]["ldap"]["tenant_allow_create"] = true
+default["openstack"]["identity"]["ldap"]["tenant_allow_update"] = true
+default["openstack"]["identity"]["ldap"]["tenant_allow_delete"] = true
+default["openstack"]["identity"]["ldap"]["tenant_enabled_emulation"] = false
+default["openstack"]["identity"]["ldap"]["tenant_enabled_emulation_dn"] = nil
+
+# LDAP backend role related settings
+default["openstack"]["identity"]["ldap"]["role_tree_dn"] = nil
+default["openstack"]["identity"]["ldap"]["role_filter"] = nil
+default["openstack"]["identity"]["ldap"]["role_objectclass"] = "organizationalRole"
+default["openstack"]["identity"]["ldap"]["role_id_attribute"] = "cn"
+default["openstack"]["identity"]["ldap"]["role_name_attribute"] = "ou"
+default["openstack"]["identity"]["ldap"]["role_member_attribute"] = "roleOccupant"
+default["openstack"]["identity"]["ldap"]["role_attribute_ignore"] = nil
+default["openstack"]["identity"]["ldap"]["role_allow_create"] = true
+default["openstack"]["identity"]["ldap"]["role_allow_update"] = true
+default["openstack"]["identity"]["ldap"]["role_allow_delete"] = true
+
+# LDAP backend group related settings
+default["openstack"]["identity"]["ldap"]["group_tree_dn"] = nil
+default["openstack"]["identity"]["ldap"]["group_filter"] = nil
+default["openstack"]["identity"]["ldap"]["group_objectclass"] = "groupOfNames"
+default["openstack"]["identity"]["ldap"]["group_id_attribute"] = "cn"
+default["openstack"]["identity"]["ldap"]["group_name_attribute"] = "ou"
+default["openstack"]["identity"]["ldap"]["group_member_attribute"] = "member"
+default["openstack"]["identity"]["ldap"]["group_desc_attribute"] = "description"
+default["openstack"]["identity"]["ldap"]["group_domain_id_attribute"] = "businessCategory"
+default["openstack"]["identity"]["ldap"]["group_attribute_ignore"] = nil
+default["openstack"]["identity"]["ldap"]["group_allow_create"] = true
+default["openstack"]["identity"]["ldap"]["group_allow_update"] = true
+default["openstack"]["identity"]["ldap"]["group_allow_delete"] = true
+
 # platform defaults
 case platform
 when "fedora", "redhat", "centos" # :pragma-foodcritic: ~FC024 - won't fix this

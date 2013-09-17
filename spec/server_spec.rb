@@ -190,6 +190,58 @@ describe "openstack-identity::server" do
       it "notifies keystone restart" do
         expect(@template).to notify "service[keystone]", :restart
       end
+
+      describe "optional LDAP attributes" do
+        optional_attrs = ["group_tree_dn", "group_filter",
+          "user_filter", "user_tree_dn", "user_enabled_emulation_dn",
+          "group_attribute_ignore", "role_attribute_ignore",
+          "role_tree_dn", "role_filter", "tenant_tree_dn",
+          "tenant_enabled_emulation_dn", "tenant_filter",
+          "tenant_attribute_ignore"]
+
+        optional_attrs.each do |setting|
+          it "does not have the optional #{setting} LDAP attribute" do
+            expect(@chef_run).not_to(
+              create_file_with_content(
+                @template.name, /^#{Regexp.quote(setting)} =/))
+          end
+
+          it "has the optional #{setting} LDAP attribute commented out" do
+            expect(@chef_run).to(
+              create_file_with_content(
+                @template.name, /^# #{Regexp.quote(setting)} =$/))
+          end
+        end
+      end
+
+      ["url", "user", "suffix", "use_dumb_member",
+        "allow_subtree_delete", "dumb_member", "page_size",
+        "alias_dereferencing", "query_scope", "user_objectclass",
+        "user_id_attribute", "user_name_attribute",
+        "user_mail_attribute", "user_pass_attribute",
+        "user_enabled_attribute", "user_domain_id_attribute",
+        "user_attribute_ignore", "user_enabled_mask",
+        "user_enabled_default", "user_allow_create",
+        "user_allow_update", "user_allow_delete",
+        "user_enabled_emulation", "tenant_objectclass",
+        "tenant_id_attribute", "tenant_member_attribute",
+        "tenant_name_attribute", "tenant_desc_attribute",
+        "tenant_enabled_attribute", "tenant_domain_id_attribute",
+        "tenant_allow_create", "tenant_allow_update",
+        "tenant_allow_delete", "tenant_enabled_emulation",
+        "role_objectclass", "role_id_attribute", "role_name_attribute",
+        "role_member_attribute", "role_allow_create",
+        "role_allow_update", "role_allow_delete", "group_objectclass",
+        "group_id_attribute", "group_name_attribute",
+        "group_member_attribute", "group_desc_attribute",
+        "group_domain_id_attribute", "group_allow_create",
+        "group_allow_update", "group_allow_delete",
+      ].each do |setting|
+        it "has a #{setting} LDAP attribute" do
+          expect(@chef_run).to create_file_with_content @template.name,
+          /^#{Regexp.quote(setting)} = \w+/
+        end
+      end
     end
 
     describe "default_catalog.templates" do
