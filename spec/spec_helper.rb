@@ -23,5 +23,8 @@ def identity_stubs
     and_return "127.0.1.1"
   ::Chef::Recipe.any_instance.stub(:memcached_servers).and_return []
   ::Chef::Recipe.any_instance.stub(:db_password).and_return String.new
-  ::Chef::Recipe.any_instance.stub(:secret).and_return String.new
+  ::Chef::Recipe.any_instance.stub(:user_password).and_return String.new
+  ::Chef::Recipe.any_instance.stub(:secret).
+    with("secrets", "openstack_identity_bootstrap_token").
+    and_return "bootstrap-token"
 end
