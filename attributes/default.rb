@@ -53,14 +53,11 @@ default["openstack"]["identity"]["syslog"]["config_facility"] = "local2"
 # default["openstack"]["identity"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin", "sysadmin", "netadmin" ]
 default["openstack"]["identity"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin" ]
 
-#TODO(shep): this should probably be derived from keystone.users hash keys
-default["openstack"]["identity"]["tenants"] = [ "admin", "service"]
-
 default["openstack"]["identity"]["admin_user"] = "admin"
 default["openstack"]["identity"]["admin_tenant_name"] = "admin"
 
 default["openstack"]["identity"]["users"] = {
-    default["openstack"]["identity"]["admin_user"]  => {
+  default["openstack"]["identity"]["admin_user"]  => {
         "password" => nil,
         "default_tenant" => default["openstack"]["identity"]["admin_tenant_name"],
         "roles" => {

@@ -75,14 +75,15 @@ exit 0
 EOF
 end
 
-node["openstack"]["identity"]["tenants"].each do |tenant_name|
-  ## Add openstack tenant ##
+# Register all the tenants specified in the users hash
+node["openstack"]["identity"]["users"].values.map do |user_info|
+  user_info["roles"].values.push(user_info["default_tenant"])
+end.flatten.uniq.each do |tenant_name|
   openstack_identity_register "Register '#{tenant_name}' Tenant" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
     tenant_name tenant_name
     tenant_description "#{tenant_name} Tenant"
-    tenant_enabled true # Not required as this is the default
 
     action :create_tenant
   end

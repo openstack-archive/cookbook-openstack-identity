@@ -9,6 +9,21 @@ describe "openstack-identity::registration" do
       runner.converge "openstack-identity::registration"
     }
 
+    let(:chef_run_test_users) {
+      runner = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      runner.node.set["openstack"]["identity"]["users"] = {
+        "user1" => {
+          "default_tenant" => "default_tenant1",
+          "password" => "secret1",
+          "roles" => {
+            "role1" => [ "role_tenant1" ],
+            "role2" => [ "default_tenant1" ]
+          }
+        },
+      }
+      runner.converge "openstack-identity::registration"
+    }
+
     describe "tenant registration" do
       context "default tenants" do
         ["admin", "service"].each do |tenant_name|
@@ -32,15 +47,9 @@ describe "openstack-identity::registration" do
       context "configured tenants from users attribute" do
         tenants = ["default_tenant1", "role_tenant1"]
 
-        let(:chef_run) {
-          chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
-          chef_run.node.set["openstack"]["identity"]["tenants"] = tenants
-          chef_run.converge "openstack-identity::registration"
-        }
-
         tenants.each do |tenant_name|
           it "registers the #{tenant_name} tenant" do
-            resource = chef_run.find_resource(
+            resource = chef_run_test_users.find_resource(
               "openstack-identity_register",
               "Register '#{tenant_name}' Tenant"
               ).to_hash
@@ -56,6 +65,7 @@ describe "openstack-identity::registration" do
         end
       end
     end
+
     describe "role registration" do
       context "default roles" do
         ["admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin"
@@ -148,23 +158,8 @@ describe "openstack-identity::registration" do
       end
 
       context "configured user" do
-        let(:chef_run) {
-          chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
-          chef_run.node.set["openstack"]["identity"]["users"] = {
-            "user1" => {
-              "default_tenant" => "default_tenant1",
-              "password" => "secret1",
-              "roles" => {
-                "role1" => [ "role_tenant1" ],
-                "role2" => [ "default_tenant1" ]
-              }
-            },
-          }
-          chef_run.converge "openstack-identity::registration"
-        }
-
         it "registers the user1 user" do
-          resource = chef_run.find_resource(
+          resource = chef_run_test_users.find_resource(
             "openstack-identity_register",
             "Register 'user1' User"
             ).to_hash
@@ -180,7 +175,7 @@ describe "openstack-identity::registration" do
         end
 
         it "grants 'role1' role to 'user1' user in 'role_tenant1' tenant" do
-          grant_resource = chef_run.find_resource(
+          grant_resource = chef_run_test_users.find_resource(
             "openstack-identity_register",
             "Grant 'role1' Role to 'user1' User in 'role_tenant1' Tenant"
             ).to_hash
