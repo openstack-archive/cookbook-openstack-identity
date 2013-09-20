@@ -86,18 +86,13 @@ describe "openstack-identity::registration" do
         end
       end
 
-      context "configured roles" do
-        roles = ["role1", "role2"]
+      context "configured roles derived from users attribute" do
 
-        let(:chef_run) {
-          chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
-          chef_run.node.set["openstack"]["identity"]["roles"] = roles
-          chef_run.converge "openstack-identity::registration"
-        }
+        roles = ["role1", "role2"]
 
         roles.each do |role_name|
           it "registers the #{role_name} role" do
-            resource = chef_run.find_resource(
+            resource = chef_run_test_users.find_resource(
               "openstack-identity_register",
               "Register '#{role_name}' Role"
               ).to_hash

@@ -89,11 +89,14 @@ end.flatten.uniq.each do |tenant_name|
   end
 end
 
-node["openstack"]["identity"]["roles"].each do |role_key|
-  openstack_identity_register "Register '#{role_key.to_s}' Role" do
+# Register all the roles from the users hash
+node["openstack"]["identity"]["users"].values.map do |user_info|
+  user_info["roles"].keys
+end.flatten.uniq.each do |role_name|
+  openstack_identity_register "Register '#{role_name.to_s}' Role" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
-    role_name role_key
+    role_name role_name
 
     action :create_role
   end

@@ -50,14 +50,11 @@ default["openstack"]["identity"]["syslog"]["use"] = false
 default["openstack"]["identity"]["syslog"]["facility"] = "LOG_LOCAL2"
 default["openstack"]["identity"]["syslog"]["config_facility"] = "local2"
 
-# default["openstack"]["identity"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin", "sysadmin", "netadmin" ]
-default["openstack"]["identity"]["roles"] = [ "admin", "Member", "KeystoneAdmin", "KeystoneServiceAdmin" ]
-
 default["openstack"]["identity"]["admin_user"] = "admin"
 default["openstack"]["identity"]["admin_tenant_name"] = "admin"
 
 default["openstack"]["identity"]["users"] = {
-  default["openstack"]["identity"]["admin_user"]  => {
+  default["openstack"]["identity"]["admin_user"] => {
         "password" => nil,
         "default_tenant" => default["openstack"]["identity"]["admin_tenant_name"],
         "roles" => {
