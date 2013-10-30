@@ -8,6 +8,13 @@ describe "openstack-identity::server" do
       @chef_run.converge "openstack-identity::server"
     end
 
+    it "converges when configured to use sqlite db backend" do
+      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      node = chef_run.node
+      node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
+      chef_run.converge "openstack-identity::server"
+    end
+
     it "installs mysql python packages" do
       expect(@chef_run).to install_package "python-mysql"
     end
