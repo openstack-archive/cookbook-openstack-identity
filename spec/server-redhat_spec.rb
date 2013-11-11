@@ -9,7 +9,7 @@ describe "openstack-identity::server" do
     end
 
     it "converges when configured to use sqlite db backend" do
-      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
       chef_run.converge "openstack-identity::server"
