@@ -123,6 +123,15 @@ describe "openstack-identity::server" do
       expect(@chef_run).to delete_file "/var/lib/keystone/keystone.db"
     end
 
+    it "does not delete keystone.db when configured to use sqlite" do
+      opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
+      chef_run = ::ChefSpec::ChefRunner.new opts
+      node = chef_run.node
+      node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
+      chef_run.converge "openstack-identity::server"
+      expect(chef_run).not_to delete_file "/var/lib/keystone/keystone.db"
+    end
+
     describe "pki setup" do
       before { @cmd = "keystone-manage pki_setup" }
 

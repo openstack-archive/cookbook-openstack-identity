@@ -85,6 +85,7 @@ end
 
 file "/var/lib/keystone/keystone.db" do
   action :delete
+  not_if { node["openstack"]["db"]["identity"]["db_type"] == "sqlite" }
 end
 
 execute "keystone-manage pki_setup" do
