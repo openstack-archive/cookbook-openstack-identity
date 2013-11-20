@@ -2,6 +2,9 @@
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 7.1.0:
+* Add new attribute default["openstack"]["identity"]["policy"]["backend"], default is 'sql'.
+
 ## 7.0.2:
 ### Bug
 * Do not delete the sqlite database when node.openstack.db.identity.db_type is set to sqlite.

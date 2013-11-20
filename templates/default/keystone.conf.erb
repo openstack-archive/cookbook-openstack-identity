@@ -174,7 +174,7 @@ driver = keystone.token.backends.<%= node["openstack"]["identity"]["token"]["bac
 expiration = 86400
 
 [policy]
-driver = keystone.policy.backends.rules.Policy
+driver = keystone.policy.backends.<%= node["openstack"]["identity"]["policy"]["backend"] %>.Policy
 
 [ec2]
 driver = keystone.contrib.ec2.backends.sql.Ec2

@@ -4,6 +4,7 @@
 #
 # Copyright 2012-2013, AT&T Services, Inc.
 # Copyright 2013, Opscode, Inc.
+# Copyright 2013, IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -86,6 +87,7 @@ default["openstack"]["identity"]["signing"]["ca_password"] = nil
 default["openstack"]["identity"]["identity"]["backend"] = "sql"
 default["openstack"]["identity"]["token"]["backend"] = "sql"
 default["openstack"]["identity"]["catalog"]["backend"] = "sql"
+default["openstack"]["identity"]["policy"]["backend"] = "sql"
 
 # LDAP backend general settings
 default["openstack"]["identity"]["ldap"]["url"] = "ldap://localhost"

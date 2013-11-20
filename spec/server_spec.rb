@@ -203,6 +203,10 @@ describe "openstack-identity::server" do
           "admin_endpoint = https://127.0.1.1:35357/"
       end
 
+      it "has policy driver" do
+        expect(@chef_run).to create_file_with_content @template.name,
+          "driver = keystone.policy.backends.sql.Policy"
+      end
       it "notifies keystone restart" do
         expect(@template).to notify "service[keystone]", :restart
       end
