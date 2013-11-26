@@ -2,6 +2,9 @@
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 7.2.0:
+* Allow orchestration and cloudformation as service/endpoint types.
+
 ## 7.1.0:
 * Add new attribute default["openstack"]["identity"]["policy"]["backend"], default is 'sql'.
 

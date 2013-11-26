@@ -92,7 +92,7 @@ Register users, tenants, roles, services and endpoints with Keystone
 - service_name: Name of service
 - service_description: Description of service
 - service_type: Type of service to create
- - Accepted values are [ "image", "identity", "compute", "storage", "ec2", "volume" ]
+ - Accepted values are [ "image", "identity", "compute", "storage", "ec2", "volume", "object-store", "metering", "network", "orchestration", "cloudformation" ]
 
 ### :create_endpoint Specific Attributes
 
@@ -102,7 +102,7 @@ Register users, tenants, roles, services and endpoints with Keystone
 - endpoint_publicurl: URL to public endpoint
  - Default is same as endpoint_internalURL
 - service_type: Type of service to create endpoint for
- - Accepted values are [ "image", "identity", "compute", "storage", "ec2", "volume" ]
+ - Accepted values are [ "image", "identity", "compute", "storage", "ec2", "volume", "object-store", "metering", "network", "orchestration", "cloudformation" ]
 
 ### Examples
 
