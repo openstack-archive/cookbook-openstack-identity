@@ -62,7 +62,7 @@ GEM
     erubis (2.7.0)
     faraday (0.8.8)
       multipart-post (~> 1.2.0)
-    fauxhai (2.0.0)
+    fauxhai (2.0.1)
       net-ssh
       ohai
     ffi (1.9.3)

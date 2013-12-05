@@ -242,6 +242,8 @@ Attributes
 * `openstack['identity']['admin_token']` - Admin token for bootstraping keystone server
 * `openstack['identity']['roles']` - Array of roles to create in the keystone server
 * `openstack['identity']['users']` - Array of users to create in the keystone server
+TODO: Add DB2 support on other platforms
+* `openstack['identity']['platform']['db2_python_packages']` - Array of DB2 python packages, only available on redhat platform
 
 Testing
 =====
@@ -271,11 +273,13 @@ Author:: Jay Pipes (<jaypipes@att.com>)
 Author:: John Dewey (<jdewey@att.com>)
 Author:: Sean Gallagher (<sean.gallagher@att.com>)
 Author:: Ionut Artarisi (<iartarisi@suse.cz>)
+Author:: Chen Zhiwei (zhiwchen@cn.ibm.com)
 
 Copyright 2012, Rackspace US, Inc.
 Copyright 2012-2013, Opscode, Inc.
 Copyright 2012-2013, AT&T Services, Inc.
 Copyright 2013, SUSE Linux GmbH
+Copyright 2013, IBM, Corp.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

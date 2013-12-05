@@ -19,6 +19,17 @@ describe "openstack-identity::server" do
       expect(@chef_run).to install_package "MySQL-python"
     end
 
+    it "installs db2 python packages if explicitly told" do
+      chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
+        n.set["openstack"]["db"]["identity"]["db_type"] = "db2"
+      end
+      chef_run.converge "openstack-identity::server"
+
+      ["db2-odbc", "python-ibm-db", "python-ibm-db-sa"].each do |pkg|
+        expect(chef_run).to install_package pkg
+      end
+    end
+
     it "installs postgresql python packages if explicitly told" do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
         n.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
