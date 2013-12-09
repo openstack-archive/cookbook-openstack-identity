@@ -1,6 +1,8 @@
 Description
 ===========
 
+This is the stable/grizzly branch of the StackForge cookbooks. Havana and future releases are in development on trunk and (eventually) their respective branches.
+
 This cookbook installs the OpenStack Identity Service **Keystone** as part of the OpenStack reference deployment Chef for OpenStack. The http://github.com/mattray/chef-openstack-repo contains documentation for using this cookbook in the context of a full OpenStack deployment. Keystone is installed from packages, creating the default user, tenant, and roles. It also registers the identity service and identity endpoint.
 
 http://keystone.openstack.org/
@@ -8,7 +10,7 @@ http://keystone.openstack.org/
 Requirements
 ============
 
-Chef 0.10.0 or higher required (for Chef environment use)
+Chef 11.0 or higher required (for Chef environment use)
 
 Cookbooks
 ---------
