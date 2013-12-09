@@ -5,9 +5,9 @@
       "path": "."
     },
     "openstack-common": {
-      "locked_version": "0.3.0",
+      "locked_version": "8.0.0",
       "git": "git://github.com/stackforge/cookbook-openstack-common.git",
-      "ref": "ae80d36e8f8d5705e01bb6c14238eccb5450a229"
+      "ref": "2201bd113ffe1742c19811aa4df59a5790af71e3"
     },
     "apt": {
       "locked_version": "2.0.0"

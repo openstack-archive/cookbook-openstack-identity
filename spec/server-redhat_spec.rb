@@ -4,12 +4,12 @@ describe "openstack-identity::server" do
   before { identity_stubs }
   describe "redhat" do
     before do
-      @chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS
+      @chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS
       @chef_run.converge "openstack-identity::server"
     end
 
     it "converges when configured to use sqlite db backend" do
-      chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS
+      chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
       chef_run.converge "openstack-identity::server"
@@ -20,7 +20,7 @@ describe "openstack-identity::server" do
     end
 
     it "installs postgresql python packages if explicitly told" do
-      chef_run = ::ChefSpec::ChefRunner.new ::REDHAT_OPTS do |n|
+      chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
         n.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
       end
       chef_run.converge "openstack-identity::server"
@@ -37,7 +37,7 @@ describe "openstack-identity::server" do
     end
 
     it "starts keystone on boot" do
-      expect(@chef_run).to set_service_to_start_on_boot "openstack-keystone"
+      expect(@chef_run).to enable_service("openstack-keystone")
     end
   end
 end

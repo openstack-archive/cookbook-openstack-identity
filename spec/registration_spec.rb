@@ -5,12 +5,12 @@ describe "openstack-identity::registration" do
 
   describe "ubuntu" do
     let(:chef_run) {
-      runner = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      runner = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       runner.converge "openstack-identity::registration"
     }
 
     let(:chef_run_test_users) {
-      runner = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      runner = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       runner.node.set["openstack"]["identity"]["users"] = {
         "user1" => {
           "default_tenant" => "default_tenant1",
@@ -34,7 +34,7 @@ describe "openstack-identity::registration" do
               ).to_hash
 
             expect(resource).to include(
-              :auth_uri => "https://127.0.0.1:35357/v2.0",
+              :auth_uri => "http://127.0.0.1:35357/v2.0",
               :bootstrap_token => "bootstrap-token",
               :tenant_name => tenant_name,
               :tenant_description => "#{tenant_name} Tenant",
@@ -55,7 +55,7 @@ describe "openstack-identity::registration" do
               ).to_hash
 
             expect(resource).to include(
-              :auth_uri => "https://127.0.0.1:35357/v2.0",
+              :auth_uri => "http://127.0.0.1:35357/v2.0",
               :bootstrap_token => "bootstrap-token",
               :tenant_name => tenant_name,
               :tenant_description => "#{tenant_name} Tenant",
@@ -77,7 +77,7 @@ describe "openstack-identity::registration" do
               ).to_hash
 
             expect(resource).to include(
-              :auth_uri => "https://127.0.0.1:35357/v2.0",
+              :auth_uri => "http://127.0.0.1:35357/v2.0",
               :bootstrap_token => "bootstrap-token",
               :role_name => role_name,
               :action => [:create_role]
@@ -98,7 +98,7 @@ describe "openstack-identity::registration" do
               ).to_hash
 
             expect(resource).to include(
-              :auth_uri => "https://127.0.0.1:35357/v2.0",
+              :auth_uri => "http://127.0.0.1:35357/v2.0",
               :bootstrap_token => "bootstrap-token",
               :role_name => role_name,
               :action => [:create_role]
@@ -122,7 +122,7 @@ describe "openstack-identity::registration" do
                 ).to_hash
 
               expect(user_resource).to include(
-                :auth_uri => "https://127.0.0.1:35357/v2.0",
+                :auth_uri => "http://127.0.0.1:35357/v2.0",
                 :bootstrap_token => "bootstrap-token",
                 :user_name => user,
                 :user_pass => nil,
@@ -139,7 +139,7 @@ describe "openstack-identity::registration" do
                   ).to_hash
 
                 expect(grant_resource).to include(
-                  :auth_uri => "https://127.0.0.1:35357/v2.0",
+                  :auth_uri => "http://127.0.0.1:35357/v2.0",
                   :bootstrap_token => "bootstrap-token",
                   :user_name => user,
                   :role_name => role,
@@ -160,7 +160,7 @@ describe "openstack-identity::registration" do
             ).to_hash
 
           expect(resource).to include(
-            :auth_uri => "https://127.0.0.1:35357/v2.0",
+            :auth_uri => "http://127.0.0.1:35357/v2.0",
             :bootstrap_token => "bootstrap-token",
             :user_name => "user1",
             :user_pass => "secret1",
@@ -176,12 +176,12 @@ describe "openstack-identity::registration" do
             ).to_hash
 
           expect(grant_resource).to include(
-            :auth_uri => "https://127.0.0.1:35357/v2.0",
+            :action => [:grant_role],
+            :auth_uri => "http://127.0.0.1:35357/v2.0",
             :bootstrap_token => "bootstrap-token",
             :user_name => "user1",
             :role_name => "role1",
-            :tenant_name => "role_tenant1",
-            :action => [:grant_role]
+            :tenant_name => "role_tenant1"
             )
         end
       end

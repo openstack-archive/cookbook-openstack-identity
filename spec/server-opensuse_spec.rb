@@ -4,12 +4,12 @@ describe "openstack-identity::server" do
   before { identity_stubs }
   describe "suse" do
     before do
-      @chef_run = ::ChefSpec::ChefRunner.new ::OPENSUSE_OPTS
+      @chef_run = ::ChefSpec::Runner.new ::OPENSUSE_OPTS
       @chef_run.converge "openstack-identity::server"
     end
 
     it "converges when configured to use sqlite db backend" do
-      chef_run = ::ChefSpec::ChefRunner.new ::OPENSUSE_OPTS
+      chef_run = ::ChefSpec::Runner.new ::OPENSUSE_OPTS
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
       chef_run.converge "openstack-identity::server"
@@ -20,7 +20,7 @@ describe "openstack-identity::server" do
     end
 
     it "installs postgresql python packages if explicitly told" do
-      chef_run = ::ChefSpec::ChefRunner.new ::OPENSUSE_OPTS do |n|
+      chef_run = ::ChefSpec::Runner.new ::OPENSUSE_OPTS do |n|
         n.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
       end
       chef_run.converge "openstack-identity::server"
@@ -37,7 +37,7 @@ describe "openstack-identity::server" do
     end
 
     it "starts keystone on boot" do
-      expect(@chef_run).to set_service_to_start_on_boot "openstack-keystone"
+      expect(@chef_run).to enable_service("openstack-keystone")
     end
 
     describe "/etc/keystone" do
@@ -46,14 +46,14 @@ describe "openstack-identity::server" do
       end
 
       it "has proper owner" do
-        expect(@dir).to be_owned_by "openstack-keystone", "openstack-keystone"
+        expect(@dir.owner).to eq("openstack-keystone")
+        expect(@dir.group).to eq("openstack-keystone")
       end
     end
 
     describe "/etc/keystone/ssl" do
       before do
-        opts = ::OPENSUSE_OPTS.merge(:evaluate_guards => true)
-        chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+        chef_run = ::ChefSpec::Runner.new(::OPENSUSE_OPTS) do |n|
           n.set["openstack"]["auth"]["strategy"] = "pki"
         end
         chef_run.converge "openstack-identity::server"
@@ -61,8 +61,8 @@ describe "openstack-identity::server" do
       end
 
       it "has proper owner" do
-        expect(@dir).
-          to be_owned_by "openstack-keystone", "openstack-keystone"
+        expect(@dir.owner).to eq("openstack-keystone")
+        expect(@dir.group).to eq("openstack-keystone")
       end
     end
 
@@ -71,14 +71,13 @@ describe "openstack-identity::server" do
     end
 
     it "runs pki setup" do
-      opts = ::OPENSUSE_OPTS.merge(:evaluate_guards => true)
-      chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+      chef_run = ::ChefSpec::Runner.new(::OPENSUSE_OPTS) do |n|
         n.set["openstack"]["auth"]["strategy"] = "pki"
       end
       chef_run.converge "openstack-identity::server"
       cmd = "keystone-manage pki_setup"
 
-      expect(chef_run).to execute_command(cmd).with(
+      expect(chef_run).to run_execute(cmd).with(
         :user => "openstack-keystone"
       )
     end
@@ -89,8 +88,8 @@ describe "openstack-identity::server" do
       end
 
       it "has proper owner" do
-        expect(@template).
-          to be_owned_by "openstack-keystone", "openstack-keystone"
+        expect(@template.owner).to eq("openstack-keystone")
+        expect(@template.group).to eq("openstack-keystone")
       end
 
       it "template contents" do
@@ -100,8 +99,7 @@ describe "openstack-identity::server" do
 
     describe "default_catalog.templates" do
       before do
-        opts = ::OPENSUSE_OPTS.merge(:evaluate_guards => true)
-        chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+        chef_run = ::ChefSpec::Runner.new(::OPENSUSE_OPTS) do |n|
           n.set["openstack"]["identity"]["catalog"]["backend"] = "templated"
         end
         chef_run.converge "openstack-identity::server"
@@ -110,8 +108,8 @@ describe "openstack-identity::server" do
       end
 
       it "has proper owner" do
-        expect(@template).
-          to be_owned_by "openstack-keystone", "openstack-keystone"
+        expect(@template.owner).to eq("openstack-keystone")
+        expect(@template.group).to eq("openstack-keystone")
       end
 
       it "template contents" do

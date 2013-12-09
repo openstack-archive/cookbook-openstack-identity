@@ -4,7 +4,7 @@ describe "openstack-identity::server" do
   before { identity_stubs }
   describe "ubuntu" do
     before do
-      @chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS do |n|
+      @chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS do |n|
         n.set["openstack"]["identity"]["syslog"]["use"] = true
         n.set["openstack"]["endpoints"]["identity-api"] = {
           "host" => "127.0.1.1",
@@ -25,14 +25,14 @@ describe "openstack-identity::server" do
     end
 
     it "doesn't run logging recipe" do
-      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       chef_run.converge "openstack-identity::server"
 
       expect(chef_run).not_to include_recipe "openstack-common::logging"
     end
 
     it "converges when configured to use sqlite db backend" do
-      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
       chef_run.converge "openstack-identity::server"
@@ -43,7 +43,7 @@ describe "openstack-identity::server" do
     end
 
     it "installs postgresql python packages if explicitly told" do
-      chef_run = ::ChefSpec::ChefRunner.new ::UBUNTU_OPTS
+      chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
       chef_run.converge "openstack-identity::server"
@@ -60,12 +60,12 @@ describe "openstack-identity::server" do
     end
 
     it "starts keystone on boot" do
-      expect(@chef_run).to set_service_to_start_on_boot "keystone"
+      expect(@chef_run).to enable_service("keystone")
     end
 
     it "sleep on keystone service enable" do
-      expect(@chef_run.service("keystone")).
-        to notify "execute[Keystone: sleep]", :run
+      expect(@chef_run.service("keystone")).to notify(
+        "execute[Keystone: sleep]").to(:run)
     end
 
     describe "/etc/keystone" do
@@ -74,7 +74,8 @@ describe "openstack-identity::server" do
       end
 
       it "has proper owner" do
-        expect(@dir).to be_owned_by "keystone", "keystone"
+        expect(@dir.owner).to eq("keystone")
+        expect(@dir.group).to eq("keystone")
       end
 
       it "has proper modes" do
@@ -87,8 +88,7 @@ describe "openstack-identity::server" do
 
       describe "without pki" do
         it "doesn't create" do
-          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-          chef_run = ::ChefSpec::ChefRunner.new opts
+          chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS)
           chef_run.converge "openstack-identity::server"
 
           expect(chef_run).not_to create_directory @dir
@@ -97,8 +97,7 @@ describe "openstack-identity::server" do
 
       describe "with pki" do
         before do
-          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-          @chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+          @chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS) do |n|
             n.set["openstack"]["auth"]["strategy"] = "pki"
           end
           @chef_run.converge "openstack-identity::server"
@@ -110,7 +109,8 @@ describe "openstack-identity::server" do
         end
 
         it "has proper owner" do
-          expect(@directory).to be_owned_by "keystone", "keystone"
+          expect(@directory.owner).to eq("keystone")
+          expect(@directory.group).to eq("keystone")
         end
 
         it "has proper modes" do
@@ -124,8 +124,7 @@ describe "openstack-identity::server" do
     end
 
     it "does not delete keystone.db when configured to use sqlite" do
-      opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-      chef_run = ::ChefSpec::ChefRunner.new opts
+      chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS)
       node = chef_run.node
       node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
       chef_run.converge "openstack-identity::server"
@@ -137,19 +136,16 @@ describe "openstack-identity::server" do
 
       describe "without pki" do
         it "doesn't execute" do
-          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-          chef_run = ::ChefSpec::ChefRunner.new opts
+          chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
+          chef_run.converge "openstack-identity::server"
 
-          expect(chef_run).not_to execute_command(@cmd).with(
-            :user => "keystone"
-          )
+          expect(chef_run).to_not run_execute(@cmd).with(user: "keystone")
         end
       end
 
       describe "with pki" do
         before do
-          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-          @chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+          @chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS) do |n|
             n.set["openstack"]["auth"]["strategy"] = "pki"
           end
         end
@@ -160,7 +156,7 @@ describe "openstack-identity::server" do
             and_return(false)
           @chef_run.converge "openstack-identity::server"
 
-          expect(@chef_run).to execute_command(@cmd).with(
+          expect(@chef_run).to run_execute(@cmd).with(
             :user => "keystone"
           )
         end
@@ -171,7 +167,7 @@ describe "openstack-identity::server" do
             and_return(true)
           @chef_run.converge "openstack-identity::server"
 
-          expect(@chef_run).not_to execute_command(@cmd).with(
+          expect(@chef_run).not_to run_execute(@cmd).with(
             :user => "keystone"
           )
         end
@@ -184,7 +180,8 @@ describe "openstack-identity::server" do
       end
 
       it "has proper owner" do
-        expect(@template).to be_owned_by "keystone", "keystone"
+        expect(@template.owner).to eq("keystone")
+        expect(@template.group).to eq("keystone")
       end
 
       it "has proper modes" do
@@ -192,23 +189,26 @@ describe "openstack-identity::server" do
       end
 
       it "has bind host" do
-        expect(@chef_run).to create_file_with_content @template.name,
-          "bind_host = 127.0.1.1"
+        match = "bind_host = 127.0.1.1"
+        expect(@chef_run).to render_file(@template.name).with_content(match)
       end
 
       it "has proper public and admin endpoint" do
-        expect(@chef_run).to create_file_with_content @template.name,
-          "public_endpoint = https://127.0.1.1:5000/"
-        expect(@chef_run).to create_file_with_content @template.name,
-          "admin_endpoint = https://127.0.1.1:35357/"
+        pub_endpoint = "public_endpoint = https://127.0.1.1:5000/"
+        adm_endpoint = "admin_endpoint = https://127.0.1.1:35357/"
+        expect(@chef_run).to render_file(@template.name).with_content(
+          pub_endpoint)
+        expect(@chef_run).to render_file(@template.name).with_content(
+          adm_endpoint)
       end
 
       it "has policy driver" do
-        expect(@chef_run).to create_file_with_content @template.name,
-          "driver = keystone.policy.backends.sql.Policy"
+        match = "driver = keystone.policy.backends.sql.Policy"
+        expect(@chef_run).to render_file(@template.name).with_content(
+          match)
       end
       it "notifies keystone restart" do
-        expect(@template).to notify "service[keystone]", :restart
+        expect(@template).to notify("service[keystone]").to(:restart)
       end
 
       describe "optional LDAP attributes" do
@@ -221,15 +221,13 @@ describe "openstack-identity::server" do
 
         optional_attrs.each do |setting|
           it "does not have the optional #{setting} LDAP attribute" do
-            expect(@chef_run).not_to(
-              create_file_with_content(
-                @template.name, /^#{Regexp.quote(setting)} =/))
+            expect(@chef_run).not_to render_file(@template.name).with_content(
+              /^#{Regexp.quote(setting)} =/)
           end
 
           it "has the optional #{setting} LDAP attribute commented out" do
-            expect(@chef_run).to(
-              create_file_with_content(
-                @template.name, /^# #{Regexp.quote(setting)} =$/))
+            expect(@chef_run).to render_file(@template.name).with_content(
+              /^# #{Regexp.quote(setting)} =$/)
           end
         end
       end
@@ -258,8 +256,8 @@ describe "openstack-identity::server" do
         "group_allow_update", "group_allow_delete",
       ].each do |setting|
         it "has a #{setting} LDAP attribute" do
-          expect(@chef_run).to create_file_with_content @template.name,
-          /^#{Regexp.quote(setting)} = \w+/
+          expect(@chef_run).to render_file(@template.name).with_content(
+          /^#{Regexp.quote(setting)} = \w+/)
         end
       end
     end
@@ -269,18 +267,16 @@ describe "openstack-identity::server" do
 
       describe "without templated" do
         it "doesn't create" do
-          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-          chef_run = ::ChefSpec::ChefRunner.new opts
+          chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS)
           chef_run.converge "openstack-identity::server"
 
-          expect(chef_run).not_to create_file @file
+          expect(chef_run).not_to render_file(@file)
         end
       end
 
       describe "with templated" do
         before do
-          opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-          @chef_run = ::ChefSpec::ChefRunner.new opts do |n|
+          @chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS) do |n|
             n.set["openstack"]["identity"]["catalog"]["backend"] = "templated"
           end
           @chef_run.converge "openstack-identity::server"
@@ -288,11 +284,12 @@ describe "openstack-identity::server" do
         end
 
         it "creates" do
-          expect(@chef_run).to create_file @file
+          expect(@chef_run).to render_file(@file)
         end
 
         it "has proper owner" do
-          expect(@template).to be_owned_by "keystone", "keystone"
+          expect(@template.owner).to eq("keystone")
+          expect(@template.group).to eq("keystone")
         end
 
         it "has proper modes" do
@@ -304,7 +301,7 @@ describe "openstack-identity::server" do
         end
 
         it "notifies keystone restart" do
-          expect(@template).to notify "service[keystone]", :restart
+          expect(@template).to notify("service[keystone]").to(:restart)
         end
       end
     end
@@ -315,17 +312,16 @@ describe "openstack-identity::server" do
       end
 
       it "runs migrations" do
-        expect(@chef_run).to execute_command @cmd
+        expect(@chef_run).to run_execute(@cmd)
       end
 
       it "doesn't run migrations" do
-        opts = ::UBUNTU_OPTS.merge(:evaluate_guards => true)
-        chef_run = ::ChefSpec::ChefRunner.new(opts) do |n|
+        chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS) do |n|
           n.set["openstack"]["identity"]["db"]["migrate"] = false
         end
         chef_run.converge "openstack-identity::server"
 
-        expect(chef_run).not_to execute_command @cmd
+        expect(chef_run).not_to run_execute(@cmd)
       end
     end
   end
