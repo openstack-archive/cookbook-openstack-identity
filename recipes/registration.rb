@@ -103,11 +103,12 @@ end.flatten.uniq.each do |role_name|
 end
 
 node["openstack"]["identity"]["users"].each do |username, user_info|
+  pwd = user_password username
   openstack_identity_register "Register '#{username}' User" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
     user_name username
-    user_pass user_info["password"]
+    user_pass pwd
     tenant_name user_info["default_tenant"]
     user_enabled true # Not required as this is the default
 
