@@ -56,7 +56,6 @@ default["openstack"]["identity"]["admin_tenant_name"] = "admin"
 
 default["openstack"]["identity"]["users"] = {
   default["openstack"]["identity"]["admin_user"] => {
-        "password" => nil,
         "default_tenant" => default["openstack"]["identity"]["admin_tenant_name"],
         "roles" => {
             "admin" => [ "admin" ],
@@ -65,7 +64,6 @@ default["openstack"]["identity"]["users"] = {
         }
     },
     "monitoring" => {
-        "password" => nil,
         "default_tenant" => "service",
         "roles" => {
             "Member" => [ "admin" ]

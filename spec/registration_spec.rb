@@ -125,7 +125,7 @@ describe "openstack-identity::registration" do
                 :auth_uri => "http://127.0.0.1:35357/v2.0",
                 :bootstrap_token => "bootstrap-token",
                 :user_name => user,
-                :user_pass => nil,
+                :user_pass => "",
                 :tenant_name => tenant,
                 :action => [:create_user]
                 )
