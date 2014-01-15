@@ -104,7 +104,7 @@ network_endpoint = endpoint "network-api"
 volume_endpoint = endpoint "volume-api"
 
 db_user = node["openstack"]["identity"]["db"]["username"]
-db_pass = db_password "keystone"
+db_pass = get_password "db", "keystone"
 sql_connection = db_uri("identity", db_user, db_pass)
 
 bootstrap_token = secret "secrets", "openstack_identity_bootstrap_token"

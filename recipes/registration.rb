@@ -29,7 +29,7 @@ identity_endpoint = endpoint "identity-api"
 
 admin_tenant_name = node["openstack"]["identity"]["admin_tenant_name"]
 admin_user = node["openstack"]["identity"]["admin_user"]
-admin_pass = user_password node["openstack"]["identity"]["admin_user"]
+admin_pass = get_password "user", node["openstack"]["identity"]["admin_user"]
 auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
 bootstrap_token = secret "secrets", "openstack_identity_bootstrap_token"
@@ -103,7 +103,7 @@ end.flatten.uniq.each do |role_name|
 end
 
 node["openstack"]["identity"]["users"].each do |username, user_info|
-  pwd = user_password username
+  pwd = get_password "user", username
   openstack_identity_register "Register '#{username}' User" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
