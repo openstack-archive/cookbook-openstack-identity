@@ -1,54 +1,54 @@
-require_relative "spec_helper"
+require_relative 'spec_helper'
 
-describe "openstack-identity::server" do
+describe 'openstack-identity::server' do
   before { identity_stubs }
-  describe "redhat" do
+  describe 'redhat' do
     before do
       @chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS
-      @chef_run.converge "openstack-identity::server"
+      @chef_run.converge 'openstack-identity::server'
     end
 
-    it "converges when configured to use sqlite db backend" do
+    it 'converges when configured to use sqlite db backend' do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS
       node = chef_run.node
-      node.set["openstack"]["db"]["identity"]["db_type"] = "sqlite"
-      chef_run.converge "openstack-identity::server"
+      node.set['openstack']['db']['identity']['db_type'] = 'sqlite'
+      chef_run.converge 'openstack-identity::server'
     end
 
-    it "installs mysql python packages" do
-      expect(@chef_run).to install_package "MySQL-python"
+    it 'installs mysql python packages' do
+      expect(@chef_run).to install_package 'MySQL-python'
     end
 
-    it "installs db2 python packages if explicitly told" do
+    it 'installs db2 python packages if explicitly told' do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
-        n.set["openstack"]["db"]["identity"]["db_type"] = "db2"
+        n.set['openstack']['db']['identity']['db_type'] = 'db2'
       end
-      chef_run.converge "openstack-identity::server"
+      chef_run.converge 'openstack-identity::server'
 
-      ["db2-odbc", "python-ibm-db", "python-ibm-db-sa"].each do |pkg|
+      ['db2-odbc', 'python-ibm-db', 'python-ibm-db-sa'].each do |pkg|
         expect(chef_run).to install_package pkg
       end
     end
 
-    it "installs postgresql python packages if explicitly told" do
+    it 'installs postgresql python packages if explicitly told' do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
-        n.set["openstack"]["db"]["identity"]["db_type"] = "postgresql"
+        n.set['openstack']['db']['identity']['db_type'] = 'postgresql'
       end
-      chef_run.converge "openstack-identity::server"
+      chef_run.converge 'openstack-identity::server'
 
-      expect(chef_run).to install_package "python-psycopg2"
+      expect(chef_run).to install_package 'python-psycopg2'
     end
 
-    it "installs memcache python packages" do
-      expect(@chef_run).to install_package "python-memcached"
+    it 'installs memcache python packages' do
+      expect(@chef_run).to install_package 'python-memcached'
     end
 
-    it "installs keystone packages" do
-      expect(@chef_run).to upgrade_package "openstack-keystone"
+    it 'installs keystone packages' do
+      expect(@chef_run).to upgrade_package 'openstack-keystone'
     end
 
-    it "starts keystone on boot" do
-      expect(@chef_run).to enable_service("openstack-keystone")
+    it 'starts keystone on boot' do
+      expect(@chef_run).to enable_service('openstack-keystone')
     end
   end
 end
