@@ -14,7 +14,7 @@ describe 'openstack-identity::server' do
     it 'converges when configured to use sqlite db backend' do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS
       node = chef_run.node
-      node.set['openstack']['db']['identity']['db_type'] = 'sqlite'
+      node.set['openstack']['db']['identity']['service_type'] = 'sqlite'
       chef_run.converge 'openstack-identity::server'
     end
 
@@ -24,7 +24,7 @@ describe 'openstack-identity::server' do
 
     it 'installs db2 python packages if explicitly told' do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
-        n.set['openstack']['db']['identity']['db_type'] = 'db2'
+        n.set['openstack']['db']['identity']['service_type'] = 'db2'
       end
       chef_run.converge 'openstack-identity::server'
 
@@ -35,7 +35,7 @@ describe 'openstack-identity::server' do
 
     it 'installs postgresql python packages if explicitly told' do
       chef_run = ::ChefSpec::Runner.new ::REDHAT_OPTS do |n|
-        n.set['openstack']['db']['identity']['db_type'] = 'postgresql'
+        n.set['openstack']['db']['identity']['service_type'] = 'postgresql'
       end
       chef_run.converge 'openstack-identity::server'
 

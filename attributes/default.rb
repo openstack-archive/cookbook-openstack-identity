@@ -32,12 +32,6 @@ default['openstack']['identity']['custom_template_banner'] = "
 default['credentials']['EC2']['admin']['access'] = ''
 default['credentials']['EC2']['admin']['secret'] = ''
 
-default['openstack']['identity']['db']['username'] = 'keystone'
-# Execute database migrations.  There are cases where migrations should not be
-# executed.  For example when upgrading a zone, and the identity database is
-# replicated across many zones.
-default['openstack']['identity']['db']['migrate'] = true
-
 default['openstack']['identity']['verbose'] = 'False'
 default['openstack']['identity']['debug'] = 'False'
 

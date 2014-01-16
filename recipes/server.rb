@@ -32,7 +32,7 @@ end
 
 platform_options = node['openstack']['identity']['platform']
 
-db_type = node['openstack']['db']['identity']['db_type']
+db_type = node['openstack']['db']['identity']['service_type']
 unless db_type == 'sqlite'
   platform_options["#{db_type}_python_packages"].each do |pkg|
     package pkg do
@@ -86,7 +86,7 @@ end
 
 file '/var/lib/keystone/keystone.db' do
   action :delete
-  not_if { node['openstack']['db']['identity']['db_type'] == 'sqlite' }
+  not_if { node['openstack']['db']['identity']['service_type'] == 'sqlite' }
 end
 
 execute 'keystone-manage pki_setup' do
@@ -103,9 +103,9 @@ compute_endpoint = endpoint 'compute-api'
 ec2_endpoint = endpoint 'compute-ec2-api'
 image_endpoint = endpoint 'image-api'
 network_endpoint = endpoint 'network-api'
-volume_endpoint = endpoint 'volume-api'
+volume_endpoint = endpoint 'block-storage-api'
 
-db_user = node['openstack']['identity']['db']['username']
+db_user = node['openstack']['db']['identity']['username']
 db_pass = get_password 'db', 'keystone'
 sql_connection = db_uri('identity', db_user, db_pass)
 
@@ -173,5 +173,5 @@ execute 'keystone-manage db_sync' do
   user node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
 
-  only_if { node['openstack']['identity']['db']['migrate'] }
+  only_if { node['openstack']['db']['identity']['migrate'] }
 end

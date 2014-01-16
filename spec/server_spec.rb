@@ -37,7 +37,7 @@ describe 'openstack-identity::server' do
     it 'converges when configured to use sqlite db backend' do
       chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       node = chef_run.node
-      node.set['openstack']['db']['identity']['db_type'] = 'sqlite'
+      node.set['openstack']['db']['identity']['service_type'] = 'sqlite'
       chef_run.converge 'openstack-identity::server'
     end
 
@@ -48,7 +48,7 @@ describe 'openstack-identity::server' do
     it 'installs postgresql python packages if explicitly told' do
       chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
       node = chef_run.node
-      node.set['openstack']['db']['identity']['db_type'] = 'postgresql'
+      node.set['openstack']['db']['identity']['service_type'] = 'postgresql'
       chef_run.converge 'openstack-identity::server'
 
       expect(chef_run).to install_package 'python-psycopg2'
@@ -129,7 +129,7 @@ describe 'openstack-identity::server' do
     it 'does not delete keystone.db when configured to use sqlite' do
       chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS)
       node = chef_run.node
-      node.set['openstack']['db']['identity']['db_type'] = 'sqlite'
+      node.set['openstack']['db']['identity']['service_type'] = 'sqlite'
       chef_run.converge 'openstack-identity::server'
       expect(chef_run).not_to delete_file '/var/lib/keystone/keystone.db'
     end
@@ -328,7 +328,7 @@ describe 'openstack-identity::server' do
 
       it 'does not run migrations' do
         chef_run = ::ChefSpec::Runner.new(::UBUNTU_OPTS) do |n|
-          n.set['openstack']['identity']['db']['migrate'] = false
+          n.set['openstack']['db']['identity']['migrate'] = false
         end
         chef_run.converge 'openstack-identity::server'
 
