@@ -5,9 +5,9 @@ AllCops:
     - attributes/**
     - providers/**
     - resources/**
+    - spec/**
   Excludes:
     - recipes/**
-    - spec/**
 
 # UTF-8 headers not generally in these files
 Encoding:
