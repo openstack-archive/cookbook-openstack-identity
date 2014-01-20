@@ -1,3 +1,6 @@
+# encoding: UTF-8
+#
+
 require_relative 'spec_helper'
 
 describe 'openstack-identity::server' do
@@ -12,7 +15,7 @@ describe 'openstack-identity::server' do
           'scheme' => 'https'
         }
         n.set['openstack']['endpoints']['identity-admin'] = {
-          'host' =>'127.0.1.1',
+          'host' => '127.0.1.1',
           'port' => '35357',
           'scheme' => 'https'
         }
