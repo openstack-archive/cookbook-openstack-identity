@@ -73,18 +73,6 @@ describe 'openstack-identity::server' do
       expect(@chef_run).to delete_file '/var/lib/keystone/keystone.db'
     end
 
-    it 'runs pki setup' do
-      chef_run = ::ChefSpec::Runner.new(::OPENSUSE_OPTS) do |n|
-        n.set['openstack']['auth']['strategy'] = 'pki'
-      end
-      chef_run.converge 'openstack-identity::server'
-      cmd = 'keystone-manage pki_setup'
-
-      expect(chef_run).to run_execute(cmd).with(
-        user: 'openstack-keystone'
-      )
-    end
-
     describe 'keystone.conf' do
       before do
         @template = @chef_run.template '/etc/keystone/keystone.conf'

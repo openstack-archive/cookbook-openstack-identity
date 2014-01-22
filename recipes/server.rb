@@ -91,6 +91,7 @@ end
 
 execute 'keystone-manage pki_setup' do
   user node['openstack']['identity']['user']
+  group node['openstack']['identity']['group']
 
   only_if { node['openstack']['auth']['strategy'] == 'pki' }
   not_if { ::FileTest.exists? node['openstack']['identity']['signing']['keyfile'] }
@@ -169,5 +170,8 @@ end
 
 # sync db after keystone.conf is generated
 execute 'keystone-manage db_sync' do
+  user node['openstack']['identity']['user']
+  group node['openstack']['identity']['group']
+
   only_if { node['openstack']['identity']['db']['migrate'] }
 end
