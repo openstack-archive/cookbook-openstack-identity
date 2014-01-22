@@ -6,7 +6,6 @@ AllCops:
     - providers/**
     - resources/**
     - spec/**
-  Excludes:
     - recipes/**
 
 # UTF-8 headers not generally in these files
@@ -27,4 +26,5 @@ WordArray:
 # The rescue exception statements in providers/**.rb need to be modified,
 # to rescue specific exceptions.
 RescueException:
-  Enabled: false
+  Exclude:
+    - providers/register.rb

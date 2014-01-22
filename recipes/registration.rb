@@ -1,3 +1,4 @@
+# encoding: UTF-8
 #
 # Cookbook Name:: openstack-identity
 # Recipe:: setup
@@ -18,31 +19,31 @@
 # limitations under the License.
 #
 
-require "uri"
+require 'uri'
 
-class ::Chef::Recipe
+class ::Chef::Recipe # rubocop:disable Documentation
   include ::Openstack
 end
 
-identity_admin_endpoint = endpoint "identity-admin"
-identity_endpoint = endpoint "identity-api"
+identity_admin_endpoint = endpoint 'identity-admin'
+identity_endpoint = endpoint 'identity-api'
 
-admin_tenant_name = node["openstack"]["identity"]["admin_tenant_name"]
-admin_user = node["openstack"]["identity"]["admin_user"]
-admin_pass = get_password "user", node["openstack"]["identity"]["admin_user"]
+admin_tenant_name = node['openstack']['identity']['admin_tenant_name']
+admin_user = node['openstack']['identity']['admin_user']
+admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
 auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
-bootstrap_token = secret "secrets", "openstack_identity_bootstrap_token"
+bootstrap_token = secret 'secrets', 'openstack_identity_bootstrap_token'
 
 # We need to bootstrap the keystone admin user so that calls
 # to keystone_register will succeed, since those provider calls
 # use the admin tenant/user/pass to get an admin token.
-bash "bootstrap-keystone-admin" do
+bash 'bootstrap-keystone-admin' do
   # A shortcut bootstrap command was added to python-keystoneclient
   # in early Grizzly timeframe... but we need to do all the commands
   # here manually since the python-keystoneclient package included
   # in CloudArchive (for now) doesn't have it...
-  insecure = node["openstack"]["auth"]["validate_certs"] ? "" : " --insecure"
+  insecure = node['openstack']['auth']['validate_certs'] ? '' : ' --insecure'
   base_ks_cmd = "keystone#{insecure} --endpoint=#{auth_uri} --token=#{bootstrap_token}"
   code <<-EOF
 set -x
@@ -75,10 +76,12 @@ exit 0
 EOF
 end
 
+# FIXME(galstrom21): This needs to be refactored, to not use a
+#   MultilineBlockChain.
 # Register all the tenants specified in the users hash
-node["openstack"]["identity"]["users"].values.map do |user_info|
-  user_info["roles"].values.push(user_info["default_tenant"])
-end.flatten.uniq.each do |tenant_name|
+node['openstack']['identity']['users'].values.map do |user_info|
+  user_info['roles'].values.push(user_info['default_tenant'])
+end.flatten.uniq.each do |tenant_name| # rubocop: disable MultilineBlockChain
   openstack_identity_register "Register '#{tenant_name}' Tenant" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
@@ -89,10 +92,12 @@ end.flatten.uniq.each do |tenant_name|
   end
 end
 
+# FIXME(galstrom21): This needs to be refactored, to not use a
+#   MultilineBlockChain.
 # Register all the roles from the users hash
-node["openstack"]["identity"]["users"].values.map do |user_info|
-  user_info["roles"].keys
-end.flatten.uniq.each do |role_name|
+node['openstack']['identity']['users'].values.map do |user_info|
+  user_info['roles'].keys
+end.flatten.uniq.each do |role_name| # rubocop: disable MultilineBlockChain
   openstack_identity_register "Register '#{role_name.to_s}' Role" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
@@ -102,20 +107,20 @@ end.flatten.uniq.each do |role_name|
   end
 end
 
-node["openstack"]["identity"]["users"].each do |username, user_info|
-  pwd = get_password "user", username
+node['openstack']['identity']['users'].each do |username, user_info|
+  pwd = get_password 'user', username
   openstack_identity_register "Register '#{username}' User" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
     user_name username
     user_pass pwd
-    tenant_name user_info["default_tenant"]
+    tenant_name user_info['default_tenant']
     user_enabled true # Not required as this is the default
 
     action :create_user
   end
 
-  user_info["roles"].each do |rolename, tenant_list|
+  user_info['roles'].each do |rolename, tenant_list|
     tenant_list.each do |tenantname|
       openstack_identity_register "Grant '#{rolename}' Role to '#{username}' User in '#{tenantname}' Tenant" do
         auth_uri auth_uri
@@ -130,42 +135,42 @@ node["openstack"]["identity"]["users"].each do |username, user_info|
   end
 end
 
-openstack_identity_register "Register Identity Service" do
+openstack_identity_register 'Register Identity Service' do
   auth_uri auth_uri
   bootstrap_token bootstrap_token
-  service_name "keystone"
-  service_type "identity"
-  service_description "Keystone Identity Service"
+  service_name 'keystone'
+  service_type 'identity'
+  service_description 'Keystone Identity Service'
 
   action :create_service
 end
 
-node.set["openstack"]["identity"]["adminURL"] = identity_admin_endpoint.to_s
-node.set["openstack"]["identity"]["internalURL"] = identity_endpoint.to_s
-node.set["openstack"]["identity"]["publicURL"] = identity_endpoint.to_s
+node.set['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
+node.set['openstack']['identity']['internalURL'] = identity_endpoint.to_s
+node.set['openstack']['identity']['publicURL'] = identity_endpoint.to_s
 
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint.to_s}"
 Chef::Log.info "Keystone InternalURL: #{identity_endpoint.to_s}"
 Chef::Log.info "Keystone PublicURL: #{identity_endpoint.to_s}"
 
-openstack_identity_register "Register Identity Endpoint" do
+openstack_identity_register 'Register Identity Endpoint' do
   auth_uri auth_uri
   bootstrap_token bootstrap_token
-  service_type "identity"
-  endpoint_region node["openstack"]["identity"]["region"]
-  endpoint_adminurl node["openstack"]["identity"]["adminURL"]
-  endpoint_internalurl node["openstack"]["identity"]["adminURL"]
-  endpoint_publicurl node["openstack"]["identity"]["publicURL"]
+  service_type 'identity'
+  endpoint_region node['openstack']['identity']['region']
+  endpoint_adminurl node['openstack']['identity']['adminURL']
+  endpoint_internalurl node['openstack']['identity']['adminURL']
+  endpoint_publicurl node['openstack']['identity']['publicURL']
 
   action :create_endpoint
 end
 
-node["openstack"]["identity"]["users"].each do |username, user_info|
+node['openstack']['identity']['users'].each do |username, user_info|
   openstack_identity_register "Create EC2 credentials for '#{username}' user" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
     user_name username
-    tenant_name user_info["default_tenant"]
+    tenant_name user_info['default_tenant']
 
     action :create_ec2_credentials
   end
