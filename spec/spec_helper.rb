@@ -25,13 +25,18 @@ require 'chefspec/berkshelf'
 def identity_stubs  # rubocop: disable MethodLength
   ::Chef::Recipe.any_instance.stub(:address_for)
     .with('lo')
-    .and_return '127.0.1.1'
+    .and_return('127.0.1.1')
   ::Chef::Recipe.any_instance.stub(:memcached_servers).and_return []
-  ::Chef::Recipe.any_instance.stub(:get_password).and_return ''
+  ::Chef::Recipe.any_instance.stub(:get_password)
+    .with('db', anything)
+    .and_return('')
+  ::Chef::Recipe.any_instance.stub(:get_password)
+    .with('user', anything)
+    .and_return('')
   ::Chef::Recipe.any_instance.stub(:get_password)
     .with('user', 'user1')
-    .and_return 'secret1'
+    .and_return('secret1')
   ::Chef::Recipe.any_instance.stub(:secret)
     .with('secrets', 'openstack_identity_bootstrap_token')
-    .and_return 'bootstrap-token'
+    .and_return('bootstrap-token')
 end
