@@ -35,47 +35,6 @@ auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
 bootstrap_token = secret 'secrets', 'openstack_identity_bootstrap_token'
 
-# We need to bootstrap the keystone admin user so that calls
-# to keystone_register will succeed, since those provider calls
-# use the admin tenant/user/pass to get an admin token.
-bash 'bootstrap-keystone-admin' do
-  # A shortcut bootstrap command was added to python-keystoneclient
-  # in early Grizzly timeframe... but we need to do all the commands
-  # here manually since the python-keystoneclient package included
-  # in CloudArchive (for now) doesn't have it...
-  insecure = node['openstack']['auth']['validate_certs'] ? '' : ' --insecure'
-  base_ks_cmd = "keystone#{insecure} --endpoint=#{auth_uri} --token=#{bootstrap_token}"
-  code <<-EOF
-set -x
-function get_id () {
-    echo `"$@" | grep ' id ' | awk '{print $4}'`
-}
-#{base_ks_cmd} tenant-list | grep #{admin_tenant_name}
-if [[ $? -eq 1 ]]; then
-  ADMIN_TENANT=$(get_id #{base_ks_cmd} tenant-create --name=#{admin_tenant_name})
-else
-  ADMIN_TENANT=$(#{base_ks_cmd} tenant-list | grep #{admin_tenant_name} | awk '{print $2}')
-fi
-#{base_ks_cmd} role-list | grep admin
-if [[ $? -eq 1 ]]; then
-  ADMIN_ROLE=$(get_id #{base_ks_cmd} role-create --name=admin)
-else
-  ADMIN_ROLE=$(#{base_ks_cmd} role-list | grep admin | awk '{print $2}')
-fi
-#{base_ks_cmd} user-list | grep #{admin_user}
-if [[ $? -eq 1 ]]; then
-  ADMIN_USER=$(get_id #{base_ks_cmd} user-create --name=#{admin_user} --pass="#{admin_pass}" --email=#{admin_user}@example.com)
-else
-  ADMIN_USER=$(#{base_ks_cmd} user-list | grep #{admin_user} | awk '{print $2}')
-fi
-#{base_ks_cmd} user-role-list --user-id=$ADMIN_USER --tenant-id=$ADMIN_TENANT | grep admin
-if [[ $? -eq 1 ]]; then
-  #{base_ks_cmd} user-role-add --user-id $ADMIN_USER --role-id $ADMIN_ROLE --tenant-id $ADMIN_TENANT
-fi
-exit 0
-EOF
-end
-
 # FIXME(galstrom21): This needs to be refactored, to not use a
 #   MultilineBlockChain.
 # Register all the tenants specified in the users hash
