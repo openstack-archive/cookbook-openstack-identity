@@ -142,7 +142,10 @@ describe 'openstack-identity::server' do
           chef_run = ::ChefSpec::Runner.new ::UBUNTU_OPTS
           chef_run.converge 'openstack-identity::server'
 
-          expect(chef_run).to_not run_execute(@cmd).with(user: 'keystone')
+          expect(chef_run).to_not run_execute(@cmd).with(
+            user: 'keystone',
+            group: 'keystone'
+          )
         end
       end
 
@@ -160,7 +163,8 @@ describe 'openstack-identity::server' do
           @chef_run.converge 'openstack-identity::server'
 
           expect(@chef_run).to run_execute(@cmd).with(
-            user: 'keystone'
+            user: 'keystone',
+            group: 'keystone'
           )
         end
 
@@ -171,7 +175,8 @@ describe 'openstack-identity::server' do
           @chef_run.converge 'openstack-identity::server'
 
           expect(@chef_run).not_to run_execute(@cmd).with(
-            user: 'keystone'
+            user: 'keystone',
+            group: 'keystone'
           )
         end
       end
@@ -315,7 +320,10 @@ describe 'openstack-identity::server' do
       end
 
       it 'runs migrations' do
-        expect(@chef_run).to run_execute(@cmd)
+        expect(@chef_run).to run_execute(@cmd).with(
+          user: 'keystone',
+          group: 'keystone'
+       )
       end
 
       it 'does not run migrations' do
@@ -324,7 +332,10 @@ describe 'openstack-identity::server' do
         end
         chef_run.converge 'openstack-identity::server'
 
-        expect(chef_run).not_to run_execute(@cmd)
+        expect(chef_run).not_to run_execute(@cmd).with(
+          user: 'keystone',
+          group: 'keystone'
+        )
       end
     end
   end
