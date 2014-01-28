@@ -4,17 +4,12 @@
 require_relative 'spec_helper'
 
 describe 'openstack-identity::registration' do
-  before { identity_stubs }
-
   describe 'ubuntu' do
-    let(:chef_run) do
-      runner = ::ChefSpec::Runner.new ::UBUNTU_OPTS
-      runner.converge 'openstack-identity::registration'
-    end
-
-    let(:chef_run_test_users) do
-      runner = ::ChefSpec::Runner.new ::UBUNTU_OPTS
-      runner.node.set['openstack']['identity']['users'] = {
+    let(:node)     { runner.node }
+    let(:runner)   { ChefSpec::Runner.new(UBUNTU_OPTS) }
+    let(:chef_run) { runner.converge(described_recipe) }
+    let(:node_add_user) do
+      node.set_unless['openstack']['identity']['users'] = {
         'user1' => {
           'default_tenant' => 'default_tenant1',
           'password' => 'secret1',
@@ -22,10 +17,11 @@ describe 'openstack-identity::registration' do
             'role1' => ['role_tenant1'],
             'role2' => ['default_tenant1']
           }
-        },
+        }
       }
-      runner.converge 'openstack-identity::registration'
     end
+
+    include_context 'identity_stubs'
 
     describe 'tenant registration' do
       context 'default tenants' do
@@ -48,11 +44,10 @@ describe 'openstack-identity::registration' do
       end
 
       context 'configured tenants from users attribute' do
-        tenants = ['default_tenant1', 'role_tenant1']
-
-        tenants.each do |tenant_name|
+        before { node_add_user }
+        ['default_tenant1', 'role_tenant1'].each do |tenant_name|
           it "registers the #{tenant_name} tenant" do
-            resource = chef_run_test_users.find_resource(
+            resource = chef_run.find_resource(
               'openstack-identity_register',
               "Register '#{tenant_name}' Tenant"
               ).to_hash
@@ -89,12 +84,11 @@ describe 'openstack-identity::registration' do
       end
 
       context 'configured roles derived from users attribute' do
+        before { node_add_user }
 
-        roles = ['role1', 'role2']
-
-        roles.each do |role_name|
+        ['role1', 'role2'].each do |role_name|
           it "registers the #{role_name} role" do
-            resource = chef_run_test_users.find_resource(
+            resource = chef_run.find_resource(
               'openstack-identity_register',
               "Register '#{role_name}' Role"
               ).to_hash
@@ -112,10 +106,13 @@ describe 'openstack-identity::registration' do
 
     describe 'user registration' do
       context 'default users' do
-        [
-          ['admin', 'admin', ['admin', 'KeystoneAdmin', 'KeystoneServiceAdmin']],
-          ['monitoring', 'service', ['Member']]
-        ].each do |user, tenant, roles|
+        user_monit = ['monitoring', 'service', ['Member']]
+        user_admin = [
+          'admin', 'admin',
+          ['admin', 'KeystoneAdmin', 'KeystoneServiceAdmin']
+        ]
+
+        [user_monit, user_admin].each do |user, tenant, roles|
           context "#{user} user" do
             it "registers the #{user} user" do
               user_resource = chef_run.find_resource(
@@ -150,13 +147,16 @@ describe 'openstack-identity::registration' do
                   )
               end
             end
+
           end
         end
       end
 
       context 'configured user' do
+        before { node_add_user }
+
         it 'registers the user1 user' do
-          resource = chef_run_test_users.find_resource(
+          resource = chef_run.find_resource(
             'openstack-identity_register',
             "Register 'user1' User"
             ).to_hash
@@ -172,7 +172,7 @@ describe 'openstack-identity::registration' do
         end
 
         it "grants 'role1' role to 'user1' user in 'role_tenant1' tenant" do
-          grant_resource = chef_run_test_users.find_resource(
+          grant_resource = chef_run.find_resource(
             'openstack-identity_register',
             "Grant 'role1' Role to 'user1' User in 'role_tenant1' Tenant"
             ).to_hash

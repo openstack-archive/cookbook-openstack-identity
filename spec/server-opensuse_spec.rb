@@ -4,83 +4,68 @@
 require_relative 'spec_helper'
 
 describe 'openstack-identity::server' do
-  before { identity_stubs }
   describe 'suse' do
-    before do
-      @chef_run = ::ChefSpec::Runner.new ::OPENSUSE_OPTS
-      @chef_run.converge 'openstack-identity::server'
-    end
+    let(:runner) { ChefSpec::Runner.new(OPENSUSE_OPTS) }
+    let(:node) { runner.node }
+    let(:chef_run) { runner.converge(described_recipe) }
+
+    include_context 'identity_stubs'
 
     it 'converges when configured to use sqlite db backend' do
-      chef_run = ::ChefSpec::Runner.new ::OPENSUSE_OPTS
-      node = chef_run.node
       node.set['openstack']['db']['identity']['service_type'] = 'sqlite'
-      chef_run.converge 'openstack-identity::server'
+      expect { chef_run }.to_not raise_error
     end
 
     it 'installs mysql python packages' do
-      expect(@chef_run).to install_package 'python-mysql'
+      expect(chef_run).to install_package('python-mysql')
     end
 
     it 'installs postgresql python packages if explicitly told' do
-      chef_run = ::ChefSpec::Runner.new ::OPENSUSE_OPTS do |n|
-        n.set['openstack']['db']['identity']['service_type'] = 'postgresql'
-      end
-      chef_run.converge 'openstack-identity::server'
-
-      expect(chef_run).to install_package 'python-psycopg2'
+      node.set['openstack']['db']['identity']['service_type'] = 'postgresql'
+      expect(chef_run).to install_package('python-psycopg2')
     end
 
     it 'installs memcache python packages' do
-      expect(@chef_run).to install_package 'python-python-memcached'
+      expect(chef_run).to install_package('python-python-memcached')
     end
 
     it 'installs keystone packages' do
-      expect(@chef_run).to upgrade_package 'openstack-keystone'
+      expect(chef_run).to upgrade_package('openstack-keystone')
     end
 
     it 'starts keystone on boot' do
-      expect(@chef_run).to enable_service('openstack-keystone')
+      expect(chef_run).to enable_service('openstack-keystone')
     end
 
     describe '/etc/keystone' do
-      before do
-        @dir = @chef_run.directory '/etc/keystone'
-      end
+      let(:dir) { chef_run.directory('/etc/keystone') }
 
       it 'has proper owner' do
-        expect(@dir.owner).to eq('openstack-keystone')
-        expect(@dir.group).to eq('openstack-keystone')
+        expect(dir.owner).to eq('openstack-keystone')
+        expect(dir.group).to eq('openstack-keystone')
       end
     end
 
     describe '/etc/keystone/ssl' do
-      before do
-        chef_run = ::ChefSpec::Runner.new(::OPENSUSE_OPTS) do |n|
-          n.set['openstack']['auth']['strategy'] = 'pki'
-        end
-        chef_run.converge 'openstack-identity::server'
-        @dir = chef_run.directory '/etc/keystone/ssl'
-      end
+      before { node.set['openstack']['auth']['strategy'] = 'pki' }
+      let(:dir) { chef_run.directory('/etc/keystone/ssl') }
 
       it 'has proper owner' do
-        expect(@dir.owner).to eq('openstack-keystone')
-        expect(@dir.group).to eq('openstack-keystone')
+        expect(dir.owner).to eq('openstack-keystone')
+        expect(dir.group).to eq('openstack-keystone')
       end
     end
 
     it 'deletes keystone.db' do
-      expect(@chef_run).to delete_file '/var/lib/keystone/keystone.db'
+      expect(chef_run).to delete_file('/var/lib/keystone/keystone.db')
     end
 
     describe 'keystone.conf' do
-      before do
-        @template = @chef_run.template '/etc/keystone/keystone.conf'
-      end
+      let(:template) { chef_run.template '/etc/keystone/keystone.conf' }
 
       it 'has proper owner' do
-        expect(@template.owner).to eq('openstack-keystone')
-        expect(@template.group).to eq('openstack-keystone')
+        expect(template.owner).to eq('openstack-keystone')
+        expect(template.group).to eq('openstack-keystone')
       end
 
       it 'template contents' do
@@ -90,17 +75,15 @@ describe 'openstack-identity::server' do
 
     describe 'default_catalog.templates' do
       before do
-        chef_run = ::ChefSpec::Runner.new(::OPENSUSE_OPTS) do |n|
-          n.set['openstack']['identity']['catalog']['backend'] = 'templated'
-        end
-        chef_run.converge 'openstack-identity::server'
-        @template = chef_run.template(
-          '/etc/keystone/default_catalog.templates')
+        node.set['openstack']['identity']['catalog']['backend'] = 'templated'
+      end
+      let(:template) do
+        chef_run.template('/etc/keystone/default_catalog.templates')
       end
 
       it 'has proper owner' do
-        expect(@template.owner).to eq('openstack-keystone')
-        expect(@template.group).to eq('openstack-keystone')
+        expect(template.owner).to eq('openstack-keystone')
+        expect(template.group).to eq('openstack-keystone')
       end
 
       it 'template contents' do
