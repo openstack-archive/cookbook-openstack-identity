@@ -65,7 +65,7 @@ default['openstack']['identity']['users'] = {
 }
 
 # PKI signing. Corresponds to the [signing] section of keystone.conf
-# Note this section is only written if node['openstack']['auth']['straegy'] == 'pki'
+# Note this section is only written if node['openstack']['auth']['strategy'] == 'pki'
 default['openstack']['identity']['signing']['basedir'] = '/etc/keystone/ssl'
 default['openstack']['identity']['signing']['certfile'] = '/etc/keystone/ssl/certs/signing_cert.pem'
 default['openstack']['identity']['signing']['keyfile'] = '/etc/keystone/ssl/private/signing_key.pem'
