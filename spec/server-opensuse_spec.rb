@@ -67,10 +67,6 @@ describe 'openstack-identity::server' do
         expect(template.owner).to eq('openstack-keystone')
         expect(template.group).to eq('openstack-keystone')
       end
-
-      it 'template contents' do
-        pending 'TODO: implement'
-      end
     end
 
     describe 'default_catalog.templates' do
@@ -84,10 +80,6 @@ describe 'openstack-identity::server' do
       it 'has proper owner' do
         expect(template.owner).to eq('openstack-keystone')
         expect(template.group).to eq('openstack-keystone')
-      end
-
-      it 'template contents' do
-        pending 'TODO: implement'
       end
     end
   end

@@ -21,6 +21,18 @@ UBUNTU_OPTS = {
   log_level: LOG_LEVEL
 }
 
+# Helper methods
+module Helpers
+  # Create an anchored regex to exactly match the entire line
+  # (name borrowed from grep --line-regexp)
+  #
+  # @param [String] str The whole line to match
+  # @return [Regexp] The anchored/escaped regular expression
+  def line_regexp(str)
+    /^#{Regexp.quote(str)}$/
+  end
+end
+
 shared_context 'identity_stubs' do
   before do
     ::Chef::Recipe.any_instance.stub(:address_for)
