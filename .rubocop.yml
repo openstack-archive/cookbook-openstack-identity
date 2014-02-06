@@ -3,22 +3,20 @@ AllCops:
     - metadata.rb
     - Gemfile
     - attributes/**
+    - libraries/**
     - providers/**
+    - recipes/**
     - resources/**
     - spec/**
-    - recipes/**
 
-# UTF-8 headers not generally in these files
 Encoding:
   Exclude:
     - metadata.rb
     - Gemfile
 
-# ignore long lines
 LineLength:
   Enabled: false
 
-# Allow small arrays before forcing  %w or %W
 WordArray:
   MinSize: 3
 
