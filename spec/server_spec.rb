@@ -179,9 +179,25 @@ describe 'openstack-identity::server' do
           expect(chef_run).to render_file(path).with_content(r)
         end
 
-        it 'has bind host' do
-          r = line_regexp('bind_host = 127.0.1.1')
-          expect(chef_run).to render_file(path).with_content(r)
+        describe 'bind_interface is nil' do
+          it 'has bind host from endpoint' do
+            r = line_regexp('bind_host = 127.0.1.1')
+            expect(chef_run).to render_file(path).with_content(r)
+          end
+        end
+
+        describe 'bind_interface is eth0' do
+          before do
+            node.set['openstack']['identity']['bind_interface'] = 'eth0'
+            ::Chef::Recipe.any_instance.stub(:address_for)
+              .with('eth0')
+              .and_return('10.0.0.2')
+          end
+
+          it 'has bind host from interface ip' do
+            r = line_regexp('bind_host = 10.0.0.2')
+            expect(chef_run).to render_file(path).with_content(r)
+          end
         end
 
         describe 'port numbers' do

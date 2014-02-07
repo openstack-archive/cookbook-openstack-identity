@@ -111,7 +111,11 @@ sql_connection = db_uri('identity', db_user, db_pass)
 
 bootstrap_token = secret 'secrets', 'openstack_identity_bootstrap_token'
 
-ip_address = address_for node['openstack']['identity']['bind_interface']
+if node['openstack']['identity']['bind_interface'].nil?
+  bind_address = identity_endpoint.host
+else
+  bind_address = address_for node['openstack']['identity']['bind_interface']
+end
 
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
@@ -143,7 +147,7 @@ template '/etc/keystone/keystone.conf' do
   mode   00644
   variables(
     sql_connection: sql_connection,
-    ip_address: ip_address,
+    bind_address: bind_address,
     bootstrap_token: bootstrap_token,
     memcache_servers: memcache_servers,
     uris: uris,

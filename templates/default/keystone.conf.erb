@@ -4,7 +4,7 @@
 public_port = <%= node["openstack"]["identity"]["service_port"] %>
 admin_port = <%= node["openstack"]["identity"]["admin_port"] %>
 admin_token = <%= @bootstrap_token %>
-bind_host = <%= @ip_address %>
+bind_host = <%= @bind_address %>
 compute_port = 8774
 verbose = <%= node["openstack"]["identity"]["verbose"] %>
 debug = <%= node["openstack"]["identity"]["debug"] %>
