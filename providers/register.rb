@@ -82,7 +82,7 @@ action :create_service do
         Chef::Log.info("Created service '#{new_resource.service_name}'")
         new_resource.updated_by_last_action(true)
       end
-    rescue Exception => e
+    rescue StandardError => e
       Chef::Log.error("Unable to create service '#{new_resource.service_name}'")
       Chef::Log.error("Error was: #{e.message}")
       new_resource.updated_by_last_action(false)
@@ -117,7 +117,7 @@ action :create_endpoint do
         Chef::Log.info("Created endpoint for service type '#{new_resource.service_type}'")
         new_resource.updated_by_last_action(true)
       end
-    rescue Exception => e
+    rescue StandardError => e
       Chef::Log.error("Unable to create endpoint for service type '#{new_resource.service_type}'")
       Chef::Log.error("Error was: #{e.message}")
       new_resource.updated_by_last_action(false)
@@ -141,7 +141,7 @@ action :create_tenant do
       Chef::Log.info("Created tenant '#{new_resource.tenant_name}'")
       new_resource.updated_by_last_action(true)
     end
-  rescue Exception => e
+  rescue StandardError => e
     Chef::Log.error("Unable to create tenant '#{new_resource.tenant_name}'")
     Chef::Log.error("Error was: #{e.message}")
     new_resource.updated_by_last_action(false)
@@ -162,7 +162,7 @@ action :create_role do
       Chef::Log.info("Created Role '#{new_resource.role_name}'")
       new_resource.updated_by_last_action(true)
     end
-  rescue Exception => e
+  rescue StandardError => e
     Chef::Log.error("Unable to create role '#{new_resource.role_name}'")
     Chef::Log.error("Error was: #{e.message}")
     new_resource.updated_by_last_action(false)
@@ -199,7 +199,7 @@ action :create_user do
                      'enabled' => new_resource.user_enabled)
     Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
     new_resource.updated_by_last_action(true)
-  rescue Exception => e
+  rescue StandardError => e
     Chef::Log.error("Unable to create user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
     Chef::Log.error("Error was: #{e.message}")
     new_resource.updated_by_last_action(false)
@@ -244,7 +244,7 @@ action :grant_role do
       Chef::Log.info("Granted Role '#{new_resource.role_name}' to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
       new_resource.updated_by_last_action(true)
     end
-  rescue Exception => e
+  rescue StandardError => e
     Chef::Log.error("Unable to grant role '#{new_resource.role_name}' to user '#{new_resource.user_name}'")
     Chef::Log.error("Error was: #{e.message}")
     new_resource.updated_by_last_action(false)
@@ -292,7 +292,7 @@ action :create_ec2_credentials do
         new_resource.updated_by_last_action(true)
       end
     end
-  rescue Exception => e
+  rescue StandardError => e
     Chef::Log.error("Unable to create EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
     Chef::Log.error("Error was: #{e.message}")
     new_resource.updated_by_last_action(false)
