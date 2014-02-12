@@ -4,8 +4,9 @@ maintainer_email 'matt@opscode.com'
 license          'Apache 2.0'
 description      'The OpenStack Identity service Keystone.'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '8.0.0'
+version          '8.1.0'
 
+recipe           'openstack-identity::client', 'Install packages required for keystone client'
 recipe           'openstack-identity::server', 'Installs and Configures Keystone Service'
 recipe           'openstack-identity::registration', 'Adds user, tenant, role and endpoint records to Keystone'
 

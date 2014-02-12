@@ -165,6 +165,7 @@ when 'fedora', 'redhat', 'centos' # :pragma-foodcritic: ~FC024 - won't fix this
     'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-memcached'],
     'keystone_packages' => ['openstack-keystone'],
+    'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
     'package_options' => ''
@@ -177,6 +178,7 @@ when 'suse'
     'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-python-memcached'],
     'keystone_packages' => ['openstack-keystone'],
+    'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
     'package_options' => ''
@@ -189,6 +191,7 @@ when 'ubuntu'
     'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-memcache'],
     'keystone_packages' => ['keystone'],
+    'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'keystone',
     'keystone_process_name' => 'keystone-all',
     'package_options' => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
