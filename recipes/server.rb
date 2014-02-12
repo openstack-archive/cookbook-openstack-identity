@@ -149,7 +149,8 @@ template '/etc/keystone/keystone.conf' do
     uris: uris,
     public_endpoint: public_endpoint,
     admin_endpoint: admin_endpoint,
-    ldap: node['openstack']['identity']['ldap']
+    ldap: node['openstack']['identity']['ldap'],
+    token_expiration: node['openstack']['identity']['token']['expiration']
   )
 
   notifies :restart, 'service[keystone]', :immediately
