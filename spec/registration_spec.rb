@@ -188,5 +188,37 @@ describe 'openstack-identity::registration' do
         end
       end
     end
+
+    describe 'endpoint registration' do
+      it 'registers identity endpoint' do
+        resource = chef_run.find_resource(
+          'openstack-identity_register',
+          'Register Identity Endpoint'
+        ).to_hash
+
+        expect(resource).to include(
+          auth_uri: 'http://127.0.0.1:35357/v2.0',
+          bootstrap_token: 'bootstrap-token',
+          service_type: 'identity',
+          endpoint_region: 'RegionOne',
+          endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
+          endpoint_internalurl: 'http://127.0.0.1:35357/v2.0',
+          endpoint_publicurl: 'http://127.0.0.1:5000/v2.0',
+          action: [:create_endpoint]
+        )
+      end
+      it 'overrides identity endpoint region' do
+        node.set['openstack']['identity']['region'] = 'identityRegion'
+        resource = chef_run.find_resource(
+          'openstack-identity_register',
+          'Register Identity Endpoint'
+        ).to_hash
+
+        expect(resource).to include(
+          endpoint_region: 'identityRegion',
+          action: [:create_endpoint]
+        )
+      end
+    end
   end
 end

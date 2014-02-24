@@ -37,7 +37,7 @@ default['openstack']['identity']['debug'] = 'False'
 
 default['openstack']['identity']['service_port'] = '5000'
 default['openstack']['identity']['admin_port'] = '35357'
-default['openstack']['identity']['region'] = 'RegionOne'
+default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'
 
 # If set, the keystone service will bind to the address on this interface,
