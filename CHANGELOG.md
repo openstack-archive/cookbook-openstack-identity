@@ -2,6 +2,9 @@
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 8.1.0
+* Add client recipe
+
 ## 8.0.0
 * Updating to Havana
 * Updating cookbook-openstack-common dep from 0.3.0 to 0.4.7

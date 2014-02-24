@@ -20,6 +20,12 @@ The following cookbooks are dependencies:
 Usage
 =====
 
+client
+------
+
+Installs the keystone client packages
+
+
 server
 ------
 
