@@ -158,37 +158,72 @@ describe 'openstack-identity::registration' do
     end
 
     describe 'service registration' do
-      it 'registers identity service' do
-        expect(chef_run).to create_service_openstack_identity_register(
-          'Register Identity Service'
-        ).with(
-          service_name: 'keystone',
-          service_type: 'identity',
-          service_description: 'Keystone Identity Service'
-        )
+      context 'with templated catalog backend' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'templated'
+        end
+
+        it 'does not register identity service' do
+          expect(chef_run).to_not create_service_openstack_identity_register(
+            'Register Identity Service'
+          )
+        end
+      end
+
+      context 'with sql catalog backend' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'sql'
+        end
+        it 'registers identity service' do
+          expect(chef_run).to create_service_openstack_identity_register(
+            'Register Identity Service'
+          ).with(
+            service_name: 'keystone',
+            service_type: 'identity',
+            service_description: 'Keystone Identity Service'
+          )
+        end
       end
     end
 
     describe 'endpoint registration' do
-      it 'registers identity endpoint' do
-        expect(chef_run).to create_endpoint_openstack_identity_register(
-          'Register Identity Endpoint'
-        ).with(
-          auth_uri: 'http://127.0.0.1:35357/v2.0',
-          bootstrap_token: 'bootstrap-token',
-          service_type: 'identity',
-          endpoint_region: 'RegionOne',
-          endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
-          endpoint_internalurl: 'http://127.0.0.1:35357/v2.0',
-          endpoint_publicurl: 'http://127.0.0.1:5000/v2.0'
-        )
+      context 'with templated catalog backend' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'templated'
+        end
+
+        it 'does not register identity endpoint' do
+          expect(chef_run).to_not create_endpoint_openstack_identity_register(
+            'Register Identity Endpoint'
+          )
+        end
       end
 
-      it 'overrides identity endpoint region' do
-        node.set['openstack']['identity']['region'] = 'identityRegion'
-        expect(chef_run).to create_endpoint_openstack_identity_register(
-          'Register Identity Endpoint'
-        ).with(endpoint_region: 'identityRegion')
+      context 'with sql catalog backend' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'sql'
+        end
+
+        it 'registers identity endpoint' do
+          expect(chef_run).to create_endpoint_openstack_identity_register(
+            'Register Identity Endpoint'
+          ).with(
+            auth_uri: 'http://127.0.0.1:35357/v2.0',
+            bootstrap_token: 'bootstrap-token',
+            service_type: 'identity',
+            endpoint_region: 'RegionOne',
+            endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
+            endpoint_internalurl: 'http://127.0.0.1:35357/v2.0',
+            endpoint_publicurl: 'http://127.0.0.1:5000/v2.0'
+          )
+        end
+
+        it 'overrides identity endpoint region' do
+          node.set['openstack']['identity']['region'] = 'identityRegion'
+          expect(chef_run).to create_endpoint_openstack_identity_register(
+            'Register Identity Endpoint'
+          ).with(endpoint_region: 'identityRegion')
+        end
       end
     end
   end

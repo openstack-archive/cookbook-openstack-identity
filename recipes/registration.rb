@@ -106,6 +106,7 @@ openstack_identity_register 'Register Identity Service' do
   service_description 'Keystone Identity Service'
 
   action :create_service
+  not_if { node['openstack']['identity']['catalog']['backend'] == 'templated' }
 end
 
 node.set['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
@@ -126,6 +127,7 @@ openstack_identity_register 'Register Identity Endpoint' do
   endpoint_publicurl node['openstack']['identity']['publicURL']
 
   action :create_endpoint
+  not_if { node['openstack']['identity']['catalog']['backend'] == 'templated' }
 end
 
 node['openstack']['identity']['users'].each do |username, user_info|

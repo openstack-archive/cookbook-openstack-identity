@@ -99,6 +99,7 @@ Register users, tenants, roles, services and endpoints with Keystone
 - service_description: Description of service
 - service_type: Type of service to create
  - Accepted values are [ "image", "identity", "compute", "storage", "ec2", "volume", "object-store", "metering", "network", "orchestration", "cloudformation" ]
+- **NOTE:** call will be skipped if `openstack['identity']['catalog']['backend']` is set to 'templated'
 
 ### :create_endpoint Specific Attributes
 
@@ -109,6 +110,7 @@ Register users, tenants, roles, services and endpoints with Keystone
  - Default is same as endpoint_internalURL
 - service_type: Type of service to create endpoint for
  - Accepted values are [ "image", "identity", "compute", "storage", "ec2", "volume", "object-store", "metering", "network", "orchestration", "cloudformation" ]
+- **NOTE:** call will be skipped if `openstack['identity']['catalog']['backend']` is set to 'templated'
 
 ### Examples
 
@@ -251,6 +253,7 @@ Attributes
 TODO: Add DB2 support on other platforms
 * `openstack['identity']['platform']['db2_python_packages']` - Array of DB2 python packages, only available on redhat platform
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
+* `openstack['identity']['catalog']['backend']` - Storage mechanism for the keystone service catalog
 
 Testing
 =====

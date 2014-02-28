@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 8.1.1
+* Adding guard on register LWRP (:create_service) to not run if backend is 'templated'
+* Adding guard on register LWRP (:create_endpoint) to not run if backend is 'templated'
+
 ## 8.1.0
 * Add client recipe
 
