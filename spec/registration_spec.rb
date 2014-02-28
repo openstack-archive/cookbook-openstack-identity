@@ -27,18 +27,14 @@ describe 'openstack-identity::registration' do
       context 'default tenants' do
         ['admin', 'service'].each do |tenant_name|
           it "registers the #{tenant_name} tenant" do
-            resource = chef_run.find_resource(
-              'openstack-identity_register',
+            expect(chef_run).to create_tenant_openstack_identity_register(
               "Register '#{tenant_name}' Tenant"
-              ).to_hash
-
-            expect(resource).to include(
+            ).with(
               auth_uri: 'http://127.0.0.1:35357/v2.0',
               bootstrap_token: 'bootstrap-token',
               tenant_name: tenant_name,
-              tenant_description: "#{tenant_name} Tenant",
-              action: [:create_tenant]
-              )
+              tenant_description: "#{tenant_name} Tenant"
+            )
           end
         end
       end
@@ -47,18 +43,14 @@ describe 'openstack-identity::registration' do
         before { node_add_user }
         ['default_tenant1', 'role_tenant1'].each do |tenant_name|
           it "registers the #{tenant_name} tenant" do
-            resource = chef_run.find_resource(
-              'openstack-identity_register',
+            expect(chef_run).to create_tenant_openstack_identity_register(
               "Register '#{tenant_name}' Tenant"
-              ).to_hash
-
-            expect(resource).to include(
+            ).with(
               auth_uri: 'http://127.0.0.1:35357/v2.0',
               bootstrap_token: 'bootstrap-token',
               tenant_name: tenant_name,
-              tenant_description: "#{tenant_name} Tenant",
-              action: [:create_tenant]
-              )
+              tenant_description: "#{tenant_name} Tenant"
+            )
           end
         end
       end
@@ -68,17 +60,13 @@ describe 'openstack-identity::registration' do
       context 'default roles' do
         %w{admin Member KeystoneAdmin KeystoneServiceAdmin}.each do |role_name|
           it "registers the #{role_name} role" do
-            resource = chef_run.find_resource(
-              'openstack-identity_register',
+            expect(chef_run).to create_role_openstack_identity_register(
               "Register '#{role_name}' Role"
-              ).to_hash
-
-            expect(resource).to include(
+            ).with(
               auth_uri: 'http://127.0.0.1:35357/v2.0',
               bootstrap_token: 'bootstrap-token',
-              role_name: role_name,
-              action: [:create_role]
-              )
+              role_name: role_name
+            )
           end
         end
       end
@@ -88,17 +76,13 @@ describe 'openstack-identity::registration' do
 
         ['role1', 'role2'].each do |role_name|
           it "registers the #{role_name} role" do
-            resource = chef_run.find_resource(
-              'openstack-identity_register',
+            expect(chef_run).to create_role_openstack_identity_register(
               "Register '#{role_name}' Role"
-              ).to_hash
-
-            expect(resource).to include(
+            ).with(
               auth_uri: 'http://127.0.0.1:35357/v2.0',
               bootstrap_token: 'bootstrap-token',
-              role_name: role_name,
-              action: [:create_role]
-              )
+              role_name: role_name
+            )
           end
         end
       end
@@ -115,36 +99,29 @@ describe 'openstack-identity::registration' do
         [user_monit, user_admin].each do |user, tenant, roles|
           context "#{user} user" do
             it "registers the #{user} user" do
-              user_resource = chef_run.find_resource(
-                'openstack-identity_register',
+              expect(chef_run).to create_user_openstack_identity_register(
                 "Register '#{user}' User"
-                ).to_hash
-
-              expect(user_resource).to include(
+              ).with(
                 auth_uri: 'http://127.0.0.1:35357/v2.0',
                 bootstrap_token: 'bootstrap-token',
                 user_name: user,
                 user_pass: '',
-                tenant_name: tenant,
-                action: [:create_user]
-                )
+                tenant_name: tenant
+              )
             end
 
             roles.each do |role|
               it "grants '#{role}' role to '#{user}' user in 'admin' tenant" do
-                grant_resource = chef_run.find_resource(
-                  'openstack-identity_register',
+                expect(chef_run).to grant_role_openstack_identity_register(
                   "Grant '#{role}' Role to '#{user}' User in 'admin' Tenant"
-                  ).to_hash
-
-                expect(grant_resource).to include(
+                ).with(
                   auth_uri: 'http://127.0.0.1:35357/v2.0',
                   bootstrap_token: 'bootstrap-token',
                   user_name: user,
                   role_name: role,
                   tenant_name: 'admin',
                   action: [:grant_role]
-                  )
+                )
               end
             end
 
@@ -156,68 +133,63 @@ describe 'openstack-identity::registration' do
         before { node_add_user }
 
         it 'registers the user1 user' do
-          resource = chef_run.find_resource(
-            'openstack-identity_register',
+          expect(chef_run).to create_user_openstack_identity_register(
             "Register 'user1' User"
-            ).to_hash
-
-          expect(resource).to include(
+          ).with(
             auth_uri: 'http://127.0.0.1:35357/v2.0',
             bootstrap_token: 'bootstrap-token',
             user_name: 'user1',
             user_pass: 'secret1',
-            tenant_name: 'default_tenant1',
-            action: [:create_user]
-            )
+            tenant_name: 'default_tenant1'
+          )
         end
 
         it "grants 'role1' role to 'user1' user in 'role_tenant1' tenant" do
-          grant_resource = chef_run.find_resource(
-            'openstack-identity_register',
+          expect(chef_run).to grant_role_openstack_identity_register(
             "Grant 'role1' Role to 'user1' User in 'role_tenant1' Tenant"
-            ).to_hash
-
-          expect(grant_resource).to include(
-            action: [:grant_role],
+          ).with(
             auth_uri: 'http://127.0.0.1:35357/v2.0',
             bootstrap_token: 'bootstrap-token',
             user_name: 'user1',
             role_name: 'role1',
             tenant_name: 'role_tenant1'
-            )
+          )
         end
+      end
+    end
+
+    describe 'service registration' do
+      it 'registers identity service' do
+        expect(chef_run).to create_service_openstack_identity_register(
+          'Register Identity Service'
+        ).with(
+          service_name: 'keystone',
+          service_type: 'identity',
+          service_description: 'Keystone Identity Service'
+        )
       end
     end
 
     describe 'endpoint registration' do
       it 'registers identity endpoint' do
-        resource = chef_run.find_resource(
-          'openstack-identity_register',
+        expect(chef_run).to create_endpoint_openstack_identity_register(
           'Register Identity Endpoint'
-        ).to_hash
-
-        expect(resource).to include(
+        ).with(
           auth_uri: 'http://127.0.0.1:35357/v2.0',
           bootstrap_token: 'bootstrap-token',
           service_type: 'identity',
           endpoint_region: 'RegionOne',
           endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
           endpoint_internalurl: 'http://127.0.0.1:35357/v2.0',
-          endpoint_publicurl: 'http://127.0.0.1:5000/v2.0',
-          action: [:create_endpoint]
+          endpoint_publicurl: 'http://127.0.0.1:5000/v2.0'
         )
       end
+
       it 'overrides identity endpoint region' do
         node.set['openstack']['identity']['region'] = 'identityRegion'
-        resource = chef_run.find_resource(
-          'openstack-identity_register',
+        expect(chef_run).to create_endpoint_openstack_identity_register(
           'Register Identity Endpoint'
-        ).to_hash
-
-        expect(resource).to include(
-          endpoint_region: 'identityRegion',
-          action: [:create_endpoint]
-        )
+        ).with(endpoint_region: 'identityRegion')
       end
     end
   end
