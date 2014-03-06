@@ -51,6 +51,10 @@ describe Chef::Provider::Execute do
     @ec2_resource = Chef::Resource::OpenstackIdentityRegister.new('ec2', @run_context)
     @ec2_resource.user_name 'user1'
     @ec2_resource.tenant_name 'tenant1'
+    @ec2_resource.admin_tenant_name 'admintenant1'
+    @ec2_resource.admin_user 'adminuser1'
+    @ec2_resource.admin_pass 'password'
+    @ec2_resource.identity_endpoint 'http://admin'
   end
 
   it 'should create a tenant' do
