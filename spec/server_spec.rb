@@ -454,5 +454,96 @@ describe 'openstack-identity::server' do
         )
       end
     end
+
+    describe 'keystone-paste.ini' do
+      let(:paste_file_path) { '/etc/keystone/keystone-paste.ini' }
+      let(:paste_file_template) { chef_run.template paste_file_path }
+
+      it 'has proper owner' do
+        expect(paste_file_template.owner).to eq('keystone')
+        expect(paste_file_template.group).to eq('keystone')
+      end
+
+      it 'has proper modes' do
+        expect(sprintf('%o', paste_file_template.mode)).to eq '644'
+      end
+
+      it 'contains sections' do
+        required_sections = %w{filter:debug filter:token_auth
+                               filter:admin_token_auth filter:xml_body
+                               filter:json_body filter:user_crud_extension
+                               filter:crud_extension filter:ec2_extension
+                               filter:oauth_extension filter:s3_extension
+                               filter:endpoint_filter_extension filter:url_normalize
+                               filter:sizelimit filter:stats_monitoring
+                               filter:stats_reporting filter:access_log
+                               app:public_service app:service_v3
+                               app:admin_service pipeline:public_api
+                               pipeline:admin_api pipeline:api_v3
+                               app:public_version_service app:admin_version_service
+                               pipeline:public_version_api pipeline:admin_version_api
+                               composite:main composite:admin}
+        required_sections.each do |section|
+          expect(chef_run).to render_file(paste_file_path).with_content(
+            /#{Regexp.quote(section)}/)
+        end
+      end
+
+      it 'has the correct filter configuration' do
+        filter_factory_key = 'paste.filter_factory'
+        required_filter_factories = %w{keystone.common.wsgi:Debug.factory
+                                       keystone.middleware:TokenAuthMiddleware.factory
+                                       keystone.middleware:AdminTokenAuthMiddleware.factory
+                                       keystone.middleware:XmlBodyMiddleware.factory
+                                       keystone.middleware:JsonBodyMiddleware.factory
+                                       keystone.contrib.user_crud:CrudExtension.factory
+                                       keystone.contrib.admin_crud:CrudExtension.factory
+                                       keystone.contrib.ec2:Ec2Extension.factory
+                                       keystone.contrib.oauth1.routers:OAuth1Extension.factory
+                                       keystone.contrib.s3:S3Extension.factory
+                                       keystone.contrib.endpoint_filter.routers:EndpointFilterExtension.factory
+                                       keystone.middleware:NormalizingFilter.factory
+                                       keystone.middleware:RequestBodySizeLimiter.factory
+                                       keystone.contrib.stats:StatsMiddleware.factory
+                                       keystone.contrib.stats:StatsExtension.factory
+                                       keystone.contrib.access:AccessLogMiddleware.factory}
+        required_filter_factories.each do |filter_factory|
+          r = line_regexp("#{filter_factory_key} = #{filter_factory}")
+          expect(chef_run).to render_file(paste_file_path).with_content(r)
+        end
+      end
+
+      it 'has the correct app configuration' do
+        app_factory_key = 'paste.app_factory'
+        required_app_factories = %w{keystone.service:public_app_factory
+                                    keystone.service:v3_app_factory
+                                    keystone.service:admin_app_factory
+                                    keystone.service:public_version_app_factory
+                                    keystone.service:admin_version_app_factory}
+        required_app_factories.each do |app_factory|
+          r = line_regexp("#{app_factory_key} = #{app_factory}")
+          expect(chef_run).to render_file(paste_file_path).with_content(r)
+        end
+      end
+
+      it 'has the correct pipeline configuration for public_api' do
+        r = line_regexp('pipeline = access_log sizelimit url_normalize token_auth admin_token_auth xml_body json_body ec2_extension user_crud_extension public_service')
+        expect(chef_run).to render_file(paste_file_path).with_content(r)
+      end
+
+      it 'has the correct pipeline configuration for admin_api' do
+        r = line_regexp('pipeline = access_log sizelimit url_normalize token_auth admin_token_auth xml_body json_body ec2_extension s3_extension crud_extension admin_service')
+        expect(chef_run).to render_file(paste_file_path).with_content(r)
+      end
+
+      it 'has the correct pipeline configuration for admin_api' do
+        r = line_regexp('pipeline = access_log sizelimit url_normalize token_auth admin_token_auth xml_body json_body ec2_extension s3_extension crud_extension admin_service')
+        expect(chef_run).to render_file(paste_file_path).with_content(r)
+      end
+
+      it 'notifies keystone restart' do
+        expect(paste_file_template).to notify('service[keystone]').to(:restart)
+      end
+    end
   end
 end

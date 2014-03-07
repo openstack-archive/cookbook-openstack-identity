@@ -160,6 +160,15 @@ template '/etc/keystone/keystone.conf' do
   notifies :restart, 'service[keystone]', :immediately
 end
 
+template '/etc/keystone/keystone-paste.ini' do
+  source 'keystone-paste.ini.erb'
+  owner node['openstack']['identity']['user']
+  group node['openstack']['identity']['group']
+  mode   00644
+
+  notifies :restart, 'service[keystone]', :immediately
+end
+
 template '/etc/keystone/default_catalog.templates' do
   source 'default_catalog.templates.erb'
   owner node['openstack']['identity']['user']

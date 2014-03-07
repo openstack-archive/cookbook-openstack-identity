@@ -283,12 +283,13 @@ Author:: John Dewey (<jdewey@att.com>)
 Author:: Sean Gallagher (<sean.gallagher@att.com>)
 Author:: Ionut Artarisi (<iartarisi@suse.cz>)
 Author:: Chen Zhiwei (zhiwchen@cn.ibm.com)
+Author:: Eric Zhou (zyouzhou@cn.ibm.com)
 
 Copyright 2012, Rackspace US, Inc.
 Copyright 2012-2013, Opscode, Inc.
 Copyright 2012-2013, AT&T Services, Inc.
 Copyright 2013, SUSE Linux GmbH
-Copyright 2013, IBM, Corp.
+Copyright 2013-2014, IBM, Corp.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
