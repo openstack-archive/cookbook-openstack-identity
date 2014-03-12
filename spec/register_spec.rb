@@ -3,7 +3,7 @@
 
 require_relative 'spec_helper'
 
-describe Chef::Provider::Execute do
+describe "openstack-identity::registration" do
   before do
     @chef_run = ::ChefSpec::Runner.new ::SUSE_OPTS
     @chef_run.converge 'openstack-identity::default'
