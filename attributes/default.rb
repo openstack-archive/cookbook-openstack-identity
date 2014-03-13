@@ -60,10 +60,6 @@ default['openstack']['identity']['users'] = {
       'KeystoneAdmin' => ['admin'],
       'KeystoneServiceAdmin' => ['admin']
     }
-  },
-  'monitoring' => {
-    'default_tenant' => 'service',
-    'roles' => { 'Member' => ['admin'] }
   }
 }
 

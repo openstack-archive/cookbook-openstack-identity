@@ -25,7 +25,7 @@ describe 'openstack-identity::registration' do
 
     describe 'tenant registration' do
       context 'default tenants' do
-        ['admin', 'service'].each do |tenant_name|
+        ['admin'].each do |tenant_name|
           it "registers the #{tenant_name} tenant" do
             expect(chef_run).to create_tenant_openstack_identity_register(
               "Register '#{tenant_name}' Tenant"
@@ -58,7 +58,7 @@ describe 'openstack-identity::registration' do
 
     describe 'role registration' do
       context 'default roles' do
-        %w{admin Member KeystoneAdmin KeystoneServiceAdmin}.each do |role_name|
+        %w{admin KeystoneAdmin KeystoneServiceAdmin}.each do |role_name|
           it "registers the #{role_name} role" do
             expect(chef_run).to create_role_openstack_identity_register(
               "Register '#{role_name}' Role"
@@ -90,13 +90,12 @@ describe 'openstack-identity::registration' do
 
     describe 'user registration' do
       context 'default users' do
-        user_monit = ['monitoring', 'service', ['Member']]
         user_admin = [
           'admin', 'admin',
           ['admin', 'KeystoneAdmin', 'KeystoneServiceAdmin']
         ]
 
-        [user_monit, user_admin].each do |user, tenant, roles|
+        [user_admin].each do |user, tenant, roles|
           context "#{user} user" do
             it "registers the #{user} user" do
               expect(chef_run).to create_user_openstack_identity_register(
