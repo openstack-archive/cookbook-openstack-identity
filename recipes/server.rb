@@ -157,7 +157,7 @@ template '/etc/keystone/keystone.conf' do
     token_expiration: node['openstack']['identity']['token']['expiration']
   )
 
-  notifies :restart, 'service[keystone]', :immediately
+  notifies :restart, 'service[keystone]', :delayed
 end
 
 template '/etc/keystone/keystone-paste.ini' do
