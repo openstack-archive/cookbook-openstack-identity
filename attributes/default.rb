@@ -35,8 +35,6 @@ default['credentials']['EC2']['admin']['secret'] = ''
 default['openstack']['identity']['verbose'] = 'False'
 default['openstack']['identity']['debug'] = 'False'
 
-default['openstack']['identity']['service_port'] = '5000'
-default['openstack']['identity']['admin_port'] = '35357'
 default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'
 

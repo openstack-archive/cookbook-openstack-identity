@@ -2,6 +2,9 @@
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 8.1.3
+* Remove duplicate service and admin ports attributes that are in Common LP1281108
+
 ## 8.1.2
 ### Bug
 * Fix the DB2 ODBC driver issue

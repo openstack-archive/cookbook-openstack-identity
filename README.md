@@ -232,9 +232,9 @@ Create EC2 credentials for a given user in the specified tenant
 Attributes
 ==========
 
+Please refer to the Common cookbook for more attributes.
+
 * `openstack['identity']['db_server_chef_role']` - The name of the Chef role that knows about the db server
-* `openstack['identity']['service_port']` - Port to listen on for client functions
-* `openstack['identity']['admin_port']` - Port to listen on for admin functions
 * `openstack['identity']['user']` - User keystone runs as
 * `openstack['identity']['group']` - Group keystone runs as
 * `openstack['identity']['db']` - Name of keystone database
@@ -244,8 +244,6 @@ Attributes
 * `openstack['identity']['api_ipaddress']` - IP address for the keystone API to bind to. _TODO_: Rename to bind_address
 * `openstack['identity']['verbose']` - Enables/disables verbose output for keystone API server
 * `openstack['identity']['debug']` - Enables/disables debug output for keystone API server
-* `openstack['identity']['service_port']` - Port for the keystone service API to bind to
-* `openstack['identity']['admin_port']` - Port for the keystone admin service to bind to
 * `openstack['identity']['admin_token']` - Admin token for bootstraping keystone server
 * `openstack['identity']['roles']` - Array of roles to create in the keystone server
 * `openstack['identity']['users']` - Array of users to create in the keystone server
