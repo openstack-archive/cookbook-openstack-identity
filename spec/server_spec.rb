@@ -8,6 +8,9 @@ describe 'openstack-identity::server' do
     let(:runner) { ChefSpec::Runner.new(UBUNTU_OPTS) }
     let(:node) { runner.node }
     let(:chef_run) do
+      node.set_unless['openstack']['endpoints']['identity-bind'] = {
+        'host' => '127.0.1.1'
+      }
       node.set_unless['openstack']['endpoints']['identity-api'] = {
         'host' => '127.0.1.1',
         'port' => '5000',
@@ -188,9 +191,8 @@ describe 'openstack-identity::server' do
 
         describe 'bind_interface is eth0' do
           before do
-            node.set['openstack']['identity']['bind_interface'] = 'eth0'
+            node.set['openstack']['endpoints']['identity-bind']['bind_interface'] = 'eth0'
             ::Chef::Recipe.any_instance.stub(:address_for)
-              .with('eth0')
               .and_return('10.0.0.2')
           end
 

@@ -233,7 +233,6 @@ Attributes
 ==========
 
 * `openstack['identity']['db_server_chef_role']` - The name of the Chef role that knows about the db server
-* `openstack['identity']['bind_interface']` - Interface to bind keystone to
 * `openstack['identity']['service_port']` - Port to listen on for client functions
 * `openstack['identity']['admin_port']` - Port to listen on for admin functions
 * `openstack['identity']['user']` - User keystone runs as
@@ -254,6 +253,16 @@ TODO: Add DB2 support on other platforms
 * `openstack['identity']['platform']['db2_python_packages']` - Array of DB2 python packages, only available on redhat platform
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
 * `openstack['identity']['catalog']['backend']` - Storage mechanism for the keystone service catalog
+
+The following attributes are defined in attributes/default.rb of the common cookbook, but are documented here due to their relevance:
+
+* `openstack['endpoints']['identity-bind']['host']` - The IP address to bind the identity services to
+* `openstack['endpoints']['identity-bind']['scheme']` - Unused
+* `openstack['endpoints']['identity-bind']['port']` - Unused
+* `openstack['endpoints']['identity-bind']['path']` - Unused
+* `openstack['endpoints']['identity-bind']['bind_interface']` - The interface name to bind the identity services to
+
+If the value of the 'bind_interface' attribute is non-nil, then the identity service will be bound to the first IP address on that interface.  If the value of the 'bind_interface' attribute is nil, then the identity service will be bound to the IP address specified in the host attribute.
 
 Testing
 =====
