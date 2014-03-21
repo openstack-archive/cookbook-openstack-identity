@@ -156,7 +156,7 @@ when 'fedora', 'redhat', 'centos' # :pragma-foodcritic: ~FC024 - won't fix this
   default['openstack']['identity']['group'] = 'keystone'
   default['openstack']['identity']['platform'] = {
     'mysql_python_packages' => ['MySQL-python'],
-    'db2_python_packages' => ['db2-odbc', 'python-ibm-db', 'python-ibm-db-sa'],
+    'db2_python_packages' => ['python-ibm-db', 'python-ibm-db-sa'],
     'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-memcached'],
     'keystone_packages' => ['openstack-keystone'],
