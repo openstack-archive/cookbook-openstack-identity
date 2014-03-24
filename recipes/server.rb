@@ -149,7 +149,9 @@ template '/etc/keystone/keystone.conf' do
     memcache_servers: memcache_servers,
     uris: uris,
     public_endpoint: public_endpoint,
+    public_port: identity_endpoint.port,
     admin_endpoint: admin_endpoint,
+    admin_port: identity_admin_endpoint.port,
     ldap: node['openstack']['identity']['ldap'],
     token_expiration: node['openstack']['identity']['token']['expiration']
   )

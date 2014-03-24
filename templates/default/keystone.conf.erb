@@ -1,8 +1,8 @@
 <%= node["openstack"]["identity"]["custom_template_banner"] %>
 
 [DEFAULT]
-public_port = <%= node['openstack']['endpoints']['identity-api']['port'] %>
-admin_port = <%= node['openstack']['endpoints']['identity-admin']['port'] %>
+public_port = <%= @public_port %>
+admin_port = <%= @admin_port %>
 admin_token = <%= @bootstrap_token %>
 bind_host = <%= @bind_address %>
 compute_port = 8774
