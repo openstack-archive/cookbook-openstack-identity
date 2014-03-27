@@ -1,6 +1,8 @@
 # CHANGELOG for cookbook-openstack-identity
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
+## 9.0.0
+* Upgrade to Icehouse
 
 ## 8.1.3
 * Remove duplicate service and admin ports attributes that are in Common LP1281108
