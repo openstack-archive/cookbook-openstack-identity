@@ -1,14 +1,14 @@
 Description
 ===========
 
-This cookbook installs the OpenStack Identity Service **Keystone** as part of the OpenStack reference deployment Chef for OpenStack. The http://github.com/mattray/chef-openstack-repo contains documentation for using this cookbook in the context of a full OpenStack deployment. Keystone is installed from packages, creating the default user, tenant, and roles. It also registers the identity service and identity endpoint.
+This cookbook installs the OpenStack Identity Service **Keystone** as part of the OpenStack reference deployment Chef for OpenStack. The http://github.com/mattray/chef-openstack-repo contains documentation for using this cookbook in the context of a full OpenStack deployment. Keystone is installed from packages, creating the default user, tenant, and roles. It also registers the identity service and identity endpoint. This version is for deploying the 'Havana' release, the 'master' branch is currently working on the 'Icehouse' release.
 
 http://keystone.openstack.org/
 
 Requirements
 ============
 
-Chef 0.10.0 or higher required (for Chef environment use)
+Chef 11 or higher is required.
 
 Cookbooks
 ---------
@@ -287,7 +287,7 @@ Author:: Joseph Breu (<joseph.breu@rackspace.com>)
 Author:: William Kelly (<william.kelly@rackspace.com>)
 Author:: Darren Birkett (<darren.birkett@rackspace.co.uk>)
 Author:: Evan Callicoat (<evan.callicoat@rackspace.com>)
-Author:: Matt Ray (<matt@opscode.com>)
+Author:: Matt Ray (<matt@getchef.com>)
 Author:: Jay Pipes (<jaypipes@att.com>)
 Author:: John Dewey (<jdewey@att.com>)
 Author:: Sean Gallagher (<sean.gallagher@att.com>)
@@ -296,7 +296,7 @@ Author:: Chen Zhiwei (zhiwchen@cn.ibm.com)
 Author:: Eric Zhou (zyouzhou@cn.ibm.com)
 
 Copyright 2012, Rackspace US, Inc.
-Copyright 2012-2013, Opscode, Inc.
+Copyright 2012-2014, Chef Software, Inc.
 Copyright 2012-2013, AT&T Services, Inc.
 Copyright 2013, SUSE Linux GmbH
 Copyright 2013-2014, IBM, Corp.
