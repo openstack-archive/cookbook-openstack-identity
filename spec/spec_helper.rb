@@ -1,8 +1,8 @@
-# encoding: UTF-8
-#
-
+# Encoding: UTF-8
 require 'chefspec'
 require 'chefspec/berkshelf'
+
+ChefSpec::Coverage.start! { add_filter 'openstack-identity' }
 
 LOG_LEVEL = :fatal
 SUSE_OPTS = {
@@ -50,9 +50,3 @@ shared_context 'identity_stubs' do
       .and_return('bootstrap-token')
   end
 end
-
-# README(galstrom21): This will remove any coverage warnings from
-#   dependent cookbooks
-ChefSpec::Coverage.filters << '*/openstack-identity'
-
-at_exit { ChefSpec::Coverage.report! }
