@@ -45,8 +45,8 @@ shared_context 'identity_stubs' do
     ::Chef::Recipe.any_instance.stub(:get_password)
       .with('user', 'user1')
       .and_return('secret1')
-    ::Chef::Recipe.any_instance.stub(:secret)
-      .with('secrets', 'openstack_identity_bootstrap_token')
+    ::Chef::Recipe.any_instance.stub(:get_secret)
+      .with('openstack_identity_bootstrap_token')
       .and_return('bootstrap-token')
   end
 end

@@ -37,7 +37,7 @@ admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
 # rubocop:enable UselessAssignment
 
-bootstrap_token = secret 'secrets', 'openstack_identity_bootstrap_token'
+bootstrap_token = get_secret 'openstack_identity_bootstrap_token'
 
 # FIXME(galstrom21): This needs to be refactored, to not use a
 #   MultilineBlockChain.
