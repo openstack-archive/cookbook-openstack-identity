@@ -119,16 +119,6 @@ bind_address = bind_endpoint.host
 # memcache.servers attribute.
 memcache_servers = memcached_servers.join ','  # from openstack-common lib
 
-uris = {
-  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25', '%'),
-  'identity' => identity_endpoint.to_s.gsub('%25', '%'),
-  'image' => image_endpoint.to_s.gsub('%25', '%'),
-  'compute' => compute_endpoint.to_s.gsub('%25', '%'),
-  'ec2' => ec2_endpoint.to_s.gsub('%25', '%'),
-  'network' => network_endpoint.to_s.gsub('%25', '%'),
-  'volume' => volume_endpoint.to_s.gsub('%25', '%')
-}
-
 # These configuration endpoints must not have the path (v2.0, etc)
 # added to them, as these values are used in returning the version
 # listing information from the root / endpoint.
@@ -147,7 +137,6 @@ template '/etc/keystone/keystone.conf' do
     bind_address: bind_address,
     bootstrap_token: bootstrap_token,
     memcache_servers: memcache_servers,
-    uris: uris,
     public_endpoint: public_endpoint,
     public_port: identity_endpoint.port,
     admin_endpoint: admin_endpoint,
@@ -167,6 +156,17 @@ template '/etc/keystone/keystone-paste.ini' do
 
   notifies :restart, 'service[keystone]', :immediately
 end
+
+# populate the templated catlog, if you're using the templated catalog backend
+uris = {
+  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25', '%'),
+  'identity' => identity_endpoint.to_s.gsub('%25', '%'),
+  'image' => image_endpoint.to_s.gsub('%25', '%'),
+  'compute' => compute_endpoint.to_s.gsub('%25', '%'),
+  'ec2' => ec2_endpoint.to_s.gsub('%25', '%'),
+  'network' => network_endpoint.to_s.gsub('%25', '%'),
+  'volume' => volume_endpoint.to_s.gsub('%25', '%')
+}
 
 template '/etc/keystone/default_catalog.templates' do
   source 'default_catalog.templates.erb'
