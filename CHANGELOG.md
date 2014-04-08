@@ -2,6 +2,9 @@
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 8.1.4
+* Don't pass uri hash to keystone.conf template unless using templated catalog
+
 ## 8.1.3
 * Remove duplicate service and admin ports attributes that are in Common LP1281108
 
