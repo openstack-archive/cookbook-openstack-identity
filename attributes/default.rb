@@ -148,8 +148,8 @@ default['openstack']['identity']['ldap']['group_allow_update'] = true
 default['openstack']['identity']['ldap']['group_allow_delete'] = true
 
 # platform defaults
-case platform
-when 'fedora', 'redhat', 'centos' # :pragma-foodcritic: ~FC024 - won't fix this
+case platform_family
+when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
   default['openstack']['identity']['user'] = 'keystone'
   default['openstack']['identity']['group'] = 'keystone'
   default['openstack']['identity']['platform'] = {
@@ -176,7 +176,7 @@ when 'suse'
     'keystone_process_name' => 'keystone-all',
     'package_options' => ''
   }
-when 'ubuntu'
+when 'debian'
   default['openstack']['identity']['user'] = 'keystone'
   default['openstack']['identity']['group'] = 'keystone'
   default['openstack']['identity']['platform'] = {
