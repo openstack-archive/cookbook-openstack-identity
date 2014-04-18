@@ -147,6 +147,14 @@ default['openstack']['identity']['ldap']['group_allow_create'] = true
 default['openstack']['identity']['ldap']['group_allow_update'] = true
 default['openstack']['identity']['ldap']['group_allow_delete'] = true
 
+# Token flushing cronjob
+default['openstack']['identity']['token_flush_cron']['enabled'] = node['openstack']['identity']['token']['backend'] == 'sql'
+default['openstack']['identity']['token_flush_cron']['log_file'] = '/var/log/keystone/token-flush.log'
+default['openstack']['identity']['token_flush_cron']['hour'] = '*'
+default['openstack']['identity']['token_flush_cron']['minute'] = '0'
+default['openstack']['identity']['token_flush_cron']['day'] = '*'
+default['openstack']['identity']['token_flush_cron']['weekday'] = '*'
+
 # platform defaults
 case platform_family
 when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this

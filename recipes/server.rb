@@ -188,3 +188,21 @@ execute 'keystone-manage db_sync' do
 
   only_if { node['openstack']['db']['identity']['migrate'] }
 end
+
+# Configure the flush tokens cronjob
+should_run_cron = node['openstack']['identity']['token_flush_cron']['enabled'] && node['openstack']['identity']['token']['backend'] == 'sql'
+log_file = node['openstack']['identity']['token_flush_cron']['log_file']
+
+cron 'keystone-manage-token-flush' do
+  minute node['openstack']['identity']['token_flush_cron']['minute']
+  hour node['openstack']['identity']['token_flush_cron']['hour']
+  day node['openstack']['identity']['token_flush_cron']['day']
+  weekday node['openstack']['identity']['token_flush_cron']['weekday']
+  action should_run_cron ? :create : :delete
+  user node['openstack']['identity']['user']
+  command %Q{
+    `which keystone-manage` token_flush > #{log_file} 2>&1 &&
+    echo keystone-manage token_flush ran at $(/bin/date) with exit code $? >> #{log_file}
+  }.gsub!(/\n/, '')
+end
+# TODO(luisg): We can remove the \n substitution in the cron command when https://tickets.opscode.com/browse/CHEF-5238 is fixed

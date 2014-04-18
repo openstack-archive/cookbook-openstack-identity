@@ -262,6 +262,22 @@ The following attributes are defined in attributes/default.rb of the common cook
 
 If the value of the 'bind_interface' attribute is non-nil, then the identity service will be bound to the first IP address on that interface.  If the value of the 'bind_interface' attribute is nil, then the identity service will be bound to the IP address specified in the host attribute.
 
+### Token flushing
+When managing tokens with an SQL backend the token database may grow unboundedly as new tokens are issued and expired
+tokens are not disposed of. Expired tokens may need to be kept around in order to allow for auditability.
+
+It is up to deployers to define when their tokens can be safely deleted. Keystone provides a tool to purge expired tokens,
+and the server recipe can create a cronjob to run that tool. By default the cronjob will be configured to run hourly.
+
+The flush tokens cronjob configuration parameters are listed below:
+
+* `openstack['identity']['token_flush_cron']['enabled']` - Boolean indicating whether the flush tokens cronjob is enabled. It is by default enabled if the token backend is 'sql'.
+* `openstack['identity']['token_flush_cron']['log_file']` - The log file for the flush tokens tool.
+* `openstack['identity']['token_flush_cron']['hour']` - The hour at which the flush tokens cronjob should run (values 0 - 23).
+* `openstack['identity']['token_flush_cron']['minute']` - The minute at which the flush tokens cronjob should run (values 0 - 59).
+* `openstack']['identity']['token_flush_cron']['day']` - The day of the month when the flush tokens cronjob should run (values 1 - 31).
+* `openstack['identity']['token_flush_cron']['weekday']` = The day of the week at which the flush tokens cronjob should run (values 0 - 6, where Sunday is 0).
+
 Testing
 =====
 

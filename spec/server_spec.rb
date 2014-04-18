@@ -68,6 +68,19 @@ describe 'openstack-identity::server' do
         'execute[Keystone: sleep]').to(:run)
     end
 
+    it 'has flush tokens cronjob running every day at 3:30am' do
+      expect(chef_run).to create_cron('keystone-manage-token-flush').with_command(/`which keystone-manage` token_flush/)
+      expect(chef_run).to create_cron('keystone-manage-token-flush').with_minute('0')
+      expect(chef_run).to create_cron('keystone-manage-token-flush').with_hour('*')
+      expect(chef_run).to create_cron('keystone-manage-token-flush').with_day('*')
+      expect(chef_run).to create_cron('keystone-manage-token-flush').with_weekday('*')
+    end
+
+    it 'deletes flush tokens cronjob when tokens backend is not sql' do
+      node.set['openstack']['identity']['token']['backend'] = 'notsql'
+      expect(chef_run).to delete_cron('keystone-manage-token-flush')
+    end
+
     describe '/etc/keystone' do
       let(:dir) { chef_run.directory('/etc/keystone') }
 
