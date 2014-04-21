@@ -16,6 +16,13 @@ log_file = /var/log/keystone/keystone.log
 public_endpoint = <%= @public_endpoint %>
 admin_endpoint = <%= @admin_endpoint %>
 
+# oslo.messaging properties
+control_exchange=<%= node["openstack"]["identity"]["control_exchange"] %>
+rpc_thread_pool_size=<%= node["openstack"]["identity"]["rpc_thread_pool_size"] %>
+rpc_conn_pool_size=<%= node["openstack"]["identity"]["rpc_conn_pool_size"] %>
+rpc_response_timeout=<%= node["openstack"]["identity"]["rpc_response_timeout"] %>
+rpc_backend=<%= node["openstack"]["identity"]["rpc_backend"] %>
+
 <% if @memcache_servers -%>
 [memcache]
 servers = <%= @memcache_servers %>

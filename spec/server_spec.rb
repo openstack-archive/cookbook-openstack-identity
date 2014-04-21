@@ -176,6 +176,16 @@ describe 'openstack-identity::server' do
         expect(resource).to notify('service[keystone]').to(:restart)
       end
 
+      it 'has rpc_backend set for rabbit' do
+        node.set['openstack']['mq']['service_type'] = 'rabbitmq'
+        expect(chef_run).to render_file(path).with_content('rpc_backend=rabbit')
+      end
+
+      it 'has rpc_backend set for qpid' do
+        node.set['openstack']['mq']['service_type'] = 'qpid'
+        expect(chef_run).to render_file(path).with_content('rpc_backend=qpid')
+      end
+
       describe '[DEFAULT] section' do
         it 'has admin token' do
           r = line_regexp('admin_token = bootstrap-token')
