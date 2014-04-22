@@ -1,278 +1,438 @@
 # encoding: UTF-8
-#
 
 require_relative 'spec_helper'
 
-describe Chef::Provider::Execute do
-  before do
-    @chef_run = ::ChefSpec::Runner.new ::SUSE_OPTS
-    @chef_run.converge 'openstack-identity::default'
-    @node = @chef_run.node
-    @node.set['openstack'] = {
-      'identity' => {
-        'catalog' => {
-          'backend' => 'sql'
-        }
-      }
-    }
-    @cookbook_collection = Chef::CookbookCollection.new([])
-    @events = Chef::EventDispatch::Dispatcher.new
-    @run_context = Chef::RunContext.new(@node, @cookbook_collection, @events)
+describe 'openstack-identity::default' do
+  describe 'ubuntu' do
+    let(:runner) { ChefSpec::Runner.new(UBUNTU_OPTS) }
+    let(:node) { runner.node }
+    let(:chef_run) { runner.converge(described_recipe) }
+    let(:events) { Chef::EventDispatch::Dispatcher.new }
+    let(:cookbook_collection) { Chef::CookbookCollection.new([]) }
+    let(:run_context) { Chef::RunContext.new(node, cookbook_collection, events) }
 
-    @tenant_resource = Chef::Resource::OpenstackIdentityRegister.new('tenant1', @run_context)
-    @tenant_resource.tenant_name 'tenant1'
-    @tenant_resource.tenant_description 'tenant1 Tenant'
+    describe 'tenant_create' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('tenant1',
+                                                          run_context)
+        r.tenant_name('tenant1')
+        r.tenant_description('tenant1 Tenant')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
 
-    @service_resource = Chef::Resource::OpenstackIdentityRegister.new('service1', @run_context)
-    @service_resource.service_type 'compute'
-    @service_resource.service_name 'service1'
-    @service_resource.service_description 'service1 Service'
+      context 'when tenant does not already exist' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+          provider.stub(:identity_command)
+            .with(resource, 'tenant-create',
+                  'name' => 'tenant1',
+                  'description' => 'tenant1 Tenant',
+                  'enabled' => true)
+            .and_return(true)
+        end
 
-    @endpoint_resource = Chef::Resource::OpenstackIdentityRegister.new('endpoint1', @run_context)
-    @endpoint_resource.endpoint_region 'Region One'
-    @endpoint_resource.service_type 'compute'
-    @endpoint_resource.endpoint_publicurl 'http://public'
-    @endpoint_resource.endpoint_internalurl 'http://internal'
-    @endpoint_resource.endpoint_adminurl 'http://admin'
+        it 'should create a tenant' do
+          provider.run_action(:create_tenant)
 
-    @role_resource = Chef::Resource::OpenstackIdentityRegister.new('role1', @run_context)
-    @role_resource.role_name 'role1'
+          expect(resource).to be_updated
+        end
+      end
 
-    @user_resource = Chef::Resource::OpenstackIdentityRegister.new('user1', @run_context)
-    @user_resource.user_name 'user1'
-    @user_resource.tenant_name 'tenant1'
-    @user_resource.user_pass 'password'
+      context 'when tenant does already exist' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+        end
 
-    @grant_resource = Chef::Resource::OpenstackIdentityRegister.new('grant1', @run_context)
-    @grant_resource.user_name 'user1'
-    @grant_resource.tenant_name 'tenant1'
-    @grant_resource.role_name 'role1'
+        it 'should not create a tenant' do
+          provider.run_action(:create_tenant)
 
-    @ec2_resource = Chef::Resource::OpenstackIdentityRegister.new('ec2', @run_context)
-    @ec2_resource.user_name 'user1'
-    @ec2_resource.tenant_name 'tenant1'
-    @ec2_resource.admin_tenant_name 'admintenant1'
-    @ec2_resource.admin_user 'adminuser1'
-    @ec2_resource.admin_pass 'password'
-    @ec2_resource.identity_endpoint 'http://admin'
-  end
+          expect(resource).to_not be_updated
+        end
+      end
+    end
 
-  it 'should create a tenant' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@tenant_resource, @run_context)
-    provider.stub(:identity_uuid).with(@tenant_resource, 'tenant', 'name', 'tenant1')
-    provider.stub(:identity_command).with(@tenant_resource,
-                                          'tenant-create',
-                                          'name' => 'tenant1',
-                                          'description' => 'tenant1 Tenant',
-                                          'enabled' => true)
-    provider.run_action(:create_tenant)
-    @tenant_resource.should be_updated
-  end
+    describe 'service_create' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('service1',
+                                                          run_context)
+        r.service_type('compute')
+        r.service_name('service1')
+        r.service_description('service1 Service')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
 
-  it 'should not create a new tenant if already exists' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@tenant_resource, @run_context)
-    provider.stub(:identity_uuid).with(@tenant_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.run_action(:create_tenant)
-    @tenant_resource.should_not be_updated
-  end
+      context 'catalog.backend is sql' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'sql'
+        end
 
-  it 'should create a service' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@service_resource, @run_context)
-    provider.stub(:identity_uuid).with(@service_resource, 'service', 'type', 'compute')
-    provider.stub(:identity_command).with(@service_resource,
-                                          'service-create',
-                                          'type' => 'compute',
-                                          'name' => 'service1',
-                                          'description' => 'service1 Service')
-    provider.run_action(:create_service)
-    @service_resource.should be_updated
-  end
+        context 'when service does not already exist' do
+          it 'should create a service' do
+            provider.stub(:identity_uuid)
+              .with(resource, 'service', 'type', 'compute')
+            provider.stub(:identity_command)
+              .with(resource, 'service-create',
+                    'type' => 'compute',
+                    'name' => 'service1',
+                    'description' => 'service1 Service')
+              .and_return(true)
+            provider.run_action(:create_service)
 
-  it 'should not create a service if already exists' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@service_resource, @run_context)
-    provider.stub(:identity_uuid).with(@service_resource, 'service', 'type', 'compute').and_return('1234567890ABCDEFGH')
-    provider.run_action(:create_service)
-    @service_resource.should_not be_updated
-  end
+            expect(resource).to be_updated
+          end
+        end
 
-  it 'should not create a service if using a templated backend' do
-    node = Chef::Node.new
-    node.set['openstack'] = {
-      'identity' => {
-        'catalog' => {
-          'backend' => 'templated'
-        }
-      }
-    }
-    cookbook_collection = Chef::CookbookCollection.new([])
-    events = Chef::EventDispatch::Dispatcher.new
-    run_context = Chef::RunContext.new(node, cookbook_collection, events)
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@service_resource, run_context)
-    provider.run_action(:create_service)
-    @service_resource.should_not be_updated
-  end
+        context 'when service does not already exist' do
+          it 'should not create a service' do
+            provider.stub(:identity_uuid)
+              .with(resource, 'service', 'type', 'compute')
+              .and_return('1234567890ABCDEFGH')
+            provider.run_action(:create_service)
 
-  it 'should create an endpoint' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@endpoint_resource, @run_context)
-    provider.stub(:identity_uuid).with(@endpoint_resource, 'service', 'type', 'compute').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_uuid).with(@endpoint_resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
-    provider.stub(:identity_command).with(@endpoint_resource,
-                                          'endpoint-create',
-                                          'region' => 'Region One',
-                                          'service_id' => '1234567890ABCDEFGH',
-                                          'publicurl' => 'http://public',
-                                          'internalurl' => 'http://internal',
-                                          'adminurl' => 'http://admin')
-    provider.run_action(:create_endpoint)
-    @endpoint_resource.should be_updated
-  end
+            expect(resource).to_not be_updated
+          end
+        end
+      end
 
-  it 'should not create a endpoint if already exists' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@endpoint_resource, @run_context)
-    provider.stub(:identity_uuid).with(@endpoint_resource, 'service', 'type', 'compute').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_uuid).with(@endpoint_resource, 'endpoint', 'service_id', '1234567890ABCDEFGH').and_return('0987654321HGFEDCBA')
-    provider.run_action(:create_endpoint)
-    @endpoint_resource.should_not be_updated
-  end
+      context 'catalog.backend is templated' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'templated'
+        end
 
-  it 'should not create an endpoint if using a templated backend' do
-    node = Chef::Node.new
-    node.set['openstack'] = {
-      'identity' => {
-        'catalog' => { 'backend' => 'templated' }
-      }
-    }
-    cookbook_collection = Chef::CookbookCollection.new([])
-    events = Chef::EventDispatch::Dispatcher.new
-    run_context = Chef::RunContext.new(node, cookbook_collection, events)
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@endpoint_resource, run_context)
-    provider.run_action(:create_endpoint)
-    @endpoint_resource.should_not be_updated
-  end
+        it 'should not create a service if using a templated backend' do
+          provider.run_action(:create_service)
+          expect(resource).to_not be_updated
+        end
+      end
+    end
 
-  it 'should create a role' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@role_resource, @run_context)
-    provider.stub(:identity_uuid).with(@role_resource, 'role', 'name', 'role1')
-    provider.stub(:identity_command).with(@role_resource, 'role-create',
-                                          'name' => 'role1')
-    provider.run_action(:create_role)
-    @role_resource.should be_updated
-  end
+    describe 'service_create' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('endpoint1',
+                                                          run_context)
+        r.endpoint_region('Region One')
+        r.service_type('compute')
+        r.endpoint_publicurl('http://public')
+        r.endpoint_internalurl('http://internal')
+        r.endpoint_adminurl('http://admin')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
 
-  it 'should not create a role if already exists' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@role_resource, @run_context)
-    provider.stub(:identity_uuid).with(@role_resource, 'role', 'name', 'role1').and_return('1234567890ABCDEFGH')
-    provider.run_action(:create_role)
-    @role_resource.should_not be_updated
-  end
+      context 'catalog.backend is sql' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'sql'
+        end
 
-  it 'should create a user' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@user_resource, @run_context)
-    provider.stub(:identity_uuid).with(@user_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_command).with(@user_resource, 'user-list',
-                                          'tenant-id' => '1234567890ABCDEFGH')
-    provider.stub(:identity_command).with(@user_resource, 'user-create',
-                                          'name' => 'user1',
-                                          'tenant-id' => '1234567890ABCDEFGH',
-                                          'pass' => 'password',
-                                          'enabled' => true)
-    provider.stub(:prettytable_to_array).and_return([])
-    provider.run_action(:create_user)
-    @user_resource.should be_updated
-  end
+        context 'when endpoint does not already exist' do
+          before do
+            provider.stub(:identity_uuid)
+              .with(resource, 'service', 'type', 'compute')
+              .and_return('1234567890ABCDEFGH')
+            provider.stub(:identity_uuid)
+              .with(resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
+            provider.stub(:identity_command)
+              .with(resource, 'endpoint-create',
+                    'region' => 'Region One',
+                    'service_id' => '1234567890ABCDEFGH',
+                    'publicurl' => 'http://public',
+                    'internalurl' => 'http://internal',
+                    'adminurl' => 'http://admin')
+          end
 
-  it 'should not create a user if already exists' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@user_resource, @run_context)
-    provider.stub(:identity_uuid).with(@user_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_command).with(@user_resource, 'user-list',
-                                          'tenant-id' => '1234567890ABCDEFGH')
-    provider.stub(:prettytable_to_array).and_return([{ 'name' => 'user1' }])
-    provider.stub(:identity_uuid).with(@user_resource, 'user', 'name',
-                                       'user1').and_return('HGFEDCBA0987654321')
-    provider.run_action(:create_user)
-    @user_resource.should_not be_updated
-  end
+          it 'should create an endpoint' do
+            provider.run_action(:create_endpoint)
+            expect(resource).to be_updated
+          end
+        end
 
-  it 'should grant a role' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@grant_resource, @run_context)
-    provider.stub(:identity_uuid).with(@grant_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_uuid).with(@grant_resource, 'user', 'name', 'user1').and_return('HGFEDCBA0987654321')
-    provider.stub(:identity_uuid).with(@grant_resource, 'role', 'name', 'role1').and_return('ABC1234567890DEF')
-    provider.stub(:identity_uuid).with(@grant_resource, 'user-role', 'name',
-                                       'role1',
-                                       'tenant-id' => '1234567890ABCDEFGH',
-                                       'user-id' => 'HGFEDCBA0987654321').and_return('ABCD1234567890EFGH')
-    provider.stub(:identity_command).with(@grant_resource, 'user-role-add',
-                                          'tenant-id' => '1234567890ABCDEFGH',
-                                          'role-id' => 'ABC1234567890DEF',
-                                          'user-id' => 'HGFEDCBA0987654321')
-    provider.run_action(:grant_role)
-    @grant_resource.should be_updated
-  end
+        context 'when endpoint does already exist' do
+          before do
+            provider.stub(:identity_uuid)
+              .with(resource, 'service', 'type', 'compute')
+              .and_return('1234567890ABCDEFGH')
+            provider.stub(:identity_uuid)
+              .with(resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
+              .and_return('0987654321HGFEDCBA')
+          end
 
-  it 'should not grant a role if already granted' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@grant_resource, @run_context)
-    provider.stub(:identity_uuid).with(@grant_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_uuid).with(@grant_resource, 'user', 'name', 'user1').and_return('HGFEDCBA0987654321')
-    provider.stub(:identity_uuid).with(@grant_resource, 'role', 'name', 'role1').and_return('ABC1234567890DEF')
-    provider.stub(:identity_uuid).with(@grant_resource, 'user-role', 'name',
-                                       'role1',
-                                       'tenant-id' => '1234567890ABCDEFGH',
-                                       'user-id' => 'HGFEDCBA0987654321').and_return('ABC1234567890DEF')
-    provider.stub(:identity_command).with(@grant_resource, 'user-role-add',
-                                          'tenant-id' => '1234567890ABCDEFGH',
-                                          'role-id' => 'ABC1234567890DEF',
-                                          'user-id' => 'HGFEDCBA0987654321')
-    provider.run_action(:grant_role)
-    @grant_resource.should_not be_updated
-  end
+          it 'should not create an endpoint' do
+            provider.run_action(:create_endpoint)
+            expect(resource).to_not be_updated
+          end
+        end
+      end
 
-  it 'should grant ec2 creds' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@ec2_resource, @run_context)
-    provider.stub(:identity_uuid).with(@ec2_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_uuid).with(@ec2_resource, 'user', 'name', 'user1',
-                                       'tenant-id' => '1234567890ABCDEFGH').and_return('HGFEDCBA0987654321')
-    provider.stub(:identity_uuid).with(@ec2_resource, 'ec2-credentials',
-                                       'tenant', 'tenant1',
-                                       { 'user-id' => 'HGFEDCBA0987654321' },
-                                       'access')
-    provider.stub(:identity_command).with(@ec2_resource,
-                                          'ec2-credentials-create',
-                                          'user-id' => 'HGFEDCBA0987654321',
-                                          'tenant-id' => '1234567890ABCDEFGH')
-    provider.stub(:prettytable_to_array).and_return([{ 'access' => 'access', 'secret' => 'secret' }])
-    provider.run_action(:create_ec2_credentials)
-    @ec2_resource.should be_updated
-  end
+      context 'catalog.backend is templated' do
+        before do
+          node.set['openstack']['identity']['catalog']['backend'] = 'templated'
+        end
 
-  it 'should grant ec2 creds if they already exist' do
-    provider = Chef::Provider::OpenstackIdentityRegister.new(@ec2_resource, @run_context)
-    provider.stub(:identity_uuid).with(@ec2_resource, 'tenant', 'name', 'tenant1').and_return('1234567890ABCDEFGH')
-    provider.stub(:identity_uuid).with(@ec2_resource, 'user', 'name', 'user1',
-                                       'tenant-id' => '1234567890ABCDEFGH').and_return('HGFEDCBA0987654321')
-    provider.stub(:identity_uuid).with(@ec2_resource, 'ec2-credentials',
-                                       'tenant', 'tenant1',
-                                       { 'user-id' => 'HGFEDCBA0987654321' },
-                                       'access').and_return('ABC1234567890DEF')
-    provider.run_action(:create_ec2_credentials)
-    @ec2_resource.should_not be_updated
-  end
+        it 'should not create an endpoint' do
+          provider.run_action(:create_endpoint)
+          expect(resource).to_not be_updated
+        end
+      end
+    end
 
-  describe '#identity_command' do
-    it 'should handle false values and long descriptions' do
-      provider = Chef::Provider::OpenstackIdentityRegister.new(
-        @user_resource, @run_context)
+    describe 'role create' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('role1', run_context)
+        r.role_name('role1')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
 
-      provider.stub(:shell_out).with(
-        ['keystone', 'user-create', '--enabled', 'false',
-         '--description', 'more than one word'],
-        env: { 'OS_SERVICE_ENDPOINT' => nil, 'OS_SERVICE_TOKEN' => nil }
-        ).and_return double('shell_out', exitstatus: 0, stdout: 'good')
+      context 'when role does not already exist' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'role', 'name', 'role1')
+          provider.stub(:identity_command)
+            .with(resource, 'role-create',
+                  'name' => 'role1')
+        end
 
-      provider.send(
-        :identity_command, @user_resource, 'user-create',
-        'enabled' => false, 'description' => 'more than one word'
-        ).should eq 'good'
+        it 'should create a role' do
+          provider.run_action(:create_role)
+          expect(resource).to be_updated
+        end
+      end
+
+      context 'when role already exist' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'role', 'name', 'role1')
+            .and_return('1234567890ABCDEFGH')
+        end
+
+        it 'should not create a role' do
+          provider.run_action(:create_role)
+          expect(resource).to_not be_updated
+        end
+      end
+    end
+
+    describe 'user create' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('user1', run_context)
+        r.user_name('user1')
+        r.tenant_name('tenant1')
+        r.user_pass('password')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
+
+      context 'when user does not already exist' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          provider.stub(:identity_command)
+            .with(resource, 'user-list',
+                  'tenant-id' => '1234567890ABCDEFGH')
+          provider.stub(:identity_command)
+            .with(resource, 'user-create',
+                  'name' => 'user1',
+                  'tenant-id' => '1234567890ABCDEFGH',
+                  'pass' => 'password',
+                  'enabled' => true)
+          provider.stub(:prettytable_to_array)
+            .and_return([])
+        end
+
+        it 'should create a user' do
+          provider.run_action(:create_user)
+          expect(resource).to be_updated
+        end
+      end
+
+      context 'when user already exist' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          provider.stub(:identity_command)
+            .with(resource, 'user-list',
+                  'tenant-id' => '1234567890ABCDEFGH')
+          provider.stub(:prettytable_to_array)
+            .and_return([{ 'name' => 'user1' }])
+          provider.stub(:identity_uuid)
+            .with(resource, 'user', 'name', 'user1')
+            .and_return('HGFEDCBA0987654321')
+        end
+
+        it 'should not create a user' do
+          provider.run_action(:create_user)
+          expect(resource).to_not be_updated
+        end
+      end
+
+      describe '#identity_command' do
+        it 'should handle false values and long descriptions' do
+          provider.stub(:shell_out)
+            .with(['keystone', 'user-create', '--enabled',
+                   'false', '--description', 'more than one word'],
+                  env: {
+                    'OS_SERVICE_ENDPOINT' => nil,
+                    'OS_SERVICE_TOKEN' => nil })
+            .and_return double('shell_out', exitstatus: 0, stdout: 'good')
+
+          expect(
+            provider.send(:identity_command, resource, 'user-create',
+                          'enabled' => false,
+                          'description' => 'more than one word')
+          ).to eq('good')
+        end
+      end
+    end
+
+    describe 'role grant' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('grant1', run_context)
+        r.user_name('user1')
+        r.tenant_name('tenant1')
+        r.role_name('role1')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
+
+      context 'when role has not already been granted' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          provider.stub(:identity_uuid)
+            .with(resource, 'user', 'name', 'user1')
+            .and_return('HGFEDCBA0987654321')
+          provider.stub(:identity_uuid)
+            .with(resource, 'role', 'name', 'role1')
+            .and_return('ABC1234567890DEF')
+          provider.stub(:identity_uuid)
+            .with(resource, 'user-role', 'name', 'role1',
+                  'tenant-id' => '1234567890ABCDEFGH',
+                  'user-id' => 'HGFEDCBA0987654321')
+            .and_return('ABCD1234567890EFGH')
+          provider.stub(:identity_command)
+            .with(resource, 'user-role-add',
+                  'tenant-id' => '1234567890ABCDEFGH',
+                  'role-id' => 'ABC1234567890DEF',
+                  'user-id' => 'HGFEDCBA0987654321')
+        end
+
+        it 'should grant a role' do
+          provider.run_action(:grant_role)
+          expect(resource).to be_updated
+        end
+      end
+
+      context 'when role has already been granted' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          provider.stub(:identity_uuid)
+            .with(resource, 'user', 'name', 'user1')
+            .and_return('HGFEDCBA0987654321')
+          provider.stub(:identity_uuid)
+            .with(resource, 'role', 'name', 'role1')
+            .and_return('ABC1234567890DEF')
+          provider.stub(:identity_uuid)
+            .with(resource, 'user-role', 'name', 'role1',
+                  'tenant-id' => '1234567890ABCDEFGH',
+                  'user-id' => 'HGFEDCBA0987654321')
+            .and_return('ABC1234567890DEF')
+          provider.stub(:identity_command)
+            .with(resource, 'user-role-add',
+                  'tenant-id' => '1234567890ABCDEFGH',
+                  'role-id' => 'ABC1234567890DEF',
+                  'user-id' => 'HGFEDCBA0987654321')
+        end
+
+        it 'should not grant a role' do
+          provider.run_action(:grant_role)
+          expect(resource).to_not be_updated
+        end
+      end
+    end
+
+    describe 'ec2_credentials create' do
+      let(:resource) do
+        r = Chef::Resource::OpenstackIdentityRegister.new('ec2', run_context)
+        r.user_name('user1')
+        r.tenant_name('tenant1')
+        r.admin_tenant_name('admintenant1')
+        r.admin_user('adminuser1')
+        r.admin_pass('password')
+        r.identity_endpoint('http://admin')
+        r
+      end
+      let(:provider) do
+        Chef::Provider::OpenstackIdentityRegister.new(resource, run_context)
+      end
+
+      context 'when ec2 creds have not already been created' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          provider.stub(:identity_uuid)
+            .with(resource, 'user', 'name', 'user1',
+                  'tenant-id' => '1234567890ABCDEFGH')
+            .and_return('HGFEDCBA0987654321')
+          provider.stub(:identity_uuid)
+            .with(resource, 'ec2-credentials', 'tenant', 'tenant1',
+                  { 'user-id' => 'HGFEDCBA0987654321' }, 'access')
+          provider.stub(:identity_command)
+            .with(resource, 'ec2-credentials-create',
+                  'user-id' => 'HGFEDCBA0987654321',
+                  'tenant-id' => '1234567890ABCDEFGH')
+          provider.stub(:prettytable_to_array)
+            .and_return([{ 'access' => 'access', 'secret' => 'secret' }])
+        end
+
+        it 'should grant ec2 creds' do
+          provider.run_action(:create_ec2_credentials)
+          expect(resource).to be_updated
+        end
+      end
+
+      context 'when ec2 creds have not already been created' do
+        before do
+          provider.stub(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          provider.stub(:identity_uuid)
+            .with(resource, 'user', 'name', 'user1',
+                  'tenant-id' => '1234567890ABCDEFGH')
+            .and_return('HGFEDCBA0987654321')
+          provider.stub(:identity_uuid)
+            .with(resource, 'ec2-credentials', 'tenant', 'tenant1',
+                  { 'user-id' => 'HGFEDCBA0987654321' }, 'access')
+            .and_return('ABC1234567890DEF')
+        end
+
+        it 'should grant ec2 creds if they already exist' do
+          provider.run_action(:create_ec2_credentials)
+          expect(resource).to_not be_updated
+        end
+      end
     end
   end
 end
