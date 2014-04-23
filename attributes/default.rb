@@ -43,6 +43,18 @@ default['openstack']['identity']['syslog']['use'] = false
 default['openstack']['identity']['syslog']['facility'] = 'LOG_LOCAL2'
 default['openstack']['identity']['syslog']['config_facility'] = 'local2'
 
+# RPC attributes
+default['openstack']['identity']['control_exchange'] = 'openstack'
+default['openstack']['identity']['rpc_thread_pool_size'] = 64
+default['openstack']['identity']['rpc_conn_pool_size'] = 30
+default['openstack']['identity']['rpc_response_timeout'] = 60
+case node['openstack']['mq']['service_type']
+when 'rabbitmq'
+  default['openstack']['identity']['rpc_backend'] = 'rabbit'
+when 'qpid'
+  default['openstack']['identity']['rpc_backend'] = 'qpid'
+end
+
 default['openstack']['identity']['admin_user'] = 'admin'
 default['openstack']['identity']['admin_tenant_name'] = 'admin'
 

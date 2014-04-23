@@ -251,6 +251,11 @@ TODO: Add DB2 support on other platforms
 * `openstack['identity']['platform']['db2_python_packages']` - Array of DB2 python packages, only available on redhat platform
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
 * `openstack['identity']['catalog']['backend']` - Storage mechanism for the keystone service catalog
+* `openstack['identity']["control_exchange"]` - The AMQP exchange to connect to if using RabbitMQ or Qpid, defaults to openstack
+* `openstack['identity']["rpc_backend"]` - The messaging module to use
+* `openstack['identity']["rpc_thread_pool_size"]` - Size of RPC thread pool
+* `openstack['identity']["rpc_conn_pool_size"]` - Size of RPC connection pool
+* `openstack['identity']["rpc_response_timeout"]` - Seconds to wait for a response from call or multicall
 
 The following attributes are defined in attributes/default.rb of the common cookbook, but are documented here due to their relevance:
 
