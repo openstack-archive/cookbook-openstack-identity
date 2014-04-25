@@ -75,7 +75,7 @@ default['openstack']['identity']['signing']['basedir'] = '/etc/keystone/ssl'
 default['openstack']['identity']['signing']['certfile'] = '/etc/keystone/ssl/certs/signing_cert.pem'
 default['openstack']['identity']['signing']['keyfile'] = '/etc/keystone/ssl/private/signing_key.pem'
 default['openstack']['identity']['signing']['ca_certs'] = '/etc/keystone/ssl/certs/ca.pem'
-default['openstack']['identity']['signing']['key_size'] = '1024'
+default['openstack']['identity']['signing']['key_size'] = '2048'
 default['openstack']['identity']['signing']['valid_days'] = '3650'
 default['openstack']['identity']['signing']['ca_password'] = nil
 

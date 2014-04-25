@@ -98,13 +98,13 @@ describe 'openstack-identity::server' do
       let(:ssl_dir) { '/etc/keystone/ssl' }
 
       describe 'without pki' do
+        before { node.set['openstack']['auth']['strategy'] = 'uuid' }
         it 'does not create' do
           expect(chef_run).not_to create_directory(ssl_dir)
         end
       end
 
       describe 'with pki' do
-        before { node.set['openstack']['auth']['strategy'] = 'pki' }
         let(:dir_resource) { chef_run.directory(ssl_dir) }
 
         it 'creates' do
@@ -135,6 +135,7 @@ describe 'openstack-identity::server' do
       let(:cmd) { 'keystone-manage pki_setup' }
 
       describe 'without pki' do
+        before { node.set['openstack']['auth']['strategy'] = 'uuid' }
         it 'does not execute' do
           expect(chef_run).to_not run_execute(cmd).with(
             user: 'keystone',
@@ -144,8 +145,6 @@ describe 'openstack-identity::server' do
       end
 
       describe 'with pki' do
-        before { node.set['openstack']['auth']['strategy'] = 'pki' }
-
         it 'executes' do
           ::FileTest.should_receive(:exists?)
             .with('/etc/keystone/ssl/private/signing_key.pem')
@@ -400,15 +399,13 @@ describe 'openstack-identity::server' do
           certfile: '/etc/keystone/ssl/certs/signing_cert.pem',
           keyfile: '/etc/keystone/ssl/private/signing_key.pem',
           ca_certs: '/etc/keystone/ssl/certs/ca.pem',
-          key_size: '1024',
+          key_size: '2048',
           valid_days: '3650',
           ca_password: nil
         }
 
         describe 'with pki' do
           it 'configures cert options' do
-            node.set['openstack']['auth']['strategy'] = 'pki'
-
             opts.each do |key, val|
               r = line_regexp("#{key} = #{val}")
               expect(chef_run).to render_file(path).with_content(r)
@@ -417,6 +414,7 @@ describe 'openstack-identity::server' do
         end
 
         describe 'without pki' do
+          before { node.set['openstack']['auth']['strategy'] = 'uuid' }
           it 'does not configure cert options' do
             opts.each do |key, val|
               expect(chef_run).not_to render_file(path).with_content(
