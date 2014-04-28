@@ -35,6 +35,9 @@ default['credentials']['EC2']['admin']['secret'] = ''
 default['openstack']['identity']['verbose'] = 'False'
 default['openstack']['identity']['debug'] = 'False'
 
+# Specify a location to retrieve keystone-paste.ini from
+default['openstack']['identity']['pastefile_url'] = nil
+
 default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'
 
