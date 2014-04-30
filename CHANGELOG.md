@@ -1,6 +1,9 @@
 # CHANGELOG for cookbook-openstack-identity
 
 This file is used to list changes made in each version of cookbook-openstack-identity.
+## 9.1.1
+* Fix package action to allow updates
+
 ## 9.1.0
 * Add token flushing cronjob
 
