@@ -94,30 +94,185 @@ describe 'openstack-identity::server' do
       end
     end
 
-    describe '/etc/keystone/ssl' do
+    describe 'ssl directories' do
       let(:ssl_dir) { '/etc/keystone/ssl' }
+      let(:certs_dir) { "#{ssl_dir}/certs" }
+      let(:private_dir) { "#{ssl_dir}/private" }
 
       describe 'without pki' do
         before { node.set['openstack']['auth']['strategy'] = 'uuid' }
-        it 'does not create' do
+
+        it 'does not create /etc/keystone/ssl' do
           expect(chef_run).not_to create_directory(ssl_dir)
+        end
+
+        it 'does not create /etc/keystone/ssl/certs' do
+          expect(chef_run).not_to create_directory(certs_dir)
+        end
+
+        it 'does not create /etc/keystone/ssl/private' do
+          expect(chef_run).not_to create_directory(private_dir)
         end
       end
 
       describe 'with pki' do
-        let(:dir_resource) { chef_run.directory(ssl_dir) }
+        describe '/etc/keystone/ssl' do
+          let(:dir_resource) { chef_run.directory(ssl_dir) }
 
-        it 'creates' do
-          expect(chef_run).to create_directory(ssl_dir)
+          it 'creates /etc/keystone/ssl' do
+            expect(chef_run).to create_directory(ssl_dir)
+          end
+
+          it 'has proper owner' do
+            expect(dir_resource.owner).to eq('keystone')
+            expect(dir_resource.group).to eq('keystone')
+          end
+
+          it 'has proper modes' do
+            expect(sprintf('%o', dir_resource.mode)).to eq('700')
+          end
         end
 
-        it 'has proper owner' do
-          expect(dir_resource.owner).to eq('keystone')
-          expect(dir_resource.group).to eq('keystone')
+        describe '/etc/keystone/ssl/certs' do
+          let(:dir_resource) { chef_run.directory(certs_dir) }
+
+          it 'creates /etc/keystone/ssl/certs' do
+            expect(chef_run).to create_directory(certs_dir)
+          end
+
+          it 'has proper owner' do
+            expect(dir_resource.owner).to eq('keystone')
+            expect(dir_resource.group).to eq('keystone')
+          end
+
+          it 'has proper modes' do
+            expect(sprintf('%o', dir_resource.mode)).to eq('755')
+          end
         end
 
-        it 'has proper modes' do
-          expect(sprintf('%o', dir_resource.mode)).to eq('700')
+        describe '/etc/keystone/ssl/private' do
+          let(:dir_resource) { chef_run.directory(private_dir) }
+
+          it 'creates /etc/keystone/ssl/private' do
+            expect(chef_run).to create_directory(private_dir)
+          end
+
+          it 'has proper owner' do
+            expect(dir_resource.owner).to eq('keystone')
+            expect(dir_resource.group).to eq('keystone')
+          end
+
+          it 'has proper modes' do
+            expect(sprintf('%o', dir_resource.mode)).to eq('750')
+          end
+        end
+      end
+    end
+
+    describe 'ssl files' do
+      describe 'with pki' do
+        describe 'with {certfile,keyfile,ca_certs}_url attributes set' do
+          before do
+            node.set['openstack']['identity']['signing']['certfile_url'] = 'http://www.test.com/signing_cert.pem'
+            node.set['openstack']['identity']['signing']['keyfile_url']  = 'http://www.test.com/signing_key.pem'
+            node.set['openstack']['identity']['signing']['ca_certs_url'] = 'http://www.test.com/ca.pem'
+          end
+
+          describe 'cert file' do
+            let(:cert_file) { node['openstack']['identity']['signing']['certfile'] }
+            let(:file_resource) { chef_run.remote_file(cert_file) }
+
+            it 'creates files' do
+              expect(chef_run).to create_remote_file(cert_file)
+            end
+
+            it 'has proper owner' do
+              expect(file_resource.owner).to eq('keystone')
+              expect(file_resource.group).to eq('keystone')
+            end
+
+            it 'has proper modes' do
+              expect(sprintf('%o', file_resource.mode)).to eq('640')
+            end
+
+            it 'notifies keystone restart' do
+              expect(file_resource).to notify('service[keystone]').to(:restart)
+            end
+          end
+
+          describe 'key file' do
+            let(:key_file) { node['openstack']['identity']['signing']['keyfile'] }
+            let(:file_resource) { chef_run.remote_file(key_file) }
+
+            it 'creates file' do
+              expect(chef_run).to create_remote_file(key_file)
+            end
+
+            it 'has proper owner' do
+              expect(file_resource.owner).to eq('keystone')
+              expect(file_resource.group).to eq('keystone')
+            end
+
+            it 'has proper modes' do
+              expect(sprintf('%o', file_resource.mode)).to eq('640')
+            end
+
+            it 'notifies keystone restart' do
+              expect(file_resource).to notify('service[keystone]').to(:restart)
+            end
+          end
+
+          describe 'ca_certs' do
+            let(:ca_certs) { node['openstack']['identity']['signing']['ca_certs'] }
+            let(:file_resource) { chef_run.remote_file(ca_certs) }
+
+            it 'creates file' do
+              expect(chef_run).to create_remote_file(ca_certs)
+            end
+
+            it 'has proper owner' do
+              expect(file_resource.owner).to eq('keystone')
+              expect(file_resource.group).to eq('keystone')
+            end
+
+            it 'has proper modes' do
+              expect(sprintf('%o', file_resource.mode)).to eq('640')
+            end
+
+            it 'notifies keystone restart' do
+              expect(file_resource).to notify('service[keystone]').to(:restart)
+            end
+          end
+        end
+
+        describe 'without {certfile,keyfile,ca_certs}_url attributes set' do
+          it 'does not create cert file' do
+            expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['certfile'])
+          end
+
+          it 'does not create key file' do
+            expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['keyfile'])
+          end
+
+          it 'does not create ca_certs file' do
+            expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['ca_certs'])
+          end
+        end
+      end
+
+      describe 'without pki' do
+        before { node.set['openstack']['auth']['strategy'] = 'uuid' }
+
+        it 'does not create cert file' do
+          expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['certfile'])
+        end
+
+        it 'does not create key file' do
+          expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['keyfile'])
+        end
+
+        it 'does not create ca_certs file' do
+          expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['ca_certs'])
         end
       end
     end
@@ -145,15 +300,32 @@ describe 'openstack-identity::server' do
       end
 
       describe 'with pki' do
-        it 'executes' do
-          ::FileTest.should_receive(:exists?)
-            .with('/etc/keystone/ssl/private/signing_key.pem')
-            .and_return(false)
+        describe 'without {certfile,keyfile,ca_certs}_url attributes set' do
+          it 'executes' do
+            ::FileTest.should_receive(:exists?)
+              .with('/etc/keystone/ssl/private/signing_key.pem')
+              .and_return(false)
 
-          expect(chef_run).to run_execute(cmd).with(
-            user: 'keystone',
-            group: 'keystone'
-          )
+            expect(chef_run).to run_execute(cmd).with(
+              user: 'keystone',
+              group: 'keystone'
+            )
+          end
+        end
+
+        describe 'with {certfile,keyfile,ca_certs}_url attributes set' do
+          before do
+            node.set['openstack']['identity']['signing']['certfile_url'] = 'http://www.test.com/signing_cert.pem'
+            node.set['openstack']['identity']['signing']['keyfile_url']  = 'http://www.test.com/signing_key.pem'
+            node.set['openstack']['identity']['signing']['ca_certs_url'] = 'http://www.test.com/ca.pem'
+          end
+
+          it 'does not execute' do
+            expect(chef_run).to_not run_execute(cmd).with(
+              user: 'keystone',
+              group: 'keystone'
+            )
+          end
         end
 
         it 'does not execute when dir exists' do

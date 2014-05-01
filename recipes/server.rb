@@ -76,25 +76,70 @@ directory '/etc/keystone' do
   mode  00700
 end
 
-directory node['openstack']['identity']['signing']['basedir'] do
-  owner node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
-  mode  00700
-
-  only_if { node['openstack']['auth']['strategy'] == 'pki' }
-end
-
 file '/var/lib/keystone/keystone.db' do
   action :delete
   not_if { node['openstack']['db']['identity']['service_type'] == 'sqlite' }
 end
 
-execute 'keystone-manage pki_setup' do
-  user node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
+if node['openstack']['auth']['strategy'] == 'pki'
+  certfile_url = node['openstack']['identity']['signing']['certfile_url']
+  keyfile_url = node['openstack']['identity']['signing']['keyfile_url']
+  ca_certs_url = node['openstack']['identity']['signing']['ca_certs_url']
+  signing_basedir = node['openstack']['identity']['signing']['basedir']
 
-  only_if { node['openstack']['auth']['strategy'] == 'pki' }
-  not_if { ::FileTest.exists? node['openstack']['identity']['signing']['keyfile'] }
+  directory signing_basedir do
+    owner node['openstack']['identity']['user']
+    group node['openstack']['identity']['group']
+    mode  00700
+  end
+
+  directory "#{signing_basedir}/certs" do
+    owner node['openstack']['identity']['user']
+    group node['openstack']['identity']['group']
+    mode  00755
+  end
+
+  directory "#{signing_basedir}/private" do
+    owner node['openstack']['identity']['user']
+    group node['openstack']['identity']['group']
+    mode  00750
+  end
+
+  if certfile_url.nil? || keyfile_url.nil? || ca_certs_url.nil?
+    execute 'keystone-manage pki_setup' do
+      user  node['openstack']['identity']['user']
+      group node['openstack']['identity']['group']
+
+      not_if { ::FileTest.exists? node['openstack']['identity']['signing']['keyfile'] }
+    end
+  else
+    remote_file node['openstack']['identity']['signing']['certfile'] do
+      source certfile_url
+      owner  node['openstack']['identity']['user']
+      group  node['openstack']['identity']['group']
+      mode   00640
+
+      notifies :restart, 'service[keystone]', :delayed
+    end
+
+    remote_file node['openstack']['identity']['signing']['keyfile'] do
+      source keyfile_url
+      owner  node['openstack']['identity']['user']
+      group  node['openstack']['identity']['group']
+      mode   00640
+
+      notifies :restart, 'service[keystone]', :delayed
+    end
+
+    remote_file node['openstack']['identity']['signing']['ca_certs'] do
+      source ca_certs_url
+      owner  node['openstack']['identity']['user']
+      group  node['openstack']['identity']['group']
+      mode   00640
+
+      notifies :restart, 'service[keystone]', :delayed
+    end
+  end
 end
 
 bind_endpoint = endpoint 'identity-bind'

@@ -72,9 +72,12 @@ default['openstack']['identity']['users'] = {
 # PKI signing. Corresponds to the [signing] section of keystone.conf
 # Note this section is only written if node['openstack']['auth']['strategy'] == 'pki'
 default['openstack']['identity']['signing']['basedir'] = '/etc/keystone/ssl'
-default['openstack']['identity']['signing']['certfile'] = '/etc/keystone/ssl/certs/signing_cert.pem'
-default['openstack']['identity']['signing']['keyfile'] = '/etc/keystone/ssl/private/signing_key.pem'
-default['openstack']['identity']['signing']['ca_certs'] = '/etc/keystone/ssl/certs/ca.pem'
+default['openstack']['identity']['signing']['certfile'] = "#{node['openstack']['identity']['signing']['basedir']}/certs/signing_cert.pem"
+default['openstack']['identity']['signing']['keyfile'] = "#{node['openstack']['identity']['signing']['basedir']}/private/signing_key.pem"
+default['openstack']['identity']['signing']['ca_certs'] = "#{node['openstack']['identity']['signing']['basedir']}/certs/ca.pem"
+default['openstack']['identity']['signing']['certfile_url'] = nil
+default['openstack']['identity']['signing']['keyfile_url'] = nil
+default['openstack']['identity']['signing']['ca_certs_url'] = nil
 default['openstack']['identity']['signing']['key_size'] = '2048'
 default['openstack']['identity']['signing']['valid_days'] = '3650'
 default['openstack']['identity']['signing']['ca_password'] = nil
