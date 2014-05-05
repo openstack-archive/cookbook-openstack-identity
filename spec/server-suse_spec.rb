@@ -16,20 +16,20 @@ describe 'openstack-identity::server' do
       expect { chef_run }.to_not raise_error
     end
 
-    it 'installs mysql python packages' do
-      expect(chef_run).to install_package('python-mysql')
+    it 'upgrades mysql python packages' do
+      expect(chef_run).to upgrade_package('python-mysql')
     end
 
-    it 'installs postgresql python packages if explicitly told' do
+    it 'upgrades postgresql python packages if explicitly told' do
       node.set['openstack']['db']['identity']['service_type'] = 'postgresql'
-      expect(chef_run).to install_package('python-psycopg2')
+      expect(chef_run).to upgrade_package('python-psycopg2')
     end
 
-    it 'installs memcache python packages' do
-      expect(chef_run).to install_package('python-python-memcached')
+    it 'upgrades memcache python packages' do
+      expect(chef_run).to upgrade_package('python-python-memcached')
     end
 
-    it 'installs keystone packages' do
+    it 'upgrades keystone packages' do
       expect(chef_run).to upgrade_package('openstack-keystone')
     end
 

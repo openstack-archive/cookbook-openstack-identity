@@ -36,21 +36,22 @@ db_type = node['openstack']['db']['identity']['service_type']
 unless db_type == 'sqlite'
   platform_options["#{db_type}_python_packages"].each do |pkg|
     package pkg do
-      action :install
+      options platform_options['package_options']
+      action :upgrade
     end
   end
 end
 
 platform_options['memcache_python_packages'].each do |pkg|
   package pkg do
-    action :install
+    options platform_options['package_options']
+    action :upgrade
   end
 end
 
 platform_options['keystone_packages'].each do |pkg|
   package pkg do
     options platform_options['package_options']
-
     action :upgrade
   end
 end
