@@ -247,6 +247,7 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['admin_token']` - Admin token for bootstraping keystone server
 * `openstack['identity']['roles']` - Array of roles to create in the keystone server
 * `openstack['identity']['users']` - Array of users to create in the keystone server
+* `openstack['identity']['pastefile_url']` - Specify the URL for a keystone-paste.ini file that will override the default packaged file
 TODO: Add DB2 support on other platforms
 * `openstack['identity']['platform']['db2_python_packages']` - Array of DB2 python packages, only available on redhat platform
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
