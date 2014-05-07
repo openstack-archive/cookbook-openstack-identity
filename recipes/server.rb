@@ -173,6 +173,18 @@ public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 ae = identity_admin_endpoint
 admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
 
+# If a keystone-paste.ini is specified use it
+if node['openstack']['identity']['pastefile_url']
+  remote_file '/etc/keystone/keystone-paste.ini' do
+    source node['openstack']['identity']['pastefile_url']
+    owner node['openstack']['identity']['user']
+    group node['openstack']['identity']['group']
+    mode 00644
+
+    notifies :restart, 'service[keystone]', :delayed
+  end
+end
+
 template '/etc/keystone/keystone.conf' do
   source 'keystone.conf.erb'
   owner node['openstack']['identity']['user']
@@ -191,19 +203,7 @@ template '/etc/keystone/keystone.conf' do
     token_expiration: node['openstack']['identity']['token']['expiration']
   )
 
-  notifies :restart, 'service[keystone]', :delayed
-end
-
-# If a keystone-paste.ini is specified use it
-if node['openstack']['identity']['pastefile_url']
-  remote_file '/etc/keystone/keystone-paste.ini' do
-    source node['openstack']['identity']['pastefile_url']
-    owner node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
-    mode 00644
-
-    notifies :restart, 'service[keystone]', :immediately
-  end
+  notifies :restart, 'service[keystone]', :immediately
 end
 
 # populate the templated catlog, if you're using the templated catalog backend
