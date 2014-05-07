@@ -172,6 +172,55 @@ describe 'openstack-identity::default' do
             expect(resource).to_not be_updated
           end
         end
+
+        context '#identity_uuid, when service id for Region One already exist' do
+          before do
+            output = ' | 000d9c447d124754a197fc612f9d63d7 | Region One | http://public | http://internal |  http://admin | f9511a66e0484f3dbd1584065e8bab1c '
+            output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region One', 'publicurl' => 'http://public', 'internalurl' => 'http://internal', 'adminurl' => 'http://admin', 'service_id' => 'f9511a66e0484f3dbd1584065e8bab1c' }]
+            provider.stub(:identity_command)
+                            .with(resource, 'endpoint-list', {})
+                            .and_return(output)
+            provider.stub(:prettytable_to_array)
+                            .with(output)
+                            .and_return(output_array)
+          end
+
+          it 'endpoint uuid should be returned' do
+            provider.send(:identity_uuid, resource, 'endpoint', 'service_id', 'f9511a66e0484f3dbd1584065e8bab1c').should eq('000d9c447d124754a197fc612f9d63d7')
+          end
+        end
+
+        context '#identity_uuid, when service id for Region Two does not exist' do
+          before do
+            output = ' | 000d9c447d124754a197fc612f9d63d7 | Region Two | http://public | http://internal |  http://admin | f9511a66e0484f3dbd1584065e8bab1c '
+            output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'publicurl' => 'http://public', 'internalurl' => 'http://internal', 'adminurl' => 'http://admin', 'service_id' => 'f9511a66e0484f3dbd1584065e8bab1c' }]
+            provider.stub(:identity_command)
+              .with(resource, 'endpoint-list', {})
+              .and_return(output)
+            provider.stub(:prettytable_to_array)
+              .with(output)
+              .and_return(output_array)
+          end
+
+          it 'no endpoint uuid should be returned' do
+            provider.send(:identity_uuid, resource, 'endpoint', 'service_id', 'f9511a66e0484f3dbd1584065e8bab1c').should eq(nil)
+          end
+        end
+
+        context '#search_uuid' do
+          it 'required_hash only has key id' do
+            output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'publicurl' => 'http://public' }]
+            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7').should eq('000d9c447d124754a197fc612f9d63d7')
+            provider.send(:search_uuid, output_array, 'id' , 'id' => 'abc').should eq(nil)
+          end
+
+          it 'required_hash has key id and region' do
+            output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'publicurl' => 'http://public' }]
+            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two').should eq('000d9c447d124754a197fc612f9d63d7')
+            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region One').should eq(nil)
+            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'key' => 'value').should eq(nil)
+          end
+        end
       end
 
       context 'catalog.backend is templated' do

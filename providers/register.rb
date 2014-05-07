@@ -61,16 +61,25 @@ end
 private
 
 def identity_uuid(resource, type, key, value, args = {}, uuid_field = 'id')  # rubocop: disable ParameterLists
+  rc = nil
   begin
     output = identity_command resource, "#{type}-list", args
     output = prettytable_to_array(output)
-    output.each do |obj|
-      return obj[uuid_field] if obj.key?(uuid_field) && obj[key] == value
-    end
+    rc = (type == 'endpoint') ? (search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region)) : (search_uuid(output, uuid_field, key => value))
   rescue RuntimeError => e
     raise "Could not lookup uuid for #{type}:#{key}=>#{value}. Error was #{e.message}"
   end
-  nil
+  rc
+end
+
+private
+
+def search_uuid(output, uuid_field, required_hash = {})
+  rc = nil
+  output.each do |obj|
+    rc = obj[uuid_field] if obj.key?(uuid_field) && required_hash.values - obj.values_at(*required_hash.keys) == []
+  end
+  rc
 end
 
 action :create_service do
