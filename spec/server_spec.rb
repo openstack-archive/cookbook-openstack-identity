@@ -356,6 +356,14 @@ describe 'openstack-identity::server' do
         end
       end
 
+      it 'templates misc_keystone array correctly' do
+        node.set['openstack']['identity']['misc_keystone'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
+        expect(chef_run).to render_file(path).with_content(
+          /^MISC1=OPTION1$/)
+        expect(chef_run).to render_file(path).with_content(
+          /^MISC2=OPTION2$/)
+      end
+
       it 'notifies keystone restart' do
         expect(resource).to notify('service[keystone]').to(:restart)
       end

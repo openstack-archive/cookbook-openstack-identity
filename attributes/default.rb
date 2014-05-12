@@ -173,6 +173,11 @@ default['openstack']['identity']['token_flush_cron']['minute'] = '0'
 default['openstack']['identity']['token_flush_cron']['day'] = '*'
 default['openstack']['identity']['token_flush_cron']['weekday'] = '*'
 
+# Misc option support
+# Allow additional strings to be added to keystone.conf
+# For example:  ['# Comment', 'key=value']
+default['openstack']['identity']['misc_keystone'] = []
+
 # platform defaults
 case platform_family
 when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this

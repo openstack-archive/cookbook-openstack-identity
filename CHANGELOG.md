@@ -1,6 +1,8 @@
 # CHANGELOG for cookbook-openstack-identity
-
 This file is used to list changes made in each version of cookbook-openstack-identity.
+## 9.2.0
+* Add support for miscellaneous options (like in Compute)
+
 ## 9.1.1
 * Fix package action to allow updates
 

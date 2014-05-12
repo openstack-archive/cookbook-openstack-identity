@@ -23,6 +23,13 @@ rpc_conn_pool_size=<%= node["openstack"]["identity"]["rpc_conn_pool_size"] %>
 rpc_response_timeout=<%= node["openstack"]["identity"]["rpc_response_timeout"] %>
 rpc_backend=<%= node["openstack"]["identity"]["rpc_backend"] %>
 
+# Misc options
+<% if node["openstack"]["identity"]["misc_keystone"] %>
+<% node["openstack"]["identity"]["misc_keystone"].each do |m| %>
+<%= m %>
+<% end %>
+<% end %>
+
 <% if @memcache_servers -%>
 [memcache]
 servers = <%= @memcache_servers %>

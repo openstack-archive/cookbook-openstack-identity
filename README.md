@@ -65,6 +65,7 @@ Register users, tenants, roles, services and endpoints with Keystone
 - api_ver: API Version for Keystone server
  - Accepted values are [ "/v2.0" ]
 - auth_token: Auth Token for communication with Keystone server
+- misc_keystone: Array of strings to be added to the keystone.conf file
 
 ### :create_tenant Specific Attributes
 
@@ -257,6 +258,7 @@ TODO: Add DB2 support on other platforms
 * `openstack['identity']["rpc_thread_pool_size"]` - Size of RPC thread pool
 * `openstack['identity']["rpc_conn_pool_size"]` - Size of RPC connection pool
 * `openstack['identity']["rpc_response_timeout"]` - Seconds to wait for a response from call or multicall
+* `openstack['identity']["misc_keystone"]` - Array of strings to be added to keystone.conf
 
 The following attributes are defined in attributes/default.rb of the common cookbook, but are documented here due to their relevance:
 
