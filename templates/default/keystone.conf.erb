@@ -172,6 +172,9 @@ group_allow_delete = <%= @ldap["group_allow_delete"] %>
 [identity]
 driver = keystone.identity.backends.<%= node["openstack"]["identity"]["identity"]["backend"] %>.Identity
 
+[assignment]
+driver = keystone.assignment.backends.<%= node["openstack"]["identity"]["assignment"]["backend"] %>.Assignment
+
 [catalog]
 <% if node["openstack"]["identity"]["catalog"]["backend"] == "templated" -%>
 # templated driver uses different class name :(

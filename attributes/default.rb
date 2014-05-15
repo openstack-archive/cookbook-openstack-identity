@@ -87,6 +87,7 @@ default['openstack']['identity']['signing']['ca_password'] = nil
 
 # These switches set the various drivers for the different Keystone components
 default['openstack']['identity']['identity']['backend'] = 'sql'
+default['openstack']['identity']['assignment']['backend'] = 'sql'
 default['openstack']['identity']['token']['backend'] = 'sql'
 default['openstack']['identity']['catalog']['backend'] = 'sql'
 default['openstack']['identity']['policy']['backend'] = 'sql'

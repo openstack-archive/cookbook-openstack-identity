@@ -532,6 +532,13 @@ describe 'openstack-identity::server' do
         end
       end
 
+      describe '[assignment] section' do
+        it 'configures driver' do
+          r = line_regexp('driver = keystone.assignment.backends.sql.Assignment')
+          expect(chef_run).to render_file(path).with_content(r)
+        end
+      end
+
       describe '[catalog] section' do
         # use let() to access Helpers#line_regexp method
         let(:templated) do
