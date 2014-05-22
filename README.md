@@ -254,11 +254,26 @@ TODO: Add DB2 support on other platforms
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
 * `openstack['identity']['catalog']['backend']` - Storage mechanism for the keystone service catalog
 * `openstack['identity']["control_exchange"]` - The AMQP exchange to connect to if using RabbitMQ or Qpid, defaults to openstack
-* `openstack['identity']["rpc_backend"]` - The messaging module to use
-* `openstack['identity']["rpc_thread_pool_size"]` - Size of RPC thread pool
-* `openstack['identity']["rpc_conn_pool_size"]` - Size of RPC connection pool
-* `openstack['identity']["rpc_response_timeout"]` - Seconds to wait for a response from call or multicall
-* `openstack['identity']["misc_keystone"]` - Array of strings to be added to keystone.conf
+* `openstack['identity']['rpc_backend']` - The messaging module to use
+* `openstack['identity']['rpc_thread_pool_size']` - Size of RPC thread pool
+* `openstack['identity']['rpc_conn_pool_size']` - Size of RPC connection pool
+* `openstack['identity']['rpc_response_timeout']` - Seconds to wait for a response from call or multicall
+* `openstack['identity']['ldap']['url']` - LDAP host URL (default: 'ldap://localhost')
+* `openstack['identity']['ldap']['user']` - LDAP bind DN (default: 'dc=Manager,dc=example,dc=com')
+* `openstack['identity']['ldap']['password']` - LDAP bind password (default: nil)
+* `openstack['identity']['ldap']['use_tls']` - Use TLS for LDAP (default: false)
+* `openstack['identity']['ldap']['tls_cacertfile']` - Path to CA cert file (default: nil)
+* `openstack['identity']['ldap']['tls_cacertdir']` - Path to CA cert directory (default: nil)
+* `openstack['identity']['ldap']['tls_req_cert']` - CA cert check ('demand', 'allow' or 'never', default: 'demand')
+* `openstack['identity']['misc_keystone']` - **Array of strings to be added to keystone.conf**
+
+Most `openstack['identity']['ldap']` attributes map directly to the corresponding config options in keystone.conf's `[ldap]` backend.  They are primarily used when configuring `openstack['identity']['identity']['backend']` and/or `openstack["identity"]["assignment"]["backend"]` as `ldap` (both default to `sql`).
+
+The `openstack['identity']['ldap']['use_tls']` option should not be used in conjunction with an `ldaps://` url.  When the latter is used (and `openstack['identity']['ldap']['use_tls'] = false`), the certificate path and validation will instead be subject to the OS's LDAP config.
+
+If `openstack['identity']['ldap']['tls_cacertfile']` is set, `openstack['identity']['ldap']['tls_cacertdir']` will be ignored.  Set `openstack['identity']['ldap']['tls_cacertfile']` to `nil` if `openstack['identity']['ldap']['tls_cacertdir']` is desired.
+Values of `openstack['identity']['ldap']['tls_req_cert']` correspond to the standard options permitted by the TLS_REQCERT TLS option (`never` performs no validation of certs, `allow` performs some basic name checks but no thorough CA validation, `demand` requires the certificate chain to be valid for the connection to succeed).
+
 
 The following attributes are defined in attributes/default.rb of the common cookbook, but are documented here due to their relevance:
 
@@ -269,6 +284,8 @@ The following attributes are defined in attributes/default.rb of the common cook
 * `openstack['endpoints']['identity-bind']['bind_interface']` - The interface name to bind the identity services to
 
 If the value of the 'bind_interface' attribute is non-nil, then the identity service will be bound to the first IP address on that interface.  If the value of the 'bind_interface' attribute is nil, then the identity service will be bound to the IP address specified in the host attribute.
+
+
 
 ### Token flushing
 When managing tokens with an SQL backend the token database may grow unboundedly as new tokens are issued and expired

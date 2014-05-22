@@ -50,6 +50,24 @@ password = <%= @ldap["password"] %>
 <% else -%>
 # password = None
 <% end -%>
+<% if @ldap["use_tls"] -%>
+use_tls = True
+<%   if @ldap["tls_cacertfile"] -%>
+tls_cacertfile = <%= @ldap["tls_cacertfile"] %>
+<%   elsif @ldap["tls_cacertdir"] -%>
+tls_cacertdir = <%= @ldap["tls_cacertdir"] %>
+<%   else -%>
+# tls_cacertfile =
+# tls_cacertdir =
+<%   end -%>
+<%   if @ldap["tls_req_cert"] -%>
+tls_req_cert = <%= @ldap["tls_req_cert"] %>
+<%   else -%>
+# tls_req_cert =
+<%   end -%>
+<% else -%>
+# use_tls =
+<% end -%>
 suffix = <%= @ldap["suffix"] %>
 use_dumb_member = <%= @ldap["use_dumb_member"] %>
 allow_subtree_delete = <%= @ldap["allow_subtree_delete"] %>

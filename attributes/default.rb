@@ -103,6 +103,10 @@ default['openstack']['identity']['ldap']['dumb_member'] = 'cn=dumb,dc=example,dc
 default['openstack']['identity']['ldap']['page_size'] = 0
 default['openstack']['identity']['ldap']['alias_dereferencing'] = 'default'
 default['openstack']['identity']['ldap']['query_scope'] = 'one'
+default['openstack']['identity']['ldap']['use_tls'] = false
+default['openstack']['identity']['ldap']['tls_cacertfile'] = nil
+default['openstack']['identity']['ldap']['tls_cacertdir'] = nil
+default['openstack']['identity']['ldap']['tls_req_cert'] = 'demand'
 
 # LDAP backend user related settings
 default['openstack']['identity']['ldap']['user_tree_dn'] = nil

@@ -1,5 +1,8 @@
 # CHANGELOG for cookbook-openstack-identity
 This file is used to list changes made in each version of cookbook-openstack-identity.
+## 9.2.1
+* Add support for TLS in [ldap]
+
 ## 9.2.0
 * Add support for miscellaneous options (like in Compute)
 

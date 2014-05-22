@@ -480,7 +480,7 @@ describe 'openstack-identity::server' do
                               group_attribute_ignore role_attribute_ignore
                               role_tree_dn role_filter tenant_tree_dn
                               tenant_enabled_emulation_dn tenant_filter
-                              tenant_attribute_ignore}
+                              tenant_attribute_ignore use_tls}
 
           it 'does not configure attributes' do
             optional_attrs.each do |a|
@@ -491,6 +491,44 @@ describe 'openstack-identity::server' do
               expect(chef_run).not_to render_file(path).with_content(enabled)
             end
           end
+
+          context 'ssl settings' do
+            context 'when use_tls disabled' do
+              it 'does not set tls_ options if use_tls is disabled' do
+                [/^tls_cacertfile = /, /^tls_cacertdir = /, /^tls_req_cert = /].each do |setting|
+                  expect(chef_run).not_to render_file(path).with_content(setting)
+                end
+              end
+            end
+
+            context 'when use_tls enabled' do
+              before do
+                node.set['openstack']['identity']['ldap']['use_tls'] = true
+              end
+
+              context 'when cert paths are configured' do
+                it 'has a tls_cacertfile when configured' do
+                  node.set['openstack']['identity']['ldap']['tls_cacertfile'] = 'tls_cacertfile_value'
+                  expect(chef_run).to render_file(path).with_content(/^tls_cacertfile = tls_cacertfile_value$/)
+                  expect(chef_run).not_to render_file(path).with_content(/^tls_cacertdir = /)
+                end
+                it 'has a tls_cacertdir when configured and tls_cacertfile unset' do
+                  node.set['openstack']['identity']['ldap']['tls_cacertfile'] = nil
+                  node.set['openstack']['identity']['ldap']['tls_cacertdir'] = 'tls_cacertdir_value'
+                  expect(chef_run).to render_file(path).with_content(/^tls_cacertdir = tls_cacertdir_value$/)
+                  expect(chef_run).not_to render_file(path).with_content(/^tls_cacertfile = /)
+                end
+              end
+
+              context 'when tls_req_cert validation disabled' do
+                it 'has a tls_req_cert set to never' do
+                  node.set['openstack']['identity']['ldap']['tls_req_cert'] = 'never'
+                  expect(chef_run).to render_file(path).with_content(/^tls_req_cert = never$/)
+                end
+              end
+            end
+          end
+
         end
 
         it 'has required attributes' do
