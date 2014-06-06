@@ -173,15 +173,27 @@ public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 ae = identity_admin_endpoint
 admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
 
-# If a keystone-paste.ini is specified use it
+# If a keystone-paste.ini is specified use it.
+# If platform_family is RHEL and we do not specify keystone-paste.ini,
+# copy in /usr/share/keystone/keystone-dist-paste.ini since
+# /etc/keystone/keystone-paste.ini is not packaged.
 if node['openstack']['identity']['pastefile_url']
   remote_file '/etc/keystone/keystone-paste.ini' do
-    source node['openstack']['identity']['pastefile_url']
-    owner node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
-    mode 00644
-
+    source   node['openstack']['identity']['pastefile_url']
+    owner    node['openstack']['identity']['user']
+    group    node['openstack']['identity']['group']
+    mode     00644
     notifies :restart, 'service[keystone]', :delayed
+  end
+else
+  remote_file '/etc/keystone/keystone-paste.ini' do
+    source   'file:////usr/share/keystone/keystone-dist-paste.ini'
+    action   :create_if_missing
+    owner    node['openstack']['identity']['user']
+    group    node['openstack']['identity']['group']
+    mode     00644
+    notifies :restart, 'service[keystone]', :delayed
+    only_if  { platform_family?('rhel') }
   end
 end
 

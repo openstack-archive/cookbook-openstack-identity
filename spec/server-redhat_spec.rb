@@ -44,5 +44,22 @@ describe 'openstack-identity::server' do
     it 'starts keystone on boot' do
       expect(chef_run).to enable_service('openstack-keystone')
     end
+
+    describe 'keystone-paste.ini' do
+      paste_file = '/etc/keystone/keystone-paste.ini'
+
+      let(:file_resource) { chef_run.remote_file(paste_file) }
+
+      it 'copies in keystone-dist-paste.ini when keystone-paste remote not specified ' do
+        expect(chef_run).to create_remote_file_if_missing(paste_file).with(
+          user: 'keystone',
+          group: 'keystone',
+          mode: 00644)
+      end
+
+      it 'restarts keystone when keystone-paste.ini is created' do
+        expect(file_resource).to notify('service[keystone]').to(:restart)
+      end
+    end
   end
 end
