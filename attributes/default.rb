@@ -189,9 +189,6 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
   default['openstack']['identity']['user'] = 'keystone'
   default['openstack']['identity']['group'] = 'keystone'
   default['openstack']['identity']['platform'] = {
-    'mysql_python_packages' => ['MySQL-python'],
-    'db2_python_packages' => ['python-ibm-db', 'python-ibm-db-sa'],
-    'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-memcached'],
     'keystone_packages' => ['openstack-keystone'],
     'keystone_client_packages' => ['python-keystoneclient'],
@@ -203,8 +200,6 @@ when 'suse'
   default['openstack']['identity']['user'] = 'openstack-keystone'
   default['openstack']['identity']['group'] = 'openstack-keystone'
   default['openstack']['identity']['platform'] = {
-    'mysql_python_packages' => ['python-mysql'],
-    'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-python-memcached'],
     'keystone_packages' => ['openstack-keystone'],
     'keystone_client_packages' => ['python-keystoneclient'],
@@ -216,8 +211,6 @@ when 'debian'
   default['openstack']['identity']['user'] = 'keystone'
   default['openstack']['identity']['group'] = 'keystone'
   default['openstack']['identity']['platform'] = {
-    'mysql_python_packages' => ['python-mysqldb'],
-    'postgresql_python_packages' => ['python-psycopg2'],
     'memcache_python_packages' => ['python-memcache'],
     'keystone_packages' => ['keystone'],
     'keystone_client_packages' => ['python-keystoneclient'],

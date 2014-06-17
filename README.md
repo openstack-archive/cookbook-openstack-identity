@@ -249,8 +249,6 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['roles']` - Array of roles to create in the keystone server
 * `openstack['identity']['users']` - Array of users to create in the keystone server
 * `openstack['identity']['pastefile_url']` - Specify the URL for a keystone-paste.ini file that will override the default packaged file
-TODO: Add DB2 support on other platforms
-* `openstack['identity']['platform']['db2_python_packages']` - Array of DB2 python packages, only available on redhat platform
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
 * `openstack['identity']['catalog']['backend']` - Storage mechanism for the keystone service catalog
 * `openstack['identity']["control_exchange"]` - The AMQP exchange to connect to if using RabbitMQ or Qpid, defaults to openstack
@@ -339,7 +337,7 @@ Author:: Eric Zhou (zyouzhou@cn.ibm.com)
 Copyright 2012, Rackspace US, Inc.
 Copyright 2012-2013, Opscode, Inc.
 Copyright 2012-2013, AT&T Services, Inc.
-Copyright 2013, SUSE Linux GmbH
+Copyright 2013-2014, SUSE Linux GmbH
 Copyright 2013-2014, IBM, Corp.
 
 Licensed under the Apache License, Version 2.0 (the "License");
