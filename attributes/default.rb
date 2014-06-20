@@ -36,7 +36,15 @@ default['openstack']['identity']['verbose'] = 'False'
 default['openstack']['identity']['debug'] = 'False'
 
 # Specify a location to retrieve keystone-paste.ini from
+# which can either be a remote url using http:// or a
+# local path to a file using file:// which would generally
+# be a distribution file - if this option is left nil then
+# the templated version distributed with this cookbook
+# will be used (keystone-paste.ini.erb)
 default['openstack']['identity']['pastefile_url'] = nil
+
+# array of lines to add to templated version of keystone-paste.ini
+default['openstack']['identity']['misc_paste'] = []
 
 default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'

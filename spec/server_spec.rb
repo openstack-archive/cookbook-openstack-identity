@@ -703,27 +703,41 @@ describe 'openstack-identity::server' do
       end
     end
 
-    describe 'keystone-paste.ini' do
+    describe 'keystone-paste.ini as template' do
 
-      it 'does not manage keystone-paste unless specified' do
-        expect(chef_run).not_to create_remote_file('/etc/keystone/keystone-paste.ini')
+      let(:path) { '/etc/keystone/keystone-paste.ini' }
+      let(:template) { chef_run.template(path) }
+
+      it 'has proper owner' do
+        expect(template.owner).to eq('keystone')
+        expect(template.group).to eq('keystone')
       end
 
-      describe 'keystone-paste remote specified' do
-
-        before { node.set['openstack']['identity']['pastefile_url'] = 'http://server/mykeystone-paste.ini' }
-        let(:remote_paste) { chef_run.remote_file('/etc/keystone/keystone-paste.ini') }
-
-        it 'does manage keystone-paste from remote file if specified' do
-          expect(chef_run).to create_remote_file('/etc/keystone/keystone-paste.ini').with(
-            user: 'keystone',
-            group: 'keystone',
-            mode: 00644)
-          expect(remote_paste).to notify('service[keystone]').to(:restart)
-        end
+      it 'has proper modes' do
+        expect(sprintf('%o', template.mode)).to eq('644')
       end
 
+      it 'template misc_paste array correctly' do
+        node.set['openstack']['identity']['misc_paste'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
+        expect(chef_run).to render_file(path).with_content(
+          /^MISC1=OPTION1$/)
+        expect(chef_run).to render_file(path).with_content(
+          /^MISC2=OPTION2$/)
+      end
     end
 
+    describe 'keystone-paste.ini as remote file' do
+      before { node.set['openstack']['identity']['pastefile_url'] = 'http://server/mykeystone-paste.ini' }
+      let(:remote_paste) { chef_run.remote_file('/etc/keystone/keystone-paste.ini') }
+
+      it 'uses a remote file if pastefile_url is specified' do
+        expect(chef_run).to create_remote_file_if_missing('/etc/keystone/keystone-paste.ini').with(
+          source: 'http://server/mykeystone-paste.ini',
+          user: 'keystone',
+          group: 'keystone',
+          mode: 00644)
+        expect(remote_paste).to notify('service[keystone]').to(:restart)
+      end
+    end
   end
 end

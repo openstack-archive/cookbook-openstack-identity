@@ -179,6 +179,7 @@ admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
 # /etc/keystone/keystone-paste.ini is not packaged.
 if node['openstack']['identity']['pastefile_url']
   remote_file '/etc/keystone/keystone-paste.ini' do
+    action   :create_if_missing
     source   node['openstack']['identity']['pastefile_url']
     owner    node['openstack']['identity']['user']
     group    node['openstack']['identity']['group']
@@ -186,14 +187,12 @@ if node['openstack']['identity']['pastefile_url']
     notifies :restart, 'service[keystone]', :delayed
   end
 else
-  remote_file '/etc/keystone/keystone-paste.ini' do
-    source   'file:////usr/share/keystone/keystone-dist-paste.ini'
-    action   :create_if_missing
-    owner    node['openstack']['identity']['user']
-    group    node['openstack']['identity']['group']
-    mode     00644
+  template '/etc/keystone/keystone-paste.ini' do
+    source 'keystone-paste.ini.erb'
+    owner node['openstack']['identity']['user']
+    group node['openstack']['identity']['group']
+    mode   00644
     notifies :restart, 'service[keystone]', :delayed
-    only_if  { platform_family?('rhel') }
   end
 end
 

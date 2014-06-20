@@ -46,12 +46,13 @@ describe 'openstack-identity::server' do
     end
 
     describe 'keystone-paste.ini' do
+      before { node.set['openstack']['identity']['pastefile_url'] = 'file:///usr/share/keystone/keystone-dist-paste.ini' }
       paste_file = '/etc/keystone/keystone-paste.ini'
-
       let(:file_resource) { chef_run.remote_file(paste_file) }
 
-      it 'copies in keystone-dist-paste.ini when keystone-paste remote not specified ' do
+      it 'copies local keystone-dist-paste.ini when keystone-paste pastefile_url is specified' do
         expect(chef_run).to create_remote_file_if_missing(paste_file).with(
+          source: 'file:///usr/share/keystone/keystone-dist-paste.ini',
           user: 'keystone',
           group: 'keystone',
           mode: 00644)
