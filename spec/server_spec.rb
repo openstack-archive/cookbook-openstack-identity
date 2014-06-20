@@ -491,6 +491,14 @@ describe 'openstack-identity::server' do
         end
       end
 
+      it 'renders misc_paste array correctly' do
+        node.set['openstack']['identity']['misc_paste'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
+        expect(chef_run).to render_file(paste_file_path).with_content(
+          /^MISC1=OPTION1$/)
+        expect(chef_run).to render_file(paste_file_path).with_content(
+          /^MISC2=OPTION2$/)
+      end
+
       it 'has the correct filter configuration' do
         filter_factory_key = 'paste.filter_factory'
         required_filter_factories = %w{keystone.common.wsgi:Debug.factory

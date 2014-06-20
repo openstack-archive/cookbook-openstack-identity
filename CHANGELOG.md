@@ -3,6 +3,9 @@
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
 ## 8.1.4
+* Add misc_paste chef option to allow customizing keystone-paste.ini
+
+## 8.1.4
 * Don't pass uri hash to keystone.conf template unless using templated catalog
 
 ## 8.1.3

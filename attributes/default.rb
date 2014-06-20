@@ -38,6 +38,9 @@ default['openstack']['identity']['debug'] = 'False'
 default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'
 
+# array of lines to add to templated version of keystone-paste.ini
+default['openstack']['identity']['misc_paste'] = []
+
 # Logging stuff
 default['openstack']['identity']['syslog']['use'] = false
 default['openstack']['identity']['syslog']['facility'] = 'LOG_LOCAL2'
