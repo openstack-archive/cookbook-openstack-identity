@@ -261,9 +261,6 @@ cron 'keystone-manage-token-flush' do
   weekday node['openstack']['identity']['token_flush_cron']['weekday']
   action should_run_cron ? :create : :delete
   user node['openstack']['identity']['user']
-  command %Q{
-    `which keystone-manage` token_flush > #{log_file} 2>&1 &&
-    echo keystone-manage token_flush ran at $(/bin/date) with exit code $? >> #{log_file}
-  }.gsub!(/\n/, '')
+  command "keystone-manage token_flush > #{log_file} 2>&1; "\
+          "echo keystone-manage token_flush ran at $(/bin/date) with exit code $? >> #{log_file}"
 end
-# TODO(luisg): We can remove the \n substitution in the cron command when https://tickets.opscode.com/browse/CHEF-5238 is fixed
