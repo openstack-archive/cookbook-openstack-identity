@@ -1,5 +1,9 @@
 # CHANGELOG for cookbook-openstack-identity
 This file is used to list changes made in each version of cookbook-openstack-identity.
+
+## 9.3.0
+* python_packages database client attributes have been migrated to the -common cookbook
+
 ## 9.2.1
 * Add support for TLS in [ldap]
 

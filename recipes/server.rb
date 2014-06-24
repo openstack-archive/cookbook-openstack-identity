@@ -5,7 +5,7 @@
 #
 # Copyright 2012, Rackspace US, Inc.
 # Copyright 2012-2013, Opscode, Inc.
-# Copyright 2013 SUSE LINUX Products GmbH.
+# Copyright 2013-2014 SUSE LINUX Products GmbH.
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ platform_options = node['openstack']['identity']['platform']
 
 db_type = node['openstack']['db']['identity']['service_type']
 unless db_type == 'sqlite'
-  platform_options["#{db_type}_python_packages"].each do |pkg|
+  node['openstack']['db']['python_packages'][db_type].each do |pkg|
     package pkg do
       options platform_options['package_options']
       action :upgrade
