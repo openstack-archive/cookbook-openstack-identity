@@ -69,7 +69,7 @@ describe 'openstack-identity::server' do
     end
 
     it 'has flush tokens cronjob running every day at 3:30am' do
-      expect(chef_run).to create_cron('keystone-manage-token-flush').with_command(/`which keystone-manage` token_flush/)
+      expect(chef_run).to create_cron('keystone-manage-token-flush').with_command(/keystone-manage token_flush/)
       expect(chef_run).to create_cron('keystone-manage-token-flush').with_minute('0')
       expect(chef_run).to create_cron('keystone-manage-token-flush').with_hour('*')
       expect(chef_run).to create_cron('keystone-manage-token-flush').with_day('*')
