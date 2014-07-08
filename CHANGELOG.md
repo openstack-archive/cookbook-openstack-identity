@@ -4,6 +4,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 ## 9.3.1
 * Add support for a templated keystone-paste.ini
   as well as support misc_paste options inserted
+* bump berkshelf to 2.0.18 to allow Supermarket support
 
 ## 9.3.0
 * python_packages database client attributes have been migrated to the -common cookbook
