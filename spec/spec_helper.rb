@@ -1,6 +1,6 @@
 # encoding: UTF-8
 #
-
+require 'rspec/expectations'
 require 'chefspec'
 require 'chefspec/berkshelf'
 
@@ -50,9 +50,5 @@ shared_context 'identity_stubs' do
       .and_return('bootstrap-token')
   end
 end
-
-# README(galstrom21): This will remove any coverage warnings from
-#   dependent cookbooks
-ChefSpec::Coverage.filters << '*/openstack-identity'
 
 at_exit { ChefSpec::Coverage.report! }
