@@ -25,9 +25,9 @@ describe 'openstack-identity::default' do
 
       context 'when tenant does not already exist' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'tenant-create',
                   'name' => 'tenant1',
                   'description' => 'tenant1 Tenant',
@@ -44,7 +44,7 @@ describe 'openstack-identity::default' do
 
       context 'when tenant does already exist' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
         end
@@ -77,9 +77,9 @@ describe 'openstack-identity::default' do
 
         context 'when service does not already exist' do
           it 'should create a service' do
-            provider.stub(:identity_uuid)
+            allow(provider).to receive(:identity_uuid)
               .with(resource, 'service', 'type', 'compute')
-            provider.stub(:identity_command)
+            allow(provider).to receive(:identity_command)
               .with(resource, 'service-create',
                     'type' => 'compute',
                     'name' => 'service1',
@@ -93,7 +93,7 @@ describe 'openstack-identity::default' do
 
         context 'when service does not already exist' do
           it 'should not create a service' do
-            provider.stub(:identity_uuid)
+            allow(provider).to receive(:identity_uuid)
               .with(resource, 'service', 'type', 'compute')
               .and_return('1234567890ABCDEFGH')
             provider.run_action(:create_service)
@@ -137,12 +137,12 @@ describe 'openstack-identity::default' do
 
         context 'when endpoint does not already exist' do
           before do
-            provider.stub(:identity_uuid)
+            allow(provider).to receive(:identity_uuid)
               .with(resource, 'service', 'type', 'compute')
               .and_return('1234567890ABCDEFGH')
-            provider.stub(:identity_uuid)
+            allow(provider).to receive(:identity_uuid)
               .with(resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
-            provider.stub(:identity_command)
+            allow(provider).to receive(:identity_command)
               .with(resource, 'endpoint-create',
                     'region' => 'Region One',
                     'service_id' => '1234567890ABCDEFGH',
@@ -159,10 +159,10 @@ describe 'openstack-identity::default' do
 
         context 'when endpoint does already exist' do
           before do
-            provider.stub(:identity_uuid)
+            allow(provider).to receive(:identity_uuid)
               .with(resource, 'service', 'type', 'compute')
               .and_return('1234567890ABCDEFGH')
-            provider.stub(:identity_uuid)
+            allow(provider).to receive(:identity_uuid)
               .with(resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
               .and_return('0987654321HGFEDCBA')
           end
@@ -177,16 +177,19 @@ describe 'openstack-identity::default' do
           before do
             output = ' | 000d9c447d124754a197fc612f9d63d7 | Region One | http://public | http://internal |  http://admin | f9511a66e0484f3dbd1584065e8bab1c '
             output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region One', 'publicurl' => 'http://public', 'internalurl' => 'http://internal', 'adminurl' => 'http://admin', 'service_id' => 'f9511a66e0484f3dbd1584065e8bab1c' }]
-            provider.stub(:identity_command)
-                            .with(resource, 'endpoint-list', {})
-                            .and_return(output)
-            provider.stub(:prettytable_to_array)
-                            .with(output)
-                            .and_return(output_array)
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'endpoint-list', {})
+              .and_return(output)
+            allow(provider).to receive(:prettytable_to_array)
+              .with(output)
+              .and_return(output_array)
           end
 
           it 'endpoint uuid should be returned' do
-            provider.send(:identity_uuid, resource, 'endpoint', 'service_id', 'f9511a66e0484f3dbd1584065e8bab1c').should eq('000d9c447d124754a197fc612f9d63d7')
+            expect(
+              provider.send(:identity_uuid, resource, 'endpoint',
+                            'service_id', 'f9511a66e0484f3dbd1584065e8bab1c')
+            ).to eq('000d9c447d124754a197fc612f9d63d7')
           end
         end
 
@@ -194,31 +197,51 @@ describe 'openstack-identity::default' do
           before do
             output = ' | 000d9c447d124754a197fc612f9d63d7 | Region Two | http://public | http://internal |  http://admin | f9511a66e0484f3dbd1584065e8bab1c '
             output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'publicurl' => 'http://public', 'internalurl' => 'http://internal', 'adminurl' => 'http://admin', 'service_id' => 'f9511a66e0484f3dbd1584065e8bab1c' }]
-            provider.stub(:identity_command)
+            allow(provider).to receive(:identity_command)
               .with(resource, 'endpoint-list', {})
               .and_return(output)
-            provider.stub(:prettytable_to_array)
+            allow(provider).to receive(:prettytable_to_array)
               .with(output)
               .and_return(output_array)
           end
 
           it 'no endpoint uuid should be returned' do
-            provider.send(:identity_uuid, resource, 'endpoint', 'service_id', 'f9511a66e0484f3dbd1584065e8bab1c').should eq(nil)
+            expect(
+              provider.send(:identity_uuid, resource, 'endpoint',
+                            'service_id', 'f9511a66e0484f3dbd1584065e8bab1c')
+            ).to eq(nil)
           end
         end
 
         context '#search_uuid' do
           it 'required_hash only has key id' do
             output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'publicurl' => 'http://public' }]
-            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7').should eq('000d9c447d124754a197fc612f9d63d7')
-            provider.send(:search_uuid, output_array, 'id' , 'id' => 'abc').should eq(nil)
+            expect(
+              provider.send(:search_uuid, output_array, 'id',
+                            'id' => '000d9c447d124754a197fc612f9d63d7')
+            ).to eq('000d9c447d124754a197fc612f9d63d7')
+            expect(
+              provider.send(:search_uuid, output_array, 'id', 'id' => 'abc')
+            ).to eq(nil)
           end
 
           it 'required_hash has key id and region' do
             output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'publicurl' => 'http://public' }]
-            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two').should eq('000d9c447d124754a197fc612f9d63d7')
-            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region One').should eq(nil)
-            provider.send(:search_uuid, output_array, 'id' , 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region Two', 'key' => 'value').should eq(nil)
+            expect(
+              provider.send(:search_uuid, output_array, 'id',
+                            'id' => '000d9c447d124754a197fc612f9d63d7',
+                            'region' => 'Region Two')
+            ).to eq('000d9c447d124754a197fc612f9d63d7')
+            expect(
+              provider.send(:search_uuid, output_array, 'id',
+                            'id' => '000d9c447d124754a197fc612f9d63d7',
+                            'region' => 'Region One')
+            ).to eq(nil)
+            expect(
+              provider.send(:search_uuid, output_array, 'id',
+                            'id' => '000d9c447d124754a197fc612f9d63d7',
+                            'region' => 'Region Two', 'key' => 'value')
+            ).to eq(nil)
           end
         end
       end
@@ -247,9 +270,9 @@ describe 'openstack-identity::default' do
 
       context 'when role does not already exist' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'role', 'name', 'role1')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'role-create',
                   'name' => 'role1')
         end
@@ -262,7 +285,7 @@ describe 'openstack-identity::default' do
 
       context 'when role already exist' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'role', 'name', 'role1')
             .and_return('1234567890ABCDEFGH')
         end
@@ -288,19 +311,19 @@ describe 'openstack-identity::default' do
 
       context 'when user does not already exist' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'user-list',
                   'tenant-id' => '1234567890ABCDEFGH')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'user-create',
                   'name' => 'user1',
                   'tenant-id' => '1234567890ABCDEFGH',
                   'pass' => 'password',
                   'enabled' => true)
-          provider.stub(:prettytable_to_array)
+          allow(provider).to receive(:prettytable_to_array)
             .and_return([])
         end
 
@@ -312,15 +335,15 @@ describe 'openstack-identity::default' do
 
       context 'when user already exist' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'user-list',
                   'tenant-id' => '1234567890ABCDEFGH')
-          provider.stub(:prettytable_to_array)
+          allow(provider).to receive(:prettytable_to_array)
             .and_return([{ 'name' => 'user1' }])
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user', 'name', 'user1')
             .and_return('HGFEDCBA0987654321')
         end
@@ -333,7 +356,7 @@ describe 'openstack-identity::default' do
 
       describe '#identity_command' do
         it 'should handle false values and long descriptions' do
-          provider.stub(:shell_out)
+          allow(provider).to receive(:shell_out)
             .with(['keystone', 'user-create', '--enabled',
                    'false', '--description', 'more than one word'],
                   env: {
@@ -364,21 +387,21 @@ describe 'openstack-identity::default' do
 
       context 'when role has not already been granted' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user', 'name', 'user1')
             .and_return('HGFEDCBA0987654321')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'role', 'name', 'role1')
             .and_return('ABC1234567890DEF')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user-role', 'name', 'role1',
                   'tenant-id' => '1234567890ABCDEFGH',
                   'user-id' => 'HGFEDCBA0987654321')
             .and_return('ABCD1234567890EFGH')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'user-role-add',
                   'tenant-id' => '1234567890ABCDEFGH',
                   'role-id' => 'ABC1234567890DEF',
@@ -393,21 +416,21 @@ describe 'openstack-identity::default' do
 
       context 'when role has already been granted' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user', 'name', 'user1')
             .and_return('HGFEDCBA0987654321')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'role', 'name', 'role1')
             .and_return('ABC1234567890DEF')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user-role', 'name', 'role1',
                   'tenant-id' => '1234567890ABCDEFGH',
                   'user-id' => 'HGFEDCBA0987654321')
             .and_return('ABC1234567890DEF')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'user-role-add',
                   'tenant-id' => '1234567890ABCDEFGH',
                   'role-id' => 'ABC1234567890DEF',
@@ -438,21 +461,21 @@ describe 'openstack-identity::default' do
 
       context 'when ec2 creds have not already been created' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user', 'name', 'user1',
                   'tenant-id' => '1234567890ABCDEFGH')
             .and_return('HGFEDCBA0987654321')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'ec2-credentials', 'tenant', 'tenant1',
                   { 'user-id' => 'HGFEDCBA0987654321' }, 'access')
-          provider.stub(:identity_command)
+          allow(provider).to receive(:identity_command)
             .with(resource, 'ec2-credentials-create',
                   'user-id' => 'HGFEDCBA0987654321',
                   'tenant-id' => '1234567890ABCDEFGH')
-          provider.stub(:prettytable_to_array)
+          allow(provider).to receive(:prettytable_to_array)
             .and_return([{ 'access' => 'access', 'secret' => 'secret' }])
         end
 
@@ -464,14 +487,14 @@ describe 'openstack-identity::default' do
 
       context 'when ec2 creds have not already been created' do
         before do
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'user', 'name', 'user1',
                   'tenant-id' => '1234567890ABCDEFGH')
             .and_return('HGFEDCBA0987654321')
-          provider.stub(:identity_uuid)
+          allow(provider).to receive(:identity_uuid)
             .with(resource, 'ec2-credentials', 'tenant', 'tenant1',
                   { 'user-id' => 'HGFEDCBA0987654321' }, 'access')
             .and_return('ABC1234567890DEF')

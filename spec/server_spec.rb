@@ -302,7 +302,7 @@ describe 'openstack-identity::server' do
       describe 'with pki' do
         describe 'without {certfile,keyfile,ca_certs}_url attributes set' do
           it 'executes' do
-            ::FileTest.should_receive(:exists?)
+            expect(FileTest).to receive(:exists?)
               .with('/etc/keystone/ssl/private/signing_key.pem')
               .and_return(false)
 
@@ -329,7 +329,7 @@ describe 'openstack-identity::server' do
         end
 
         it 'does not execute when dir exists' do
-          ::FileTest.should_receive(:exists?)
+          expect(FileTest).to receive(:exists?)
             .with('/etc/keystone/ssl/private/signing_key.pem')
             .and_return(true)
 
@@ -394,7 +394,7 @@ describe 'openstack-identity::server' do
         describe 'bind_interface is eth0' do
           before do
             node.set['openstack']['endpoints']['identity-bind']['bind_interface'] = 'eth0'
-            ::Chef::Recipe.any_instance.stub(:address_for)
+            allow_any_instance_of(Chef::Recipe).to receive(:address_for)
               .and_return('10.0.0.2')
           end
 
@@ -461,7 +461,8 @@ describe 'openstack-identity::server' do
           hosts = ['host1:111', 'host2:222']
           regex = line_regexp("servers = #{hosts.join(',')}")
 
-          ::Chef::Recipe.any_instance.stub(:memcached_servers).and_return(hosts)
+          allow_any_instance_of(Chef::Recipe).to receive(:memcached_servers)
+            .and_return(hosts)
           expect(chef_run).to render_file(path).with_content(regex)
         end
       end
