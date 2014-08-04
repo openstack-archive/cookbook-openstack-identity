@@ -386,7 +386,7 @@ describe 'openstack-identity::server' do
 
         describe 'bind_interface is nil' do
           it 'has bind host from endpoint' do
-            r = line_regexp('bind_host = 127.0.1.1')
+            r = line_regexp('public_bind_host = 127.0.1.1')
             expect(chef_run).to render_file(path).with_content(r)
           end
         end
@@ -399,7 +399,7 @@ describe 'openstack-identity::server' do
           end
 
           it 'has bind host from interface ip' do
-            r = line_regexp('bind_host = 10.0.0.2')
+            r = line_regexp('public_bind_host = 10.0.0.2')
             expect(chef_run).to render_file(path).with_content(r)
           end
         end
@@ -475,18 +475,18 @@ describe 'openstack-identity::server' do
       end
 
       describe '[ldap] section' do
-        describe 'optional attributes' do
+        describe 'optional nil attributes' do
           optional_attrs = %w{group_tree_dn group_filter user_filter
                               user_tree_dn user_enabled_emulation_dn
                               group_attribute_ignore role_attribute_ignore
-                              role_tree_dn role_filter tenant_tree_dn
-                              tenant_enabled_emulation_dn tenant_filter
-                              tenant_attribute_ignore use_tls}
+                              role_tree_dn role_filter project_tree_dn
+                              project_enabled_emulation_dn project_filter
+                              project_attribute_ignore}
 
           it 'does not configure attributes' do
             optional_attrs.each do |a|
               enabled = /^#{Regexp.quote(a)} = \w+/
-              disabled = /^# #{Regexp.quote(a)} =$/
+              disabled = /^##{Regexp.quote(a)}=(<None>)?$/
 
               expect(chef_run).to render_file(path).with_content(disabled)
               expect(chef_run).not_to render_file(path).with_content(enabled)
@@ -536,21 +536,21 @@ describe 'openstack-identity::server' do
           required_attrs = %w{alias_dereferencing allow_subtree_delete
                               dumb_member group_allow_create group_allow_delete
                               group_allow_update group_desc_attribute
-                              group_domain_id_attribute group_id_attribute
+                              group_id_attribute
                               group_member_attribute group_name_attribute
                               group_objectclass page_size query_scope
                               role_allow_create role_allow_delete
                               role_allow_update role_id_attribute
                               role_member_attribute role_name_attribute
-                              role_objectclass suffix tenant_allow_create
-                              tenant_allow_delete tenant_allow_update
-                              tenant_desc_attribute tenant_domain_id_attribute
-                              tenant_enabled_attribute tenant_enabled_emulation
-                              tenant_id_attribute tenant_member_attribute
-                              tenant_name_attribute tenant_objectclass url
+                              role_objectclass suffix project_allow_create
+                              project_allow_delete project_allow_update
+                              project_desc_attribute project_domain_id_attribute
+                              project_enabled_attribute project_enabled_emulation
+                              project_id_attribute project_member_attribute
+                              project_name_attribute project_objectclass url
                               use_dumb_member user user_allow_create
                               user_allow_delete user_allow_update
-                              user_attribute_ignore user_domain_id_attribute
+                              user_attribute_ignore
                               user_enabled_attribute user_enabled_default
                               user_enabled_emulation user_enabled_mask
                               user_id_attribute user_mail_attribute

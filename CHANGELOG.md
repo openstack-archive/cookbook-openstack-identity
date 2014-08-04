@@ -5,6 +5,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Upgrading to Juno
 * Upgrading berkshelf from 2.0.18 to 3.1.5
 * Fix the internal endpoint URL by using the InternalURL variable rather than AdminURL
+* Sync conf files with Juno
 
 ## 9.3.1
 * Add support for a templated keystone-paste.ini
