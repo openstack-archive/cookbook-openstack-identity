@@ -54,6 +54,10 @@ default['openstack']['identity']['syslog']['use'] = false
 default['openstack']['identity']['syslog']['facility'] = 'LOG_LOCAL2'
 default['openstack']['identity']['syslog']['config_facility'] = 'local2'
 
+# Number of Workers
+default['openstack']['identity']['admin_workers'] = nil
+default['openstack']['identity']['public_workers'] = nil
+
 # RPC attributes
 default['openstack']['identity']['control_exchange'] = 'openstack'
 default['openstack']['identity']['rpc_thread_pool_size'] = 64

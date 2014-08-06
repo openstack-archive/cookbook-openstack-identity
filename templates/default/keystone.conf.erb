@@ -69,11 +69,15 @@ admin_endpoint = <%= @admin_endpoint %>
 
 # The number of worker processes to serve the public WSGI
 # application (integer value)
-#public_workers=1
+<% if node["openstack"]["identity"]["public_workers"] %>
+public_workers=<%= node["openstack"]["identity"]["public_workers"] %>
+<% end %>
 
 # The number of worker processes to serve the admin WSGI
 # application (integer value)
-#admin_workers=1
+<% if node["openstack"]["identity"]["admin_workers"] %>
+admin_workers=<%= node["openstack"]["identity"]["admin_workers"] %>
+<% end %>
 
 # Enforced by optional sizelimit middleware
 # (keystone.middleware:RequestBodySizeLimiter). (integer

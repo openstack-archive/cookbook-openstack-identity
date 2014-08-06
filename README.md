@@ -246,6 +246,8 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['verbose']` - Enables/disables verbose output for keystone API server
 * `openstack['identity']['debug']` - Enables/disables debug output for keystone API server
 * `openstack['identity']['admin_token']` - Admin token for bootstraping keystone server
+* `openstack['identity']['admin_workers']` - The number of worker processes to serve the admin WSGI application
+* `openstack['identity']['public_workers']` - The number of worker processes to serve the public WSGI application
 * `openstack['identity']['roles']` - Array of roles to create in the keystone server
 * `openstack['identity']['users']` - Array of users to create in the keystone server
 * `openstack['identity']['pastefile_url']` - Specify the URL for a keystone-paste.ini file that will override the default packaged file

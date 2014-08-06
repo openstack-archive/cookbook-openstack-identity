@@ -368,6 +368,18 @@ describe 'openstack-identity::server' do
         expect(resource).to notify('service[keystone]').to(:restart)
       end
 
+      it 'has default worker values' do
+        expect(chef_run).not_to render_file(path).with_content(/^admin_workers=/)
+        expect(chef_run).not_to render_file(path).with_content(/^public_workers=/)
+      end
+
+      it 'has specific worker values' do
+        node.set['openstack']['identity']['admin_workers'] = 123
+        node.set['openstack']['identity']['public_workers'] = 456
+        expect(chef_run).to render_file(path).with_content(/^admin_workers=123$/)
+        expect(chef_run).to render_file(path).with_content(/^public_workers=456$/)
+      end
+
       it 'has rpc_backend set for rabbit' do
         node.set['openstack']['mq']['service_type'] = 'rabbitmq'
         expect(chef_run).to render_file(path).with_content('rpc_backend=rabbit')
