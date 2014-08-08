@@ -266,6 +266,11 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['ldap']['tls_cacertdir']` - Path to CA cert directory (default: nil)
 * `openstack['identity']['ldap']['tls_req_cert']` - CA cert check ('demand', 'allow' or 'never', default: 'demand')
 * `openstack['identity']['misc_keystone']` - **Array of strings to be added to keystone.conf**
+* `openstack['identity']['list_limit']` - Maximum number of entities that will be returned in a collection
+* `openstack['identity']['assignment']['list_limit']` - Maximum number of entities that will be returned in a assignment collection
+* `openstack['identity']['catalog']['list_limit']` - Maximum number of entities that will be returned in a catalog collection
+* `openstack['identity']['identity']['list_limit']` - Maximum number of entities that will be returned in a identity collection
+* `openstack['identity']['policy']['list_limit']` - Maximum number of entities that will be returned in a policy collection
 
 Most `openstack['identity']['ldap']` attributes map directly to the corresponding config options in keystone.conf's `[ldap]` backend.  They are primarily used when configuring `openstack['identity']['identity']['backend']` and/or `openstack["identity"]["assignment"]["backend"]` as `ldap` (both default to `sql`).
 

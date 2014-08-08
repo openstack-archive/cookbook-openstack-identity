@@ -124,6 +124,9 @@ admin_workers=<%= node["openstack"]["identity"]["admin_workers"] %>
 # a list_limit in the appropriate section (e.g. [assignment]).
 # (integer value)
 #list_limit=<None>
+<% if node['openstack']['identity']['list_limit'] %>
+list_limit=<%= node['openstack']['identity']['list_limit'] %>
+<% end %>
 
 # Set this to false if you want to enable the ability for
 # user, group and project entities to be moved between domains
@@ -534,6 +537,9 @@ driver = keystone.assignment.backends.<%= node["openstack"]["identity"]["assignm
 # Maximum number of entities that will be returned in an
 # assignment collection. (integer value)
 #list_limit=<None>
+<% if node['openstack']['identity']['assignment']['list_limit'] %>
+list_limit=<%= node['openstack']['identity']['assignment']['list_limit'] %>
+<% end %>
 
 
 [auth]
@@ -636,6 +642,9 @@ driver = keystone.catalog.backends.<%= node["openstack"]["identity"]["catalog"][
 # Maximum number of entities that will be returned in a
 # catalog collection. (integer value)
 #list_limit=<None>
+<% if node['openstack']['identity']['catalog']['list_limit'] %>
+list_limit=<%= node['openstack']['identity']['catalog']['list_limit'] %>
+<% end %>
 
 
 [credential]
@@ -835,6 +844,9 @@ driver = keystone.identity.backends.<%= node["openstack"]["identity"]["identity"
 # Maximum number of entities that will be returned in an
 # identity collection. (integer value)
 #list_limit=<None>
+<% if node['openstack']['identity']['identity']['list_limit'] %>
+list_limit=<%= node['openstack']['identity']['identity']['list_limit'] %>
+<% end %>
 
 
 [identity_mapping]
@@ -1412,6 +1424,9 @@ driver = keystone.policy.backends.<%= node["openstack"]["identity"]["policy"]["b
 # Maximum number of entities that will be returned in a policy
 # collection. (integer value)
 #list_limit=<None>
+<% if node['openstack']['identity']['policy']['list_limit'] %>
+list_limit=<%= node['openstack']['identity']['policy']['list_limit'] %>
+<% end %>
 
 
 [revoke]

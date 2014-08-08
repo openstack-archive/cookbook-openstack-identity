@@ -104,6 +104,25 @@ default['openstack']['identity']['token']['backend'] = 'sql'
 default['openstack']['identity']['catalog']['backend'] = 'sql'
 default['openstack']['identity']['policy']['backend'] = 'sql'
 
+# The maximum number of entities that will be returned in a
+# collection, with no limit set by default. This global limit
+# may be then overridden for a specific driver, by specifying
+# a list_limit in the appropriate section (identity, assignment,
+# catalog or policy). (integer value)
+default['openstack']['identity']['list_limit'] = nil
+# The maximum number of entities that will be returned in an
+# identity collection. (integer value)
+default['openstack']['identity']['identity']['list_limit'] = nil
+# Maximum number of entities that will be returned in an
+# assignment collection.
+default['openstack']['identity']['assignment']['list_limit'] = nil
+# Maximum number of entities that will be returned in a
+# catalog collection. (integer value)
+default['openstack']['identity']['catalog']['list_limit'] = nil
+# The maximum number of entities that will be returned in an
+# policy collection. (integer value)
+default['openstack']['identity']['policy']['list_limit'] = nil
+
 # LDAP backend general settings
 default['openstack']['identity']['ldap']['url'] = 'ldap://localhost'
 default['openstack']['identity']['ldap']['user'] = 'dc=Manager,dc=example,dc=com'

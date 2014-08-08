@@ -7,6 +7,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Fix the internal endpoint URL by using the InternalURL variable rather than AdminURL
 * Sync conf files with Juno
 * Allow admin and public workers to be configured
+* Allow list_limit to be configurable
 
 ## 9.3.1
 * Add support for a templated keystone-paste.ini

@@ -356,6 +356,23 @@ describe 'openstack-identity::server' do
         end
       end
 
+      it 'has no list_limits by default' do
+        expect(chef_run).not_to render_file(path).with_content(/^list_limit=/)
+      end
+
+      it 'sets list limits correctly' do
+        node.set['openstack']['identity']['list_limit'] = 111
+        node.set['openstack']['identity']['assignment']['list_limit'] = 222
+        node.set['openstack']['identity']['catalog']['list_limit'] = 333
+        node.set['openstack']['identity']['identity']['list_limit'] = 444
+        node.set['openstack']['identity']['policy']['list_limit'] = 555
+        expect(chef_run).to render_file(path).with_content(/^list_limit=111$/)
+        expect(chef_run).to render_file(path).with_content(/^list_limit=222$/)
+        expect(chef_run).to render_file(path).with_content(/^list_limit=333$/)
+        expect(chef_run).to render_file(path).with_content(/^list_limit=444$/)
+        expect(chef_run).to render_file(path).with_content(/^list_limit=555$/)
+      end
+
       it 'templates misc_keystone array correctly' do
         node.set['openstack']['identity']['misc_keystone'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
         expect(chef_run).to render_file(path).with_content(
