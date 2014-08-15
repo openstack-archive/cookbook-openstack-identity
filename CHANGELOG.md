@@ -3,6 +3,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 
 ## 10.0.0
 * Upgrading to Juno
+* Upgrading berkshelf from 2.0.18 to 3.1.5
 
 ## 9.3.1
 * Add support for a templated keystone-paste.ini
