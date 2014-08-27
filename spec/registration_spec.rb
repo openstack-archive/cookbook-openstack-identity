@@ -202,12 +202,8 @@ describe 'openstack-identity::registration' do
       context 'with sql catalog backend' do
         before do
           node.set['openstack']['identity']['catalog']['backend'] = 'sql'
-          node.set['openstack']['endpoints']['identity-internal']['host'] = '127.0.0.2'
-          node.set['openstack']['endpoints']['identity-internal']['port'] = '5001'
-          node.set['openstack']['endpoints']['identity-internal']['path'] = '/v2.0'
         end
-
-        it 'registers identity endpoint' do
+        it 'registers identity endpoints' do
           expect(chef_run).to create_endpoint_openstack_identity_register(
             'Register Identity Endpoint'
           ).with(
@@ -216,7 +212,7 @@ describe 'openstack-identity::registration' do
             service_type: 'identity',
             endpoint_region: 'RegionOne',
             endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
-            endpoint_internalurl: 'http://127.0.0.2:5001/v2.0',
+            endpoint_internalurl: 'http://127.0.0.1:5000/v2.0',
             endpoint_publicurl: 'http://127.0.0.1:5000/v2.0'
           )
         end
@@ -226,6 +222,25 @@ describe 'openstack-identity::registration' do
           expect(chef_run).to create_endpoint_openstack_identity_register(
             'Register Identity Endpoint'
           ).with(endpoint_region: 'identityRegion')
+        end
+
+        it 'overrides identity endpoints' do
+          node.set['openstack']['endpoints']['identity-admin']['host'] = '127.0.0.2'
+          node.set['openstack']['endpoints']['identity-admin']['port'] = '5002'
+          node.set['openstack']['endpoints']['identity-admin']['path'] = '/v2.2'
+          node.set['openstack']['endpoints']['identity-internal']['host'] = '127.0.0.3'
+          node.set['openstack']['endpoints']['identity-internal']['port'] = '5003'
+          node.set['openstack']['endpoints']['identity-internal']['path'] = '/v2.3'
+          node.set['openstack']['endpoints']['identity-api']['host'] = '127.0.0.4'
+          node.set['openstack']['endpoints']['identity-api']['port'] = '5004'
+          node.set['openstack']['endpoints']['identity-api']['path'] = '/v2.4'
+          expect(chef_run).to create_endpoint_openstack_identity_register(
+            'Register Identity Endpoint'
+          ).with(
+            endpoint_adminurl: 'http://127.0.0.2:5002/v2.2',
+            endpoint_internalurl: 'http://127.0.0.3:5003/v2.3',
+            endpoint_publicurl: 'http://127.0.0.4:5004/v2.4'
+          )
         end
       end
     end

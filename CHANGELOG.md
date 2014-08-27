@@ -8,10 +8,9 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Allow admin_bind_host to be settable in the keystone.conf template
 * Add attributes for saml
 * Allow attributes for domain specific drivers
-
 * Allow existing users to have their passwords updated properly
-
 * Bump Chef gem to 11.16
+* Add test to verify each endpoint can be configured seperatly
 
 ## 10.0.0
 * Upgrading to Juno
