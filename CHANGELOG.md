@@ -8,6 +8,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Sync conf files with Juno
 * Allow admin and public workers to be configured
 * Allow list_limit to be configurable
+* Fix registration issue by adding '--insecure' to keystone command
 
 ## 9.3.1
 * Add support for a templated keystone-paste.ini

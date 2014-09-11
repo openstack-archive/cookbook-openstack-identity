@@ -48,7 +48,7 @@ end
 private
 
 def identity_command(resource, cmd, args = {})
-  keystonecmd = ['keystone'] << cmd
+  keystonecmd = ['keystone'] << '--insecure' << cmd
   args.each do |key, val|
     keystonecmd << "--#{key}" << val.to_s
   end

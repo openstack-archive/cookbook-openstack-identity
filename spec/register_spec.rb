@@ -357,7 +357,7 @@ describe 'openstack-identity::default' do
       describe '#identity_command' do
         it 'should handle false values and long descriptions' do
           allow(provider).to receive(:shell_out)
-            .with(['keystone', 'user-create', '--enabled',
+            .with(['keystone', '--insecure', 'user-create', '--enabled',
                    'false', '--description', 'more than one word'],
                   env: {
                     'OS_SERVICE_ENDPOINT' => nil,
