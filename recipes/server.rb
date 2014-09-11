@@ -144,6 +144,7 @@ if node['openstack']['auth']['strategy'] == 'pki'
 end
 
 bind_endpoint = endpoint 'identity-bind'
+admin_bind_endpoint = endpoint 'identity-admin-bind'
 identity_admin_endpoint = endpoint 'identity-admin'
 identity_endpoint = endpoint 'identity-api'
 compute_endpoint = endpoint 'compute-api'
@@ -159,6 +160,7 @@ sql_connection = db_uri('identity', db_user, db_pass)
 bootstrap_token = get_secret 'openstack_identity_bootstrap_token'
 
 bind_address = bind_endpoint.host
+admin_bind_address = admin_bind_endpoint.host
 
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
@@ -204,6 +206,7 @@ template '/etc/keystone/keystone.conf' do
   variables(
     sql_connection: sql_connection,
     bind_address: bind_address,
+    admin_bind_address: admin_bind_address,
     bootstrap_token: bootstrap_token,
     memcache_servers: memcache_servers,
     public_endpoint: public_endpoint,

@@ -21,6 +21,10 @@ describe 'openstack-identity::server' do
         'port' => '35357',
         'scheme' => 'https'
       }
+      node.set_unless['openstack']['endpoints']['identity-admin-bind'] = {
+        'host' => '127.0.1.1',
+        'port' => '35357'
+      }
 
       runner.converge(described_recipe)
     end
@@ -429,6 +433,26 @@ describe 'openstack-identity::server' do
 
           it 'has bind host from interface ip' do
             r = line_regexp('public_bind_host = 10.0.0.2')
+            expect(chef_run).to render_file(path).with_content(r)
+          end
+        end
+
+        describe 'admin bind_interface is nil' do
+          it 'has admin bind host from endpoint' do
+            r = line_regexp('admin_bind_host = 127.0.1.1')
+            expect(chef_run).to render_file(path).with_content(r)
+          end
+        end
+
+        describe 'admin bind_interface is eth0' do
+          before do
+            node.set['openstack']['endpoints']['identity-admin-bind']['bind_interface'] = 'eth0'
+            allow_any_instance_of(Chef::Recipe).to receive(:address_for)
+              .and_return('10.0.0.2')
+          end
+
+          it 'has admin bind host from interface ip' do
+            r = line_regexp('admin_bind_host = 10.0.0.2')
             expect(chef_run).to render_file(path).with_content(r)
           end
         end

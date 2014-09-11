@@ -1,11 +1,11 @@
 # CHANGELOG for cookbook-openstack-identity
 This file is used to list changes made in each version of cookbook-openstack-identity.
+
 ## 10.0.1
 * Update keystone.conf from mode 0644 to 0640
 * Allow hash_algorithm to be configurable
-
-## 10.0.1
 * Raise exceptions when register provider keystone command fails
+* Allow admin_bind_host to be settable in the keystone.conf template
 
 ## 10.0.0
 * Upgrading to Juno
