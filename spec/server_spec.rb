@@ -352,7 +352,7 @@ describe 'openstack-identity::server' do
         end
 
         it 'has correct modes' do
-          expect(sprintf('%o', resource.mode)).to eq('644')
+          expect(sprintf('%o', resource.mode)).to eq('640')
         end
       end
 

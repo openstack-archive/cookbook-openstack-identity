@@ -1,5 +1,7 @@
 # CHANGELOG for cookbook-openstack-identity
 This file is used to list changes made in each version of cookbook-openstack-identity.
+## 10.0.1
+* Update keystone.conf from mode 0644 to 0640
 
 ## 10.0.0
 * Upgrading to Juno

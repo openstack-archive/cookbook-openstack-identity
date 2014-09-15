@@ -200,7 +200,7 @@ template '/etc/keystone/keystone.conf' do
   source 'keystone.conf.erb'
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
-  mode   00644
+  mode   00640
   variables(
     sql_connection: sql_connection,
     bind_address: bind_address,
