@@ -1,6 +1,9 @@
 # CHANGELOG for cookbook-openstack-identity
 This file is used to list changes made in each version of cookbook-openstack-identity.
 
+## 10.0.1
+* Raise exceptions when register provider keystone command fails
+
 ## 10.0.0
 * Upgrading to Juno
 * Upgrading berkshelf from 2.0.18 to 3.1.5

@@ -83,9 +83,9 @@ def search_uuid(output, uuid_field, required_hash = {})
 end
 
 action :create_service do
+  new_resource.updated_by_last_action(false)
   if node['openstack']['identity']['catalog']['backend'] == 'templated'
     Chef::Log.info('Skipping service creation - templated catalog backend in use.')
-    new_resource.updated_by_last_action(false)
   else
     begin
       service_uuid = identity_uuid new_resource, 'service', 'type', new_resource.service_type
@@ -93,7 +93,6 @@ action :create_service do
       if service_uuid
         Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.")
         Chef::Log.info("Service UUID: #{service_uuid}")
-        new_resource.updated_by_last_action(false)
       else
         identity_command(new_resource, 'service-create',
                          'type' => new_resource.service_type,
@@ -103,30 +102,23 @@ action :create_service do
         new_resource.updated_by_last_action(true)
       end
     rescue StandardError => e
-      Chef::Log.error("Unable to create service '#{new_resource.service_name}'")
-      Chef::Log.error("Error was: #{e.message}")
-      new_resource.updated_by_last_action(false)
+      raise "Unable to create service '#{new_resource.service_name}' Error:" + e.message
     end
   end
 end
 
 action :create_endpoint do
+  new_resource.updated_by_last_action(false)
   if node['openstack']['identity']['catalog']['backend'] == 'templated'
     Chef::Log.info('Skipping endpoint creation - templated catalog backend in use.')
-    new_resource.updated_by_last_action(false)
   else
     begin
       service_uuid = identity_uuid new_resource, 'service', 'type', new_resource.service_type
-      unless service_uuid
-        Chef::Log.error("Unable to find service type '#{new_resource.service_type}'")
-        new_resource.updated_by_last_action(false)
-        next
-      end
+      fail "Unable to find service type '#{new_resource.service_type}'" unless service_uuid
 
       endpoint_uuid = identity_uuid new_resource, 'endpoint', 'service_id', service_uuid
       if endpoint_uuid
         Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}' already exists.. Not creating.")
-        new_resource.updated_by_last_action(false)
       else
         identity_command(new_resource, 'endpoint-create',
                          'region' => new_resource.endpoint_region,
@@ -138,21 +130,19 @@ action :create_endpoint do
         new_resource.updated_by_last_action(true)
       end
     rescue StandardError => e
-      Chef::Log.error("Unable to create endpoint for service type '#{new_resource.service_type}'")
-      Chef::Log.error("Error was: #{e.message}")
-      new_resource.updated_by_last_action(false)
+      raise "Unable to create endpoint for service type '#{new_resource.service_type}' Error: " + e.message
     end
   end
 end
 
 action :create_tenant do
   begin
+    new_resource.updated_by_last_action(false)
     tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
 
     if tenant_uuid
       Chef::Log.info("Tenant '#{new_resource.tenant_name}' already exists.. Not creating.")
       Chef::Log.info("Tenant UUID: #{tenant_uuid}") if tenant_uuid
-      new_resource.updated_by_last_action(false)
     else
       identity_command(new_resource, 'tenant-create',
                        'name' => new_resource.tenant_name,
@@ -162,20 +152,18 @@ action :create_tenant do
       new_resource.updated_by_last_action(true)
     end
   rescue StandardError => e
-    Chef::Log.error("Unable to create tenant '#{new_resource.tenant_name}'")
-    Chef::Log.error("Error was: #{e.message}")
-    new_resource.updated_by_last_action(false)
+    raise "Unable to create tenant '#{new_resource.tenant_name}' Error: " + e.message
   end
 end
 
 action :create_role do
   begin
+    new_resource.updated_by_last_action(false)
     role_uuid = identity_uuid new_resource, 'role', 'name', new_resource.role_name
 
     if role_uuid
       Chef::Log.info("Role '#{new_resource.role_name}' already exists.. Not creating.")
       Chef::Log.info("Role UUID: #{role_uuid}")
-      new_resource.updated_by_last_action(false)
     else
       identity_command(new_resource, 'role-create',
                        'name' => new_resource.role_name)
@@ -183,20 +171,15 @@ action :create_role do
       new_resource.updated_by_last_action(true)
     end
   rescue StandardError => e
-    Chef::Log.error("Unable to create role '#{new_resource.role_name}'")
-    Chef::Log.error("Error was: #{e.message}")
-    new_resource.updated_by_last_action(false)
+    raise "Unable to create role '#{new_resource.role_name}' Error: " + e.message
   end
 end
 
 action :create_user do
   begin
+    new_resource.updated_by_last_action(false)
     tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
-    unless tenant_uuid
-      Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
-      new_resource.updated_by_last_action(false)
-      next
-    end
+    fail "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
 
     output = identity_command(new_resource, 'user-list',
                               'tenant-id' => tenant_uuid)
@@ -208,7 +191,6 @@ action :create_user do
 
     if user_found
       Chef::Log.info("User '#{new_resource.user_name}' already exists for tenant '#{new_resource.tenant_name}'")
-      new_resource.updated_by_last_action(false)
       next
     end
 
@@ -220,34 +202,21 @@ action :create_user do
     Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
     new_resource.updated_by_last_action(true)
   rescue StandardError => e
-    Chef::Log.error("Unable to create user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
-    Chef::Log.error("Error was: #{e.message}")
-    new_resource.updated_by_last_action(false)
+    raise "Unable to create user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}' Error: " + e.message
   end
 end
 
 action :grant_role do
   begin
+    new_resource.updated_by_last_action(false)
     tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
-    unless tenant_uuid
-      Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
-      new_resource.updated_by_last_action(false)
-      next
-    end
+    fail "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
 
     user_uuid = identity_uuid new_resource, 'user', 'name', new_resource.user_name
-    unless tenant_uuid
-      Chef::Log.error("Unable to find user '#{new_resource.user_name}'")
-      new_resource.updated_by_last_action(false)
-      next
-    end
+    fail "Unable to find user '#{new_resource.user_name}'" unless tenant_uuid
 
     role_uuid = identity_uuid new_resource, 'role', 'name', new_resource.role_name
-    unless tenant_uuid
-      Chef::Log.error("Unable to find role '#{new_resource.role_name}'")
-      new_resource.updated_by_last_action(false)
-      next
-    end
+    fail "Unable to find role '#{new_resource.role_name}'" unless role_uuid
 
     assigned_role_uuid = identity_uuid(new_resource, 'user-role', 'name',
                                        new_resource.role_name,
@@ -255,7 +224,6 @@ action :grant_role do
                                        'user-id' => user_uuid)
     if role_uuid == assigned_role_uuid
       Chef::Log.info("Role '#{new_resource.role_name}' already granted to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
-      new_resource.updated_by_last_action(false)
     else
       identity_command(new_resource, 'user-role-add',
                        'tenant-id' => tenant_uuid,
@@ -265,35 +233,25 @@ action :grant_role do
       new_resource.updated_by_last_action(true)
     end
   rescue StandardError => e
-    Chef::Log.error("Unable to grant role '#{new_resource.role_name}' to user '#{new_resource.user_name}'")
-    Chef::Log.error("Error was: #{e.message}")
-    new_resource.updated_by_last_action(false)
+    raise "Unable to grant role '#{new_resource.role_name}' to user '#{new_resource.user_name}' Error: " + e.message
   end
 end
 
 action :create_ec2_credentials do
   begin
+    new_resource.updated_by_last_action(false)
     tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
-    unless tenant_uuid
-      Chef::Log.error("Unable to find tenant '#{new_resource.tenant_name}'")
-      new_resource.updated_by_last_action(false)
-      next
-    end
+    fail "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
 
     user_uuid = identity_uuid(new_resource, 'user', 'name',
                               new_resource.user_name,
                               'tenant-id' => tenant_uuid)
-    unless user_uuid
-      Chef::Log.error("Unable to find user '#{new_resource.user_name}'")
-      new_resource.updated_by_last_action(false)
-      next
-    end
+    fail "Unable to find user '#{new_resource.user_name}'" unless user_uuid
 
     # this is not really a uuid, but this will work nonetheless
     access = identity_uuid new_resource, 'ec2-credentials', 'tenant', new_resource.tenant_name, { 'user-id' => user_uuid }, 'access'
     if access
       Chef::Log.info("EC2 credentials already exist for '#{new_resource.user_name}' in tenant '#{new_resource.tenant_name}'")
-      new_resource.updated_by_last_action(false)
     else
       output = identity_command(new_resource, 'ec2-credentials-create',
                                 'user-id' => user_uuid,
@@ -302,8 +260,7 @@ action :create_ec2_credentials do
       data = prettytable_to_array(output)
 
       if data.length != 1
-        Chef::Log.error("Got bad data when creating ec2 credentials for #{new_resource.user_name}")
-        Chef::Log.error("Data: #{data}")
+        fail "Got bad data when creating ec2 credentials for #{new_resource.user_name} Data: #{data}"
       else
         # Update node attributes
         node.set['credentials']['EC2'][new_resource.user_name]['access'] = data[0]['access']
@@ -313,8 +270,6 @@ action :create_ec2_credentials do
       end
     end
   rescue StandardError => e
-    Chef::Log.error("Unable to create EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
-    Chef::Log.error("Error was: #{e.message}")
-    new_resource.updated_by_last_action(false)
+    raise "Unable to create EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}' Error: " + e.message
   end
 end
