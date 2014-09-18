@@ -640,6 +640,11 @@ describe 'openstack-identity::server' do
           r = line_regexp('expiration = 86400')
           expect(chef_run).to render_file(path).with_content(r)
         end
+
+        it 'sets token hash algorithm' do
+          r = line_regexp('hash_algorithm = md5')
+          expect(chef_run).to render_file(path).with_content(r)
+        end
       end
 
       describe '[policy] section' do

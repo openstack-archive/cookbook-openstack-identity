@@ -48,6 +48,7 @@ default['openstack']['identity']['misc_paste'] = []
 
 default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'
+default['openstack']['identity']['token']['hash_algorithm'] = 'md5'
 
 # Logging stuff
 default['openstack']['identity']['syslog']['use'] = false

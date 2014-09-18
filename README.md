@@ -252,6 +252,7 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['users']` - Array of users to create in the keystone server
 * `openstack['identity']['pastefile_url']` - Specify the URL for a keystone-paste.ini file that will override the default packaged file
 * `openstack['identity']['token']['expiration']` - Token validity time in seconds
+* `openstack['identity']['token']['hash_algorithm']` - Hash algorithms to use for hashing PKI tokens
 * `openstack['identity']['catalog']['backend']` - Storage mechanism for the keystone service catalog
 * `openstack['identity']["control_exchange"]` - The AMQP exchange to connect to if using RabbitMQ or Qpid, defaults to openstack
 * `openstack['identity']['rpc_backend']` - The messaging module to use

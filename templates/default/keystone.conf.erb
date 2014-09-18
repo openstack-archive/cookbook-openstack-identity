@@ -1611,6 +1611,7 @@ driver = keystone.token.backends.<%= node["openstack"]["identity"]["token"]["bac
 # configured with the hash_algorithms, otherwise token
 # revocation will not be processed correctly. (string value)
 #hash_algorithm=md5
+hash_algorithm = <%= node["openstack"]["identity"]["token"]["hash_algorithm"] %>
 
 
 [trust]
