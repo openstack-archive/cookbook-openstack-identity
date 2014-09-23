@@ -55,6 +55,18 @@ describe 'openstack-identity::default' do
           expect(resource).to_not be_updated
         end
       end
+
+      context 'when keystone tenant command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:create_tenant) }.to raise_error
+        end
+      end
     end
 
     describe 'service_create' do
@@ -103,6 +115,18 @@ describe 'openstack-identity::default' do
         end
       end
 
+      context 'when keystone service command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'service', 'name', 'compute')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:create_service) }.to raise_error
+        end
+      end
+
       context 'catalog.backend is templated' do
         before do
           node.set['openstack']['identity']['catalog']['backend'] = 'templated'
@@ -115,7 +139,7 @@ describe 'openstack-identity::default' do
       end
     end
 
-    describe 'service_create' do
+    describe 'endpoint_create' do
       let(:resource) do
         r = Chef::Resource::OpenstackIdentityRegister.new('endpoint1',
                                                           run_context)
@@ -256,6 +280,18 @@ describe 'openstack-identity::default' do
           expect(resource).to_not be_updated
         end
       end
+
+      context 'when keystone endpoint command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'service', 'type', 'compute')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:create_endpoint) }.to raise_error
+        end
+      end
     end
 
     describe 'role create' do
@@ -293,6 +329,18 @@ describe 'openstack-identity::default' do
         it 'should not create a role' do
           provider.run_action(:create_role)
           expect(resource).to_not be_updated
+        end
+      end
+
+      context 'when keystone role command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'role', 'name', 'role1')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:create_role) }.to raise_error
         end
       end
     end
@@ -371,6 +419,18 @@ describe 'openstack-identity::default' do
           ).to eq('good')
         end
       end
+
+      context 'when keystone user command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:create_user) }.to raise_error
+        end
+      end
     end
 
     describe 'role grant' do
@@ -442,6 +502,18 @@ describe 'openstack-identity::default' do
           expect(resource).to_not be_updated
         end
       end
+
+      context 'when keystone grant command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:grant_role) }.to raise_error
+        end
+      end
     end
 
     describe 'ec2_credentials create' do
@@ -503,6 +575,18 @@ describe 'openstack-identity::default' do
         it 'should grant ec2 creds if they already exist' do
           provider.run_action(:create_ec2_credentials)
           expect(resource).to_not be_updated
+        end
+      end
+
+      context 'when keystone user command fails' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_raise('Error!')
+        end
+
+        it 'should raise error' do
+          expect { provider.run_action(:create_ec2_credentials) }.to raise_error
         end
       end
     end

@@ -4,6 +4,9 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Update keystone.conf from mode 0644 to 0640
 * Allow hash_algorithm to be configurable
 
+## 10.0.1
+* Raise exceptions when register provider keystone command fails
+
 ## 10.0.0
 * Upgrading to Juno
 * Upgrading berkshelf from 2.0.18 to 3.1.5
