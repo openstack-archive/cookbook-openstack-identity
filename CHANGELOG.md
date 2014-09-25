@@ -1,5 +1,7 @@
 # CHANGELOG for cookbook-openstack-identity
 This file is used to list changes made in each version of cookbook-openstack-identity.
+## 9.3.2
+* Updated Berksfile.lock for the UTF8 issue in common
 
 ## 9.3.1
 * Add support for a templated keystone-paste.ini
