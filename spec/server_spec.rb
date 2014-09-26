@@ -98,6 +98,23 @@ describe 'openstack-identity::server' do
       end
     end
 
+    describe '/etc/keystone/domains' do
+      let(:dir) { '/etc/keystone/domains' }
+
+      it 'does not create /etc/keystone/domains by default' do
+        expect(chef_run).not_to create_directory(dir)
+      end
+
+      it 'creates /etc/keystone/domains when domain_specific_drivers_enabled enabled' do
+        node.set['openstack']['identity']['identity']['domain_specific_drivers_enabled'] = true
+        expect(chef_run).to create_directory(dir).with(
+          user: 'keystone',
+          group: 'keystone',
+          mode: 0700
+        )
+      end
+    end
+
     describe 'ssl directories' do
       let(:ssl_dir) { '/etc/keystone/ssl' }
       let(:certs_dir) { "#{ssl_dir}/certs" }
@@ -670,6 +687,16 @@ describe 'openstack-identity::server' do
         it 'configures driver' do
           r = line_regexp('driver = keystone.identity.backends.sql.Identity')
           expect(chef_run).to render_file(path).with_content(r)
+        end
+
+        [
+          /^default_domain_id=default$/,
+          /^domain_specific_drivers_enabled=false$/,
+          %r(^domain_config_dir=/etc/keystone/domains$)
+        ].each do |line|
+          it "has a #{line.source} line" do
+            expect(chef_run).to render_file(path).with_content(line)
+          end
         end
       end
 

@@ -6,8 +6,8 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Allow hash_algorithm to be configurable
 * Raise exceptions when register provider keystone command fails
 * Allow admin_bind_host to be settable in the keystone.conf template
-
 * Add attributes for saml
+* Allow attributes for domain specific drivers
 
 ## 10.0.0
 * Upgrading to Juno

@@ -818,7 +818,7 @@ driver = keystone.contrib.ec2.backends.sql.Ec2
 # v2 API. There is nothing special about this domain, other
 # than the fact that it must exist to order to maintain
 # support for your v2 clients. (string value)
-#default_domain_id=default
+default_domain_id=<%= node["openstack"]["identity"]["identity"]["default_domain_id"] %>
 
 # A subset (or all) of domains can have their own identity
 # driver, each with their own partial configuration file in a
@@ -826,12 +826,12 @@ driver = keystone.contrib.ec2.backends.sql.Ec2
 # domain need to be placed in the domain specific
 # configuration file. This feature is disabled by default; set
 # to true to enable. (boolean value)
-#domain_specific_drivers_enabled=false
+domain_specific_drivers_enabled=<%= node["openstack"]["identity"]["identity"]["domain_specific_drivers_enabled"] %>
 
 # Path for Keystone to locate the domain specific identity
 # configuration files if domain_specific_drivers_enabled is
 # set to true. (string value)
-#domain_config_dir=/etc/keystone/domains
+domain_config_dir=<%= node["openstack"]["identity"]["identity"]["domain_config_dir"] %>
 
 # Identity backend driver. (string value)
 #driver=keystone.identity.backends.sql.Identity

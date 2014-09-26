@@ -77,6 +77,13 @@ directory '/etc/keystone' do
   mode  00700
 end
 
+directory node['openstack']['identity']['identity']['domain_config_dir'] do
+  owner node['openstack']['identity']['user']
+  group node['openstack']['identity']['group']
+  mode  00700
+  only_if { node['openstack']['identity']['identity']['domain_specific_drivers_enabled'] }
+end
+
 file '/var/lib/keystone/keystone.db' do
   action :delete
   not_if { node['openstack']['db']['identity']['service_type'] == 'sqlite' }

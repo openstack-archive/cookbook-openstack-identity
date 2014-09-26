@@ -71,6 +71,29 @@ when 'qpid'
   default['openstack']['identity']['rpc_backend'] = 'qpid'
 end
 
+# This references the domain to use for all Identity API v2
+# requests (which are not aware of domains). A domain with
+# this ID will be created for you by keystone-manage db_sync
+# in migration 008. The domain referenced by this ID cannot be
+# deleted on the v3 API, to prevent accidentally breaking the
+# v2 API. There is nothing special about this domain, other
+# than the fact that it must exist to order to maintain
+# support for your v2 clients. (string value)
+default['openstack']['identity']['identity']['default_domain_id'] = 'default'
+
+# A subset (or all) of domains can have their own identity
+# driver, each with their own partial configuration file in a
+# domain configuration directory. Only values specific to the
+# domain need to be placed in the domain specific
+# configuration file. This feature is disabled by default; set
+# to true to enable. (boolean value)
+default['openstack']['identity']['identity']['domain_specific_drivers_enabled'] = false
+
+# Path for Keystone to locate the domain specific identity
+# configuration files if domain_specific_drivers_enabled is
+# set to true. (string value)
+default['openstack']['identity']['identity']['domain_config_dir'] = '/etc/keystone/domains'
+
 default['openstack']['identity']['admin_user'] = 'admin'
 default['openstack']['identity']['admin_tenant_name'] = 'admin'
 
