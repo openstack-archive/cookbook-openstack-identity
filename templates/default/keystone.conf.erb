@@ -1449,6 +1449,84 @@ list_limit=<%= node['openstack']['identity']['policy']['list_limit'] %>
 #caching=true
 
 
+[saml]
+
+#
+# Options defined in keystone
+#
+
+# Default TTL, in seconds, for any generated SAML assertion
+# created by Keystone. (integer value)
+assertion_expiration_time=<%= node["openstack"]["identity"]["saml"]["assertion_expiration_time"] %>
+
+# Binary to be called for XML signing. Install the appropriate
+# package, specify absolute path or adjust your PATH
+# environment variable if the binary cannot be found. (string
+# value)
+xmlsec1_binary=<%= node["openstack"]["identity"]["saml"]["xmlsec1_binary"] %>
+
+# Path of the certfile for SAML signing. For non-production
+# environments, you may be interested in using `keystone-
+# manage pki_setup` to generate self-signed certificates.
+# Note, the path cannot contain a comma. (string value)
+certfile=<%= node["openstack"]["identity"]["saml"]["certfile"] %>
+
+# Path of the keyfile for SAML signing. Note, the path cannot
+# contain a comma. (string value)
+keyfile=<%= node["openstack"]["identity"]["saml"]["keyfile"] %>
+
+# Entity ID value for unique Identity Provider identification.
+# Usually FQDN is set with a suffix. A value is required to
+# generate IDP Metadata. For example:
+# https://keystone.example.com/v3/OS-FEDERATION/saml2/idp
+# (string value)
+idp_entity_id=<%= node["openstack"]["identity"]["saml"]["idp_entity_id"] %>
+
+# Identity Provider Single-Sign-On service value, required in
+# the Identity Provider's metadata. A value is required to
+# generate IDP Metadata. For example:
+# https://keystone.example.com/v3/OS-FEDERATION/saml2/sso
+# (string value)
+idp_sso_endpoint=<%= node["openstack"]["identity"]["saml"]["idp_sso_endpoint"] %>
+
+# Language used by the organization. (string value)
+idp_lang=<%= node["openstack"]["identity"]["saml"]["idp_lang"] %>
+
+# Organization name the installation belongs to. (string
+# value)
+idp_organization_name=<%= node["openstack"]["identity"]["saml"]["idp_organization_name"] %>
+
+# Organization name to be displayed. (string value)
+idp_organization_display_name=<%= node["openstack"]["identity"]["saml"]["idp_organization_display_name"] %>
+
+# URL of the organization. (string value)
+idp_organization_url=<%= node["openstack"]["identity"]["saml"]["idp_organization_url"] %>
+
+# Company of contact person. (string value)
+idp_contact_company=<%= node["openstack"]["identity"]["saml"]["idp_contact_company"] %>
+
+# Given name of contact person (string value)
+idp_contact_name=<%= node["openstack"]["identity"]["saml"]["idp_contact_name"] %>
+
+# Surname of contact person. (string value)
+idp_contact_surname=<%= node["openstack"]["identity"]["saml"]["idp_contact_surname"] %>
+
+# Email address of contact person. (string value)
+idp_contact_email=<%= node["openstack"]["identity"]["saml"]["idp_contact_email"] %>
+
+# Telephone number of contact person. (string value)
+idp_contact_telephone=<%= node["openstack"]["identity"]["saml"]["idp_contact_telephone"] %>
+
+# Contact type. Allowed values are: technical, support,
+# administrative billing, and other (string value)
+idp_contact_type=<%= node["openstack"]["identity"]["saml"]["idp_contact_type"] %>
+
+# Path to the Identity Provider Metadata file. This file
+# should be generated with the keystone-manage
+# saml_idp_metadata command. (string value)
+idp_metadata_path=<%= node["openstack"]["identity"]["saml"]["idp_metadata_path"] %>
+
+
 [signing]
 
 #

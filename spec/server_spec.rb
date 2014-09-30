@@ -360,6 +360,55 @@ describe 'openstack-identity::server' do
         end
       end
 
+      describe '[saml] section' do
+        describe 'saml attributes' do
+          saml_default_attrs = %w(assertion_expiration_time=3600
+                                  xmlsec1_binary=xmlsec1
+                                  certfile=
+                                  keyfile=)
+          it 'default saml attributes' do
+            saml_default_attrs.each do |attr|
+              default_value = /^#{attr}$/
+              expect(chef_run).to render_file(path).with_content(default_value)
+            end
+          end
+
+          saml_override_attrs = %w(assertion_expiration_time
+                                   xmlsec1_binary
+                                   certfile
+                                   keyfile)
+          it 'override saml attributes' do
+            saml_override_attrs.each do |attr|
+              node.set['openstack']['identity']['saml']["#{attr}"] = "value_for_#{attr}"
+              override_value = /^#{attr}=value_for_#{attr}$/
+              expect(chef_run).to render_file(path).with_content(override_value)
+            end
+          end
+        end
+
+        describe 'optional saml ipd attributes' do
+          optional_attrs = %w{idp_entity_id idp_sso_endpoint idp_lang
+                              idp_organization_name idp_organization_display_name
+                              idp_organization_url idp_contact_company idp_contact_name
+                              idp_contact_surname idp_contact_email idp_contact_telephone
+                              idp_contact_type idp_metadata_path}
+          it 'empty default ipd attributes' do
+            optional_attrs.each do |attr|
+              default_value = /^#{attr}=$/
+              expect(chef_run).to render_file(path).with_content(default_value)
+            end
+          end
+
+          it 'overridden ipd attributes' do
+            optional_attrs.each do |attr|
+              node.set['openstack']['identity']['saml']["#{attr}"] = "value_for_#{attr}"
+              override_value = /^#{attr}=value_for_#{attr}$/
+              expect(chef_run).to render_file(path).with_content(override_value)
+            end
+          end
+        end
+      end
+
       it 'has no list_limits by default' do
         expect(chef_run).not_to render_file(path).with_content(/^list_limit=/)
       end
