@@ -50,7 +50,8 @@ private
 def identity_command(resource, cmd, args = {})
   keystonecmd = ['keystone'] << '--insecure' << cmd
   args.each do |key, val|
-    keystonecmd << "--#{key}" << val.to_s
+    keystonecmd << "--#{key}" unless key.empty?
+    keystonecmd << val.to_s
   end
   Chef::Log.debug("Running identity command: #{keystonecmd}")
   rc = shell_out(keystonecmd, env: (cmd.include? 'ec2') ? generate_ec2_creds(resource) : generate_creds(resource))
@@ -191,6 +192,12 @@ action :create_user do
 
     if user_found
       Chef::Log.info("User '#{new_resource.user_name}' already exists for tenant '#{new_resource.tenant_name}'")
+      # Make sure password is always up to date. Leaving updated_by_last_action to false as there's no way to tell
+      # if the password was actually updated or was the same as before.
+      Chef::Log.info("Sync password for user '#{new_resource.user_name}'")
+      identity_command(new_resource, 'user-password-update',
+                       'pass' => new_resource.user_pass,
+                       '' => new_resource.user_name)
       next
     end
 

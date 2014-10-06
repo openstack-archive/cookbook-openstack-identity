@@ -7,6 +7,8 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Raise exceptions when register provider keystone command fails
 * Allow admin_bind_host to be settable in the keystone.conf template
 
+* Allow existing users to have their passwords updated properly
+
 ## 10.0.0
 * Upgrading to Juno
 * Upgrading berkshelf from 2.0.18 to 3.1.5

@@ -394,6 +394,10 @@ describe 'openstack-identity::default' do
           allow(provider).to receive(:identity_uuid)
             .with(resource, 'user', 'name', 'user1')
             .and_return('HGFEDCBA0987654321')
+          allow(provider).to receive(:identity_command)
+            .with(resource, 'user-password-update',
+                  'pass' => 'password',
+                  '' => 'user1')
         end
 
         it 'should not create a user' do
