@@ -115,7 +115,7 @@ node.set['openstack']['identity']['internalURL'] = identity_internal_endpoint.to
 node.set['openstack']['identity']['publicURL'] = identity_endpoint.to_s
 
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint.to_s}"
-Chef::Log.info "Keystone InternalURL: #{identity_endpoint.to_s}"
+Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint.to_s}"
 Chef::Log.info "Keystone PublicURL: #{identity_endpoint.to_s}"
 
 openstack_identity_register 'Register Identity Endpoint' do
