@@ -85,6 +85,83 @@ default['openstack']['identity']['users'] = {
   }
 }
 
+# Security Assertion Markup Language (SAML)
+
+# Default TTL, in seconds, for any generated SAML assertion
+# created by Keystone. (integer value)
+default['openstack']['identity']['saml']['assertion_expiration_time'] = 3600
+
+# Binary to be called for XML signing. Install the appropriate
+# package, specify absolute path or adjust your PATH
+# environment variable if the binary cannot be found. (string
+# value)
+# xmlsec1_binary=xmlsec1
+default['openstack']['identity']['saml']['xmlsec1_binary'] = 'xmlsec1'
+
+# Path of the certfile for SAML signing. For non-production
+# environments, you may be interested in using `keystone-
+# manage pki_setup` to generate self-signed certificates.
+# Note, the path cannot contain a comma. (string value)
+# certfile=/etc/keystone/ssl/certs/signing_cert.pem
+default['openstack']['identity']['saml']['certfile'] = nil
+
+# Path of the keyfile for SAML signing. Note, the path cannot
+# contain a comma. (string value)
+# keyfile=/etc/keystone/ssl/private/signing_key.pem
+default['openstack']['identity']['saml']['keyfile'] = nil
+
+# Entity ID value for unique Identity Provider identification.
+# Usually FQDN is set with a suffix. A value is required to
+# generate IDP Metadata. For example:
+# https://keystone.example.com/v3/OS-FEDERATION/saml2/idp
+# (string value)
+default['openstack']['identity']['saml']['idp_entity_id'] = nil
+
+# Identity Provider Single-Sign-On service value, required in
+# the Identity Provider's metadata. A value is required to
+# generate IDP Metadata. For example:
+# https://keystone.example.com/v3/OS-FEDERATION/saml2/sso
+# (string value)
+default['openstack']['identity']['saml']['idp_sso_endpoint'] = nil
+
+# Language used by the organization. (string value)
+default['openstack']['identity']['saml']['idp_lang'] = nil
+
+# Organization name the installation belongs to. (string
+# value)
+default['openstack']['identity']['saml']['idp_organization_name'] = nil
+
+# Organization name to be displayed. (string value)
+default['openstack']['identity']['saml']['idp_organization_display_name'] = nil
+
+# URL of the organization. (string value)
+default['openstack']['identity']['saml']['idp_organization_url'] = nil
+
+# Company of contact person. (string value)
+default['openstack']['identity']['saml']['idp_contact_company'] = nil
+
+# Given name of contact person (string value)
+default['openstack']['identity']['saml']['idp_contact_name'] = nil
+
+# Surname of contact person. (string value)
+default['openstack']['identity']['saml']['idp_contact_surname'] = nil
+
+# Email address of contact person. (string value)
+default['openstack']['identity']['saml']['idp_contact_email'] = nil
+
+# Telephone number of contact person. (string value)
+default['openstack']['identity']['saml']['idp_contact_telephone'] = nil
+
+# Contact type. Allowed values are: technical, support,
+# administrative billing, and other (string value)
+default['openstack']['identity']['saml']['idp_contact_type'] = nil
+
+# Path to the Identity Provider Metadata file. This file
+# should be generated with the keystone-manage
+# saml_idp_metadata command. (string value)
+# idp_metadata_path=/etc/keystone/saml2_idp_metadata.xml
+default['openstack']['identity']['saml']['idp_metadata_path'] = nil
+
 # PKI signing. Corresponds to the [signing] section of keystone.conf
 # Note this section is only written if node['openstack']['auth']['strategy'] == 'pki'
 default['openstack']['identity']['signing']['basedir'] = '/etc/keystone/ssl'
