@@ -66,6 +66,13 @@ service 'keystone' do
   service_name platform_options['keystone_service']
   supports status: true, restart: true
 
+  case node["platform"]
+  when "ubuntu"
+    if node["platform_version"].to_f >= 14.04
+      provider Chef::Provider::Service::Upstart
+    end
+  end
+
   action [:enable]
 
   notifies :run, 'execute[Keystone: sleep]', :immediately
