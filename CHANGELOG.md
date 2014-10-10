@@ -9,6 +9,8 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Add attributes for saml
 * Allow attributes for domain specific drivers
 
+* Allow existing users to have their passwords updated properly
+
 ## 10.0.0
 * Upgrading to Juno
 * Upgrading berkshelf from 2.0.18 to 3.1.5
