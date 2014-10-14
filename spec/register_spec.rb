@@ -189,11 +189,43 @@ describe 'openstack-identity::default' do
             allow(provider).to receive(:identity_uuid)
               .with(resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
               .and_return('0987654321HGFEDCBA')
+            allow(provider).to receive(:endpoint_need_updated?)
+              .with(resource, 'service_id', '1234567890ABCDEFGH')
+              .and_return(false)
           end
 
-          it 'should not create an endpoint' do
+          it 'should not update an endpoint' do
             provider.run_action(:create_endpoint)
-            expect(resource).to_not be_updated
+            expect(resource).not_to be_updated
+          end
+        end
+
+        context 'when endpoint does already exist and need to be updated' do
+          before do
+            allow(provider).to receive(:identity_uuid)
+              .with(resource, 'service', 'type', 'compute')
+              .and_return('1234567890ABCDEFGH')
+            allow(provider).to receive(:identity_uuid)
+              .with(resource, 'endpoint', 'service_id', '1234567890ABCDEFGH')
+              .and_return('0987654321HGFEDCBA')
+            allow(provider).to receive(:endpoint_need_updated?)
+              .with(resource, 'service_id', '1234567890ABCDEFGH')
+              .and_return(true)
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'endpoint-delete',
+                    '' => '0987654321HGFEDCBA')
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'endpoint-create',
+                    'region' => 'Region One',
+                    'service_id' => '1234567890ABCDEFGH',
+                    'publicurl' => 'http://public',
+                    'internalurl' => 'http://internal',
+                    'adminurl' => 'http://admin')
+          end
+
+          it 'should update an endpoint' do
+            provider.run_action(:create_endpoint)
+            expect(resource).to be_updated
           end
         end
 
@@ -266,6 +298,46 @@ describe 'openstack-identity::default' do
                             'id' => '000d9c447d124754a197fc612f9d63d7',
                             'region' => 'Region Two', 'key' => 'value')
             ).to eq(nil)
+          end
+        end
+
+        context '#endpoint_need_updated?, when endpoint exist and not need to be updated' do
+          before do
+            output = ' | 000d9c447d124754a197fc612f9d63d7 | Region One | http://public | http://internal |  http://admin | f9511a66e0484f3dbd1584065e8bab1c '
+            output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region One', 'publicurl' => 'http://public', 'internalurl' => 'http://internal', 'adminurl' => 'http://admin', 'service_id' => 'f9511a66e0484f3dbd1584065e8bab1c' }]
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'endpoint-list', {})
+              .and_return(output)
+            allow(provider).to receive(:prettytable_to_array)
+              .with(output)
+              .and_return(output_array)
+          end
+
+          it 'endpoint should not be updated' do
+            expect(
+              provider.send(:endpoint_need_updated?, resource,
+                            'service_id', 'f9511a66e0484f3dbd1584065e8bab1c')
+            ).to eq(false)
+          end
+        end
+
+        context '#endpoint_need_updated?, when endpoint exist and need to be updated' do
+          before do
+            output = ' | 000d9c447d124754a197fc612f9d63d7 | Region One | https://public | https://internal |  https://admin | f9511a66e0484f3dbd1584065e8bab1c '
+            output_array = [{ 'id' => '000d9c447d124754a197fc612f9d63d7', 'region' => 'Region One', 'publicurl' => 'https://public', 'internalurl' => 'https://internal', 'adminurl' => 'https://admin', 'service_id' => 'f9511a66e0484f3dbd1584065e8bab1c' }]
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'endpoint-list', {})
+              .and_return(output)
+            allow(provider).to receive(:prettytable_to_array)
+              .with(output)
+              .and_return(output_array)
+          end
+
+          it 'endpoint should be updated' do
+            expect(
+              provider.send(:endpoint_need_updated?, resource,
+                            'service_id', 'f9511a66e0484f3dbd1584065e8bab1c')
+            ).to eq(true)
           end
         end
       end

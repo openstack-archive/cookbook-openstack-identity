@@ -83,6 +83,19 @@ def search_uuid(output, uuid_field, required_hash = {})
   rc
 end
 
+private
+
+def endpoint_need_updated?(resource, key, value, args = {}, uuid_field = 'id')
+  begin
+    output = identity_command resource, 'endpoint-list', args
+    output = prettytable_to_array(output)
+    return search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region, 'publicurl' => resource.endpoint_publicurl, 'internalurl' => resource.endpoint_internalurl, 'adminurl' => resource.endpoint_adminurl).nil?
+  rescue RuntimeError => e
+    raise "Could not check endpoint attributes for endpoint:#{key}=>#{value}. Error was #{e.message}"
+  end
+  false
+end
+
 action :create_service do
   new_resource.updated_by_last_action(false)
   if node['openstack']['identity']['catalog']['backend'] == 'templated'
@@ -118,9 +131,17 @@ action :create_endpoint do
       fail "Unable to find service type '#{new_resource.service_type}'" unless service_uuid
 
       endpoint_uuid = identity_uuid new_resource, 'endpoint', 'service_id', service_uuid
+      need_updated = false
       if endpoint_uuid
-        Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}' already exists.. Not creating.")
-      else
+        Chef::Log.info("Endpoint already exists for Service Type '#{new_resource.service_type}'.")
+        need_updated = endpoint_need_updated? new_resource, 'service_id', service_uuid
+        if need_updated
+          Chef::Log.info("Endpoint for Service Type '#{new_resource.service_type}' needs to be updated, delete it first.")
+          identity_command(new_resource, 'endpoint-delete',
+                           '' => endpoint_uuid)
+        end
+      end
+      unless endpoint_uuid && !need_updated
         identity_command(new_resource, 'endpoint-create',
                          'region' => new_resource.endpoint_region,
                          'service_id' => service_uuid,
