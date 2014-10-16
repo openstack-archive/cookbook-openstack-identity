@@ -46,6 +46,19 @@ default['openstack']['identity']['pastefile_url'] = nil
 # array of lines to add to templated version of keystone-paste.ini
 default['openstack']['identity']['misc_paste'] = []
 
+# This specify the pipeline of the keystone public API,
+# all Identity public API requests will be processed by the order of the pipeline.
+# this value will be used in the templated version of keystone-paste.ini
+default['openstack']['identity']['pipeline']['public_api'] = 'sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v2 json_body ec2_extension user_crud_extension public_service'
+# This specify the pipeline of the keystone admin API,
+# all Identity admin API requests will be processed by the order of the pipeline.
+# this value will be used in the templated version of keystone-paste.ini
+default['openstack']['identity']['pipeline']['admin_api'] = 'sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v2 json_body ec2_extension s3_extension crud_extension admin_service'
+# This specify the pipeline of the keystone V3 API,
+# all Identity V3 API requests will be processed by the order of the pipeline.
+# this value will be used in the templated version of keystone-paste.ini
+default['openstack']['identity']['pipeline']['api_v3'] = 'sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v3 json_body ec2_extension_v3 s3_extension simple_cert_extension revoke_extension service_v3'
+
 default['openstack']['identity']['region'] = node['openstack']['region']
 default['openstack']['identity']['token']['expiration'] = '86400'
 default['openstack']['identity']['token']['hash_algorithm'] = 'md5'

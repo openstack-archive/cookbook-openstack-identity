@@ -12,6 +12,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Bump Chef gem to 11.16
 * Add test to verify each endpoint can be configured seperatly
 * Update endpoint when endpoint for one service type exists
+* Add attributes for pipeline of API
 
 ## 10.0.0
 * Upgrading to Juno

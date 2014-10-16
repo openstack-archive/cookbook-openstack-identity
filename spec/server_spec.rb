@@ -851,7 +851,19 @@ describe 'openstack-identity::server' do
       it 'has proper modes' do
         expect(sprintf('%o', template.mode)).to eq('644')
       end
-
+      it 'has default api pipeline value' do
+        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v2 json_body ec2_extension user_crud_extension public_service$/)
+        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v2 json_body ec2_extension s3_extension crud_extension admin_service$/)
+        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v3 json_body ec2_extension_v3 s3_extension simple_cert_extension revoke_extension service_v3$/)
+      end
+      it 'template api pipeline set correct' do
+        node.set['openstack']['identity']['pipeline']['public_api'] = 'public_service'
+        node.set['openstack']['identity']['pipeline']['admin_api'] = 'admin_service'
+        node.set['openstack']['identity']['pipeline']['api_v3'] = 'service_v3'
+        expect(chef_run).to render_file(path).with_content(/^pipeline = public_service$/)
+        expect(chef_run).to render_file(path).with_content(/^pipeline = admin_service$/)
+        expect(chef_run).to render_file(path).with_content(/^pipeline = service_v3$/)
+      end
       it 'template misc_paste array correctly' do
         node.set['openstack']['identity']['misc_paste'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
         expect(chef_run).to render_file(path).with_content(

@@ -272,6 +272,9 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['catalog']['list_limit']` - Maximum number of entities that will be returned in a catalog collection
 * `openstack['identity']['identity']['list_limit']` - Maximum number of entities that will be returned in a identity collection
 * `openstack['identity']['policy']['list_limit']` - Maximum number of entities that will be returned in a policy collection
+* `openstack['identity']['pipeline']['public_api']` - Pipeline of identity public api
+* `openstack['identity']['pipeline']['admin_api']` - Pipeline of identity admin api
+* `openstack['identity']['pipeline']['api_v3']` - Pipeline of identity V3 api
 
 Most `openstack['identity']['ldap']` attributes map directly to the corresponding config options in keystone.conf's `[ldap]` backend.  They are primarily used when configuring `openstack['identity']['identity']['backend']` and/or `openstack["identity"]["assignment"]["backend"]` as `ldap` (both default to `sql`).
 
