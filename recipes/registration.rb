@@ -140,7 +140,6 @@ node['openstack']['identity']['users'].each do |username, user_info|
     admin_tenant_name admin_tenant_name
     admin_user admin_user
     admin_pass admin_pass
-    identity_endpoint identity_endpoint.to_s
 
     action :create_ec2_credentials
   end

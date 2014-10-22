@@ -65,4 +65,7 @@ attribute :role_name, kind_of: String
 attribute :admin_tenant_name, kind_of: String
 attribute :admin_user, kind_of: String
 attribute :admin_pass, kind_of: String
+
+# Used by create_ec2_credentials and create_user
+# If not specified, default endpoint will be used.
 attribute :identity_endpoint, kind_of: String

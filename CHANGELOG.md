@@ -13,6 +13,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Add test to verify each endpoint can be configured seperatly
 * Update endpoint when endpoint for one service type exists
 * Add attributes for pipeline of API
+* Add create user idempotent password check
 
 ## 10.0.0
 * Upgrading to Juno

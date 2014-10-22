@@ -453,7 +453,7 @@ describe 'openstack-identity::default' do
         end
       end
 
-      context 'when user already exist' do
+      context 'when user already exist with same password' do
         before do
           allow(provider).to receive(:identity_uuid)
             .with(resource, 'tenant', 'name', 'tenant1')
@@ -467,14 +467,40 @@ describe 'openstack-identity::default' do
             .with(resource, 'user', 'name', 'user1')
             .and_return('HGFEDCBA0987654321')
           allow(provider).to receive(:identity_command)
-            .with(resource, 'user-password-update',
-                  'pass' => 'password',
-                  '' => 'user1')
+            .with(resource, 'token-get', {}, 'user')
         end
 
         it 'should not create a user' do
           provider.run_action(:create_user)
           expect(resource).to_not be_updated
+        end
+      end
+
+      context 'when user already exist and changed password' do
+        before do
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'tenant', 'name', 'tenant1')
+            .and_return('1234567890ABCDEFGH')
+          allow(provider).to receive(:identity_command)
+            .with(resource, 'user-list',
+                  'tenant-id' => '1234567890ABCDEFGH')
+          allow(provider).to receive(:prettytable_to_array)
+            .and_return([{ 'name' => 'user1' }])
+          allow(provider).to receive(:identity_uuid)
+            .with(resource, 'user', 'name', 'user1')
+            .and_return('HGFEDCBA0987654321')
+          allow(provider).to receive(:identity_command)
+            .with(resource, 'token-get', {}, 'user')
+            .and_raise('Error!')
+          allow(provider).to receive(:identity_command)
+            .with(resource, 'user-password-update',
+                  'pass' => 'password',
+                  '' => 'user1')
+        end
+
+        it 'should update user password' do
+          provider.run_action(:create_user)
+          expect(resource).to be_updated
         end
       end
 
@@ -621,8 +647,9 @@ describe 'openstack-identity::default' do
                   { 'user-id' => 'HGFEDCBA0987654321' }, 'access')
           allow(provider).to receive(:identity_command)
             .with(resource, 'ec2-credentials-create',
-                  'user-id' => 'HGFEDCBA0987654321',
-                  'tenant-id' => '1234567890ABCDEFGH')
+                  { 'user-id' => 'HGFEDCBA0987654321',
+                    'tenant-id' => '1234567890ABCDEFGH' },
+                  'admin')
           allow(provider).to receive(:prettytable_to_array)
             .and_return([{ 'access' => 'access', 'secret' => 'secret' }])
         end

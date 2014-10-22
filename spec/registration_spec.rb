@@ -124,6 +124,19 @@ describe 'openstack-identity::registration' do
               end
             end
 
+            it 'registers the admin user for ec2' do
+              expect(chef_run).to create_ec2_credentials_openstack_identity_register(
+                "Create EC2 credentials for 'admin' user"
+              ).with(
+                auth_uri: 'http://127.0.0.1:35357/v2.0',
+                bootstrap_token: 'bootstrap-token',
+                user_name: user,
+                tenant_name: tenant,
+                admin_tenant_name: 'admin',
+                admin_user: 'admin',
+                admin_pass: ''
+              )
+            end
           end
         end
       end
@@ -152,6 +165,20 @@ describe 'openstack-identity::registration' do
             user_name: 'user1',
             role_name: 'role1',
             tenant_name: 'role_tenant1'
+          )
+        end
+
+        it 'registers the user1 user for ec2' do
+          expect(chef_run).to create_ec2_credentials_openstack_identity_register(
+            "Create EC2 credentials for 'user1' user"
+          ).with(
+            auth_uri: 'http://127.0.0.1:35357/v2.0',
+            bootstrap_token: 'bootstrap-token',
+            user_name: 'user1',
+            tenant_name: 'default_tenant1',
+            admin_tenant_name: 'admin',
+            admin_user: 'admin',
+            admin_pass: ''
           )
         end
       end

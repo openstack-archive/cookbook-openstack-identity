@@ -27,7 +27,7 @@ include ::Openstack
 
 private
 
-def generate_creds(resource)
+def generate_boot_creds(resource)
   {
     'OS_SERVICE_ENDPOINT' => resource.auth_uri,
     'OS_SERVICE_TOKEN' => resource.bootstrap_token
@@ -36,25 +36,54 @@ end
 
 private
 
-def generate_ec2_creds(resource)
+def generate_admin_creds(resource)
+  identity_endpoint = resource.identity_endpoint
+  identity_endpoint = endpoint('identity-admin').to_s unless identity_endpoint
   {
       'OS_USERNAME' => resource.admin_user,
       'OS_PASSWORD' => resource.admin_pass,
       'OS_TENANT_NAME' => resource.admin_tenant_name,
-      'OS_AUTH_URL' => resource.identity_endpoint
+      'OS_AUTH_URL' => identity_endpoint
   }
 end
 
 private
 
-def identity_command(resource, cmd, args = {})
+def generate_user_creds(resource)
+  identity_endpoint = resource.identity_endpoint
+  identity_endpoint = endpoint('identity-api').to_s unless identity_endpoint
+  {
+      'OS_USERNAME' => resource.user_name,
+      'OS_PASSWORD' => resource.user_pass,
+      'OS_TENANT_NAME' => resource.tenant_name,
+      'OS_AUTH_URL' => identity_endpoint
+  }
+end
+
+private
+
+def get_env(resource, env = 'boot')
+  case env
+  when 'boot'
+    generate_boot_creds(resource)
+  when 'user'
+    generate_user_creds(resource)
+  when 'admin'
+    generate_admin_creds(resource)
+  end
+end
+
+private
+
+def identity_command(resource, cmd, args = {}, env = 'boot')
   keystonecmd = ['keystone'] << '--insecure' << cmd
   args.each do |key, val|
     keystonecmd << "--#{key}" unless key.empty?
     keystonecmd << val.to_s
   end
-  Chef::Log.debug("Running identity command: #{keystonecmd}")
-  rc = shell_out(keystonecmd, env: (cmd.include? 'ec2') ? generate_ec2_creds(resource) : generate_creds(resource))
+  cmd_env = get_env(resource, env)
+  Chef::Log.debug("Running identity command: #{keystonecmd} env: " + cmd_env.to_s)
+  rc = shell_out(keystonecmd, env: cmd_env)
   fail "#{rc.stderr} (#{rc.exitstatus})" if rc.exitstatus != 0
   rc.stdout
 end
@@ -213,12 +242,17 @@ action :create_user do
 
     if user_found
       Chef::Log.info("User '#{new_resource.user_name}' already exists for tenant '#{new_resource.tenant_name}'")
-      # Make sure password is always up to date. Leaving updated_by_last_action to false as there's no way to tell
-      # if the password was actually updated or was the same as before.
-      Chef::Log.info("Sync password for user '#{new_resource.user_name}'")
-      identity_command(new_resource, 'user-password-update',
-                       'pass' => new_resource.user_pass,
-                       '' => new_resource.user_name)
+      begin
+        # Check if password is already updated by getting a token
+        identity_command(new_resource, 'token-get', {}, 'user')
+      rescue StandardError => e
+        Chef::Log.debug('Get token error:' + e.message)
+        Chef::Log.info("Sync password for user '#{new_resource.user_name}'")
+        identity_command(new_resource, 'user-password-update',
+                         'pass' => new_resource.user_pass,
+                         '' => new_resource.user_name)
+        new_resource.updated_by_last_action(true)
+      end
       next
     end
 
@@ -282,8 +316,9 @@ action :create_ec2_credentials do
       Chef::Log.info("EC2 credentials already exist for '#{new_resource.user_name}' in tenant '#{new_resource.tenant_name}'")
     else
       output = identity_command(new_resource, 'ec2-credentials-create',
-                                'user-id' => user_uuid,
-                                'tenant-id' => tenant_uuid)
+                                { 'user-id' => user_uuid,
+                                  'tenant-id' => tenant_uuid },
+                                'admin')
       Chef::Log.info("Created EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
       data = prettytable_to_array(output)
 
