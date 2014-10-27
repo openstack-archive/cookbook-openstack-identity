@@ -1658,7 +1658,7 @@ provider = keystone.token.providers.<%= node["openstack"]["auth"]["strategy"] %>
 
 # Token persistence backend driver. (string value)
 #driver=keystone.token.persistence.backends.sql.Token
-driver = keystone.token.backends.<%= node["openstack"]["identity"]["token"]["backend"] %>.Token
+driver = keystone.token.persistence.backends.<%= node["openstack"]["identity"]["token"]["backend"] %>.Token
 
 # Toggle for token system cacheing. This has no effect unless
 # global caching is enabled. (boolean value)

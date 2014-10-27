@@ -14,6 +14,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Update endpoint when endpoint for one service type exists
 * Add attributes for pipeline of API
 * Add create user idempotent password check
+* Cleanup deprecated sql token attribute
 
 ## 10.0.0
 * Upgrading to Juno

@@ -732,7 +732,7 @@ describe 'openstack-identity::server' do
 
       describe '[token] section' do
         it 'configures driver' do
-          r = line_regexp('driver = keystone.token.backends.sql.Token')
+          r = line_regexp('driver = keystone.token.persistence.backends.sql.Token')
           expect(chef_run).to render_file(path).with_content(r)
         end
 
