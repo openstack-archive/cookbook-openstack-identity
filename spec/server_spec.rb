@@ -737,7 +737,7 @@ describe 'openstack-identity::server' do
         end
 
         it 'sets token expiration time' do
-          r = line_regexp('expiration = 86400')
+          r = line_regexp('expiration = 3600')
           expect(chef_run).to render_file(path).with_content(r)
         end
 
