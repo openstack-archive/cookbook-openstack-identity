@@ -60,7 +60,8 @@ default['openstack']['identity']['pipeline']['admin_api'] = 'sizelimit url_norma
 default['openstack']['identity']['pipeline']['api_v3'] = 'sizelimit url_normalize build_auth_context token_auth admin_token_auth xml_body_v3 json_body ec2_extension_v3 s3_extension simple_cert_extension revoke_extension service_v3'
 
 default['openstack']['identity']['region'] = node['openstack']['region']
-default['openstack']['identity']['token']['expiration'] = '86400'
+# Amount of time a token should remain valid in seconds)
+default['openstack']['identity']['token']['expiration'] = '3600'
 default['openstack']['identity']['token']['hash_algorithm'] = 'md5'
 
 # Logging stuff

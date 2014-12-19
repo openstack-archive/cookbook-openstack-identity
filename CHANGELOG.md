@@ -15,6 +15,7 @@ This file is used to list changes made in each version of cookbook-openstack-ide
 * Add attributes for pipeline of API
 * Add create user idempotent password check
 * Cleanup deprecated sql token attribute
+* Fix token expiration default value
 
 ## 10.0.0
 * Upgrading to Juno
