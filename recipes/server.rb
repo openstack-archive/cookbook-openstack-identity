@@ -150,15 +150,25 @@ if node['openstack']['auth']['strategy'] == 'pki'
   end
 end
 
+# Note that identity-bind and identity-admin-bind are not
+# service endpoints where there could be separate 'admin',
+# 'public', and 'internal'. (Well, actually I suppose we
+# could shoehorn it into that infrastructure, but for now
+# I propose that we leave them with the general endpoint
+# lookup routine.)
 bind_endpoint = endpoint 'identity-bind'
 admin_bind_endpoint = endpoint 'identity-admin-bind'
-identity_admin_endpoint = endpoint 'identity-admin'
-identity_endpoint = endpoint 'identity-api'
-compute_endpoint = endpoint 'compute-api'
-ec2_endpoint = endpoint 'compute-ec2-api'
-image_endpoint = endpoint 'image-api'
-network_endpoint = endpoint 'network-api'
-volume_endpoint = endpoint 'block-storage-api'
+identity_admin_endpoint = admin_endpoint 'identity-admin'
+
+# These values are going into the templated catalog and
+# since they're the endpoints being used by the clients,
+# we should put in the public endpoints for each service.
+identity_endpoint = public_endpoint 'identity-api'
+compute_endpoint = public_endpoint 'compute-api'
+ec2_endpoint = public_endpoint 'compute-ec2-api'
+image_endpoint = public_endpoint 'image-api'
+network_endpoint = public_endpoint 'network-api'
+volume_endpoint = public_endpoint 'block-storage-api'
 
 db_user = node['openstack']['db']['identity']['username']
 db_pass = get_password 'db', 'keystone'

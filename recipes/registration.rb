@@ -25,9 +25,13 @@ class ::Chef::Recipe # rubocop:disable Documentation
   include ::Openstack
 end
 
-identity_admin_endpoint = endpoint 'identity-admin'
-identity_internal_endpoint = endpoint 'identity-internal'
-identity_endpoint = endpoint 'identity-api'
+# TBD clean up item...
+# These should probably become admin, internal, public endpoints for a
+# single service 'identity-api'. To minimize impact, I propose that we
+# defer that work until later.
+identity_admin_endpoint = admin_endpoint 'identity-admin'
+identity_internal_endpoint = internal_endpoint 'identity-internal'
+identity_public_endpoint = public_endpoint 'identity-api'
 auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
 # FIXME(invsblduck): RuboCop gating was enabled mid-review;
@@ -112,11 +116,11 @@ end
 
 node.set['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
 node.set['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
-node.set['openstack']['identity']['publicURL'] = identity_endpoint.to_s
+node.set['openstack']['identity']['publicURL'] = identity_public_endpoint.to_s
 
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint.to_s}"
 Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint.to_s}"
-Chef::Log.info "Keystone PublicURL: #{identity_endpoint.to_s}"
+Chef::Log.info "Keystone PublicURL: #{identity_public_endpoint.to_s}"
 
 openstack_identity_register 'Register Identity Endpoint' do
   auth_uri auth_uri
