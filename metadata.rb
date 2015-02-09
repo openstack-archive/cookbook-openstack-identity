@@ -14,4 +14,4 @@ recipe           'openstack-identity::registration', 'Adds user, tenant, role an
   supports os
 end
 
-depends          'openstack-common', '~> 10.1'
+depends          'openstack-common', '>= 10.2.0'
