@@ -274,38 +274,21 @@ default['openstack']['identity']['ldap']['user_enabled_emulation'] = false
 default['openstack']['identity']['ldap']['user_enabled_emulation_dn'] = nil
 
 # LDAP backend tenant related settings
-# NOTE! tenant_xxxx has been deprecated in Juno, please use project_xxxx below
-default['openstack']['identity']['ldap']['tenant_tree_dn'] = nil
-default['openstack']['identity']['ldap']['tenant_filter'] = nil
-default['openstack']['identity']['ldap']['tenant_objectclass'] = 'groupOfNames'
-default['openstack']['identity']['ldap']['tenant_id_attribute'] = 'cn'
-default['openstack']['identity']['ldap']['tenant_member_attribute'] = 'member'
-default['openstack']['identity']['ldap']['tenant_name_attribute'] = 'ou'
-default['openstack']['identity']['ldap']['tenant_desc_attribute'] = 'description'
-default['openstack']['identity']['ldap']['tenant_enabled_attribute'] = 'enabled'
-default['openstack']['identity']['ldap']['tenant_domain_id_attribute'] = 'businessCategory'
-default['openstack']['identity']['ldap']['tenant_attribute_ignore'] = nil
-default['openstack']['identity']['ldap']['tenant_allow_create'] = true
-default['openstack']['identity']['ldap']['tenant_allow_update'] = true
-default['openstack']['identity']['ldap']['tenant_allow_delete'] = true
-default['openstack']['identity']['ldap']['tenant_enabled_emulation'] = false
-default['openstack']['identity']['ldap']['tenant_enabled_emulation_dn'] = nil
-
-default['openstack']['identity']['ldap']['project_tree_dn'] = node['openstack']['identity']['ldap']['tenant_tree_dn']
-default['openstack']['identity']['ldap']['project_filter'] = node['openstack']['identity']['ldap']['tenant_filter']
-default['openstack']['identity']['ldap']['project_objectclass'] = node['openstack']['identity']['ldap']['tenant_objectclass']
-default['openstack']['identity']['ldap']['project_id_attribute'] = node['openstack']['identity']['ldap']['tenant_id_attribute']
-default['openstack']['identity']['ldap']['project_member_attribute'] = node['openstack']['identity']['ldap']['tenant_member_attribute']
-default['openstack']['identity']['ldap']['project_name_attribute'] = node['openstack']['identity']['ldap']['tenant_name_attribute']
-default['openstack']['identity']['ldap']['project_desc_attribute'] = node['openstack']['identity']['ldap']['tenant_desc_attribute']
-default['openstack']['identity']['ldap']['project_enabled_attribute'] = node['openstack']['identity']['ldap']['tenant_enabled_attribute']
-default['openstack']['identity']['ldap']['project_domain_id_attribute'] = node['openstack']['identity']['ldap']['tenant_domain_id_attribute']
-default['openstack']['identity']['ldap']['project_attribute_ignore'] = node['openstack']['identity']['ldap']['tenant_attribute_ignore']
-default['openstack']['identity']['ldap']['project_allow_create'] = node['openstack']['identity']['ldap']['tenant_allow_create']
-default['openstack']['identity']['ldap']['project_allow_update'] = node['openstack']['identity']['ldap']['tenant_allow_update']
-default['openstack']['identity']['ldap']['project_allow_delete'] = node['openstack']['identity']['ldap']['tenant_allow_delete']
-default['openstack']['identity']['ldap']['project_enabled_emulation'] = node['openstack']['identity']['ldap']['tenant_enabled_emulation']
-default['openstack']['identity']['ldap']['project_enabled_emulation_dn'] = node['openstack']['identity']['ldap']['tenant_enabled_emulation_dn']
+default['openstack']['identity']['ldap']['project_tree_dn'] = nil
+default['openstack']['identity']['ldap']['project_filter'] = nil
+default['openstack']['identity']['ldap']['project_objectclass'] = 'groupOfNames'
+default['openstack']['identity']['ldap']['project_id_attribute'] = 'cn'
+default['openstack']['identity']['ldap']['project_member_attribute'] = 'member'
+default['openstack']['identity']['ldap']['project_name_attribute'] = 'ou'
+default['openstack']['identity']['ldap']['project_desc_attribute'] = 'description'
+default['openstack']['identity']['ldap']['project_enabled_attribute'] = 'enabled'
+default['openstack']['identity']['ldap']['project_domain_id_attribute'] = 'businessCategory'
+default['openstack']['identity']['ldap']['project_attribute_ignore'] = nil
+default['openstack']['identity']['ldap']['project_allow_create'] = true
+default['openstack']['identity']['ldap']['project_allow_update'] = true
+default['openstack']['identity']['ldap']['project_allow_delete'] = true
+default['openstack']['identity']['ldap']['project_enabled_emulation'] = false
+default['openstack']['identity']['ldap']['project_enabled_emulation_dn'] = nil
 
 # LDAP backend role related settings
 default['openstack']['identity']['ldap']['role_tree_dn'] = nil
