@@ -5,6 +5,9 @@
 [filter:debug]
 paste.filter_factory = keystone.common.wsgi:Debug.factory
 
+[filter:request_id]
+paste.filter_factory = oslo_middleware:RequestId.factory
+
 [filter:build_auth_context]
 paste.filter_factory = keystone.middleware:AuthContextMiddleware.factory
 
@@ -13,15 +16,6 @@ paste.filter_factory = keystone.middleware:TokenAuthMiddleware.factory
 
 [filter:admin_token_auth]
 paste.filter_factory = keystone.middleware:AdminTokenAuthMiddleware.factory
-
-[filter:xml_body]
-paste.filter_factory = keystone.middleware:XmlBodyMiddleware.factory
-
-[filter:xml_body_v2]
-paste.filter_factory = keystone.middleware:XmlBodyMiddlewareV2.factory
-
-[filter:xml_body_v3]
-paste.filter_factory = keystone.middleware:XmlBodyMiddlewareV3.factory
 
 [filter:json_body]
 paste.filter_factory = keystone.middleware:JsonBodyMiddleware.factory
@@ -50,6 +44,9 @@ paste.filter_factory = keystone.contrib.s3:S3Extension.factory
 [filter:endpoint_filter_extension]
 paste.filter_factory = keystone.contrib.endpoint_filter.routers:EndpointFilterExtension.factory
 
+[filter:endpoint_policy_extension]
+paste.filter_factory = keystone.contrib.endpoint_policy.routers:EndpointPolicyExtension.factory
+
 [filter:simple_cert_extension]
 paste.filter_factory = keystone.contrib.simple_cert:SimpleCertExtension.factory
 
@@ -60,16 +57,7 @@ paste.filter_factory = keystone.contrib.revoke.routers:RevokeExtension.factory
 paste.filter_factory = keystone.middleware:NormalizingFilter.factory
 
 [filter:sizelimit]
-paste.filter_factory = keystone.middleware:RequestBodySizeLimiter.factory
-
-[filter:stats_monitoring]
-paste.filter_factory = keystone.contrib.stats:StatsMiddleware.factory
-
-[filter:stats_reporting]
-paste.filter_factory = keystone.contrib.stats:StatsExtension.factory
-
-[filter:access_log]
-paste.filter_factory = keystone.contrib.access:AccessLogMiddleware.factory
+paste.filter_factory = oslo_middleware.sizelimit:RequestBodySizeLimiter.factory
 
 [app:public_service]
 paste.app_factory = keystone.service:public_app_factory
@@ -96,10 +84,10 @@ paste.app_factory = keystone.service:public_version_app_factory
 paste.app_factory = keystone.service:admin_version_app_factory
 
 [pipeline:public_version_api]
-pipeline = sizelimit url_normalize xml_body public_version_service
+pipeline = sizelimit url_normalize public_version_service
 
 [pipeline:admin_version_api]
-pipeline = sizelimit url_normalize xml_body admin_version_service
+pipeline = sizelimit url_normalize admin_version_service
 
 [composite:main]
 use = egg:Paste#urlmap
