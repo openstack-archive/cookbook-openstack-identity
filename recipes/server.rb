@@ -35,7 +35,8 @@ platform_options = node['openstack']['identity']['platform']
 db_type = node['openstack']['db']['identity']['service_type']
 unless db_type == 'sqlite'
   node['openstack']['db']['python_packages'][db_type].each do |pkg|
-    package pkg do
+    package "identity cookbook package #{pkg}" do
+      package_name pkg
       options platform_options['package_options']
       action :upgrade
     end
@@ -43,14 +44,16 @@ unless db_type == 'sqlite'
 end
 
 platform_options['memcache_python_packages'].each do |pkg|
-  package pkg do
+  package "identity cookbook package #{pkg}" do
+    package_name pkg
     options platform_options['package_options']
     action :upgrade
   end
 end
 
 platform_options['keystone_packages'].each do |pkg|
-  package pkg do
+  package "identity cookbook package #{pkg}" do
+    package_name pkg
     options platform_options['package_options']
     action :upgrade
   end
