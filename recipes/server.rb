@@ -218,6 +218,15 @@ else
   end
 end
 
+mq_service_type = node['openstack']['mq']['identity']['service_type']
+
+if mq_service_type == 'rabbitmq'
+  node['openstack']['mq']['identity']['rabbit']['ha'] && (rabbit_hosts = rabbit_servers)
+  mq_password = get_password 'user', node['openstack']['mq']['identity']['rabbit']['userid']
+elsif mq_service_type == 'qpid'
+  mq_password = get_password 'user', node['openstack']['mq']['identity']['qpid']['username']
+end
+
 template '/etc/keystone/keystone.conf' do
   source 'keystone.conf.erb'
   owner node['openstack']['identity']['user']
@@ -234,7 +243,11 @@ template '/etc/keystone/keystone.conf' do
     admin_endpoint: admin_endpoint,
     admin_port: identity_admin_endpoint.port,
     ldap: node['openstack']['identity']['ldap'],
-    token_expiration: node['openstack']['identity']['token']['expiration']
+    token_expiration: node['openstack']['identity']['token']['expiration'],
+    rabbit_hosts: rabbit_hosts,
+    notification_driver: node['openstack']['identity']['notification_driver'],
+    mq_service_type: mq_service_type,
+    mq_password: mq_password
   )
 
   notifies :restart, 'service[keystone]', :immediately

@@ -81,6 +81,7 @@ default['openstack']['identity']['public_workers'] = nil
 
 # RPC attributes
 default['openstack']['identity']['control_exchange'] = 'openstack'
+default['openstack']['identity']['notification_driver'] = 'messaging'
 default['openstack']['identity']['rpc_thread_pool_size'] = 64
 default['openstack']['identity']['rpc_conn_pool_size'] = 30
 default['openstack']['identity']['rpc_response_timeout'] = 60

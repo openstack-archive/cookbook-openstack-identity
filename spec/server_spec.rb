@@ -518,12 +518,12 @@ describe 'openstack-identity::server' do
 
       it 'has rpc_backend set for rabbit' do
         node.set['openstack']['mq']['service_type'] = 'rabbitmq'
-        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend=rabbit$/)
+        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend = rabbit$/)
       end
 
       it 'has rpc_backend set for qpid' do
         node.set['openstack']['mq']['service_type'] = 'qpid'
-        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend=qpid$/)
+        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend = qpid$/)
       end
 
       describe '[DEFAULT] section' do
@@ -555,6 +555,18 @@ describe 'openstack-identity::server' do
 
             expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', log_conf)
             expect(chef_run).not_to render_config_file(path).with_section_content('DEFAULT', log_file)
+          end
+        end
+
+        it 'has default for oslo.messaging configuration' do
+          [/^notification_driver = messaging$/,
+           /^notification_topics = notifications$/,
+           /^rpc_thread_pool_size = 64$/,
+           /^rpc_response_timeout = 60$/,
+           /^rpc_backend = rabbit$/,
+           /^control_exchange = openstack$/
+          ].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', line)
           end
         end
 
@@ -776,6 +788,47 @@ describe 'openstack-identity::server' do
             opts.each do |key, val|
               expect(chef_run).not_to render_config_file(path).with_section_content('signing', /^#{key} = /)
             end
+          end
+        end
+      end
+
+      describe '[oslo_messaging_qpid] section' do
+        it 'has defaults for oslo_messaging_qpid section' do
+          node.set['openstack']['mq']['service_type'] = 'qpid'
+          [/^amqp_durable_queues = false$/,
+           /^amqp_auto_delete = false$/,
+           /^rpc_conn_pool_size = 30$/,
+           /^qpid_hostname = 127.0.0.1$/,
+           /^qpid_port = 5672$/,
+           /^qpid_username = guest$/,
+           /^qpid_password = guest$/,
+           /^qpid_sasl_mechanisms = $/,
+           /^qpid_heartbeat = 60$/,
+           /^qpid_protocol = tcp$/,
+           /^qpid_tcp_nodelay = true$/,
+           /^qpid_topology_version = 1$/
+          ].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_qpid', line)
+          end
+        end
+      end
+
+      describe '[oslo_messaging_rabbit] section' do
+        it 'has defaults for oslo_messaging_rabbit section' do
+          [/^amqp_durable_queues = false$/,
+           /^amqp_auto_delete = false$/,
+           /^rpc_conn_pool_size = 30$/,
+           /^kombu_ssl_version = $/,
+           /^rabbit_host = 127.0.0.1$/,
+           /^rabbit_port = 5672$/,
+           /^rabbit_hosts = $/,
+           /^rabbit_use_ssl = false$/,
+           /^rabbit_userid = guest$/,
+           /^rabbit_password = guest$/,
+           /^rabbit_virtual_host = \/$/,
+           /^rabbit_ha_queues = false$/
+          ].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
           end
         end
       end
