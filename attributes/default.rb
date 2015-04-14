@@ -128,6 +128,20 @@ default['openstack']['identity']['users'] = {
   }
 }
 
+# SSL Options
+# Specify whether to enable SSL for Keystone API endpoint
+default['openstack']['identity']['ssl']['enabled'] = false
+# Specify server whether to enforce client certificate requirement
+default['openstack']['identity']['ssl']['cert_required'] = false
+# SSL certificate, keyfile and CA certficate file locations
+default['openstack']['identity']['ssl']['basedir'] = '/etc/keystone/ssl'
+# Path of the cert file for SSL.
+default['openstack']['identity']['ssl']['certfile'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/sslcert.pem"
+# Path of the keyfile for SSL.
+default['openstack']['identity']['ssl']['keyfile'] = "#{node['openstack']['identity']['ssl']['basedir']}/private/sslkey.pem"
+# Path of the CA cert file for SSL.
+default['openstack']['identity']['ssl']['ca_certs'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/sslca.pem"
+
 # Security Assertion Markup Language (SAML)
 
 # Default TTL, in seconds, for any generated SAML assertion

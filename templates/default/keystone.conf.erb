@@ -240,13 +240,20 @@ admin_bind_host = <%= @admin_bind_address %>
 #admin_port = 35357
 admin_port = <%= @admin_port %>
 
+<% if node['openstack']['identity']['ssl']['enabled'] %>
 [eventlet_server_ssl]
 
 #
 # From keystone
 #
-# (boolean value)
-#return_all_endpoints_if_no_filter=true
+
+enable = True
+certfile = <%= node['openstack']['identity']['ssl']['certfile'] %>
+keyfile = <%= node['openstack']['identity']['ssl']['keyfile'] %>
+ca_certs = <%= node['openstack']['identity']['ssl']['ca_certs'] %>
+# Require client certificate. (boolean value)
+cert_required = <%= node['openstack']['identity']['ssl']['cert_required'] %>
+<% end %>
 
 [federation]
 

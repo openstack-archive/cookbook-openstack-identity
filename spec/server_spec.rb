@@ -377,6 +377,51 @@ describe 'openstack-identity::server' do
         end
       end
 
+      describe '[eventlet_server_ssl] section' do
+        opts = {
+            enable: 'True',
+            certfile: '/etc/keystone/ssl/certs/sslcert.pem',
+            keyfile: '/etc/keystone/ssl/private/sslkey.pem',
+            ca_certs: '/etc/keystone/ssl/certs/sslca.pem',
+            cert_required: 'false'
+        }
+        describe 'with ssl enabled' do
+          before do
+            node.set['openstack']['identity']['ssl']['enabled'] = true
+            node.set['openstack']['identity']['ssl']['basedir'] = '/etc/keystone/ssl'
+          end
+          describe 'with client cert not required' do
+            it 'configures ssl options without client certificate' do
+              opts.each do |key, val|
+                r = line_regexp("#{key} = #{val}")
+                expect(chef_run).to render_config_file(path).with_section_content('eventlet_server_ssl', r)
+              end
+            end
+          end
+          describe 'with client cert required' do
+            before do
+              node.set['openstack']['identity']['ssl']['cert_required'] = true
+              opts['cert_required'.to_sym] = 'true'
+            end
+            it 'configures ssl options with client certificate' do
+              opts.each do |key, val|
+                r = line_regexp("#{key} = #{val}")
+                expect(chef_run).to render_config_file(path).with_section_content('eventlet_server_ssl', r)
+              end
+            end
+          end
+        end
+
+        describe 'without ssl disabled' do
+          before { node.set['openstack']['identity']['ssl']['enabled'] = false }
+          it 'does not configure ssl options' do
+            opts.each do |key, val|
+              expect(chef_run).not_to render_config_file(path).with_section_content('eventlet_server_ssl', /^#{key} = /)
+            end
+          end
+        end
+      end
+
       describe '[saml] section' do
         describe 'saml attributes' do
           saml_default_attrs = %w(assertion_expiration_time=3600
