@@ -35,6 +35,8 @@ end
 
 shared_context 'identity_stubs' do
   before do
+    allow_any_instance_of(Chef::Recipe).to receive(:rabbit_servers)
+      .and_return('rabbit_servers_value')
     allow_any_instance_of(Chef::Recipe).to receive(:memcached_servers)
       .and_return([])
     allow_any_instance_of(Chef::Recipe).to receive(:get_password)

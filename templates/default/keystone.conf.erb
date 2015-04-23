@@ -802,8 +802,22 @@ rpc_conn_pool_size = <%= node["openstack"]["identity"]["rpc_conn_pool_size"] %>
 # distributions. (string value)
 # Deprecated group/name - [DEFAULT]/kombu_ssl_version
 #kombu_ssl_version =
+<% if node["openstack"]["mq"]["identity"]["rabbit"]["use_ssl"] && node["openstack"]["mq"]["identity"]["rabbit"]["kombu_ssl_version"] -%>
 kombu_ssl_version = <%= node["openstack"]["mq"]["identity"]["rabbit"]["kombu_ssl_version"] %>
+<% end -%>
 
+<% if node["openstack"]["mq"]["identity"]["rabbit"]["ha"] %>
+# RabbitMQ HA cluster host:port pairs. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
+#rabbit_hosts = $rabbit_host:$rabbit_port
+rabbit_hosts = <%= @rabbit_hosts %>
+
+# Use HA queues in RabbitMQ (x-ha-policy: all). If you change this option, you
+# must wipe the RabbitMQ database. (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
+#rabbit_ha_queues = false
+rabbit_ha_queues = true
+<% else -%>
 # The RabbitMQ broker address where a single node is used. (string value)
 # Deprecated group/name - [DEFAULT]/rabbit_host
 #rabbit_host = localhost
@@ -813,11 +827,7 @@ rabbit_host = <%= node["openstack"]["mq"]["identity"]["rabbit"]["host"] %>
 # Deprecated group/name - [DEFAULT]/rabbit_port
 #rabbit_port = 5672
 rabbit_port = <%= node["openstack"]["mq"]["identity"]["rabbit"]["port"] %>
-
-# RabbitMQ HA cluster host:port pairs. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#rabbit_hosts = $rabbit_host:$rabbit_port
-rabbit_hosts = <%= @rabbit_hosts %>
+<% end -%>
 
 # Connect over SSL for RabbitMQ. (boolean value)
 # Deprecated group/name - [DEFAULT]/rabbit_use_ssl
@@ -838,12 +848,6 @@ rabbit_password = <%= @mq_password %>
 # Deprecated group/name - [DEFAULT]/rabbit_virtual_host
 #rabbit_virtual_host = /
 rabbit_virtual_host = <%= node["openstack"]["mq"]["identity"]["rabbit"]["vhost"] %>
-
-# Use HA queues in RabbitMQ (x-ha-policy: all). If you change this option, you
-# must wipe the RabbitMQ database. (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#rabbit_ha_queues = false
-rabbit_ha_queues = <%= node["openstack"]["mq"]["identity"]["rabbit"]["ha"] %>
 <% end -%>
 
 [oslo_middleware]

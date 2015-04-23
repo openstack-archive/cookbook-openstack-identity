@@ -863,18 +863,35 @@ describe 'openstack-identity::server' do
           [/^amqp_durable_queues = false$/,
            /^amqp_auto_delete = false$/,
            /^rpc_conn_pool_size = 30$/,
-           /^kombu_ssl_version = $/,
            /^rabbit_host = 127.0.0.1$/,
            /^rabbit_port = 5672$/,
-           /^rabbit_hosts = $/,
+           /^rabbit_use_ssl = false$/,
+           /^rabbit_userid = guest$/,
+           /^rabbit_password = guest$/,
+           /^rabbit_virtual_host = \/$/
+          ].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
+          end
+        end
+        it 'has defaults for oslo_messaging_rabbit section with ha' do
+          node.set['openstack']['mq']['identity']['rabbit']['ha'] = true
+          [/^amqp_durable_queues = false$/,
+           /^amqp_auto_delete = false$/,
+           /^rpc_conn_pool_size = 30$/,
+           /^rabbit_hosts = rabbit_servers_value$/,
            /^rabbit_use_ssl = false$/,
            /^rabbit_userid = guest$/,
            /^rabbit_password = guest$/,
            /^rabbit_virtual_host = \/$/,
-           /^rabbit_ha_queues = false$/
+           /^rabbit_ha_queues = true$/
           ].each do |line|
             expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
           end
+        end
+        it 'has komdefaults for oslo_messaging_rabbit section with ha' do
+          node.set['openstack']['mq']['identity']['rabbit']['use_ssl'] = true
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_version'] = 'ssl_version'
+          expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', /^kombu_ssl_version = ssl_version$/)
         end
       end
     end
