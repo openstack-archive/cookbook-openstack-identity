@@ -114,6 +114,19 @@ end
 
 private
 
+def service_need_updated?(resource, args = {}, uuid_field = 'id')
+  begin
+    output = identity_command resource, 'service-list', args
+    output = prettytable_to_array(output)
+    return search_uuid(output, uuid_field, 'name' => resource.service_name).nil?
+  rescue RuntimeError => e
+    raise "Could not check service attributes for service: type => #{resource.service_type}, name => #{resource.service_name}. Error was #{e.message}"
+  end
+  false
+end
+
+private
+
 def endpoint_need_updated?(resource, key, value, args = {}, uuid_field = 'id')
   begin
     output = identity_command resource, 'endpoint-list', args
@@ -132,11 +145,18 @@ action :create_service do
   else
     begin
       service_uuid = identity_uuid new_resource, 'service', 'type', new_resource.service_type
-
+      need_updated = false
       if service_uuid
-        Chef::Log.info("Service Type '#{new_resource.service_type}' already exists.. Not creating.")
+        Chef::Log.info("Service Type '#{new_resource.service_type}' already exists..")
         Chef::Log.info("Service UUID: #{service_uuid}")
-      else
+        need_updated = service_need_updated? new_resource
+        if need_updated
+          Chef::Log.info("Service Type '#{new_resource.service_type}' needs to be updated, delete it first.")
+          identity_command(new_resource, 'service-delete',
+                           '' => service_uuid)
+        end
+      end
+      unless service_uuid && !need_updated
         identity_command(new_resource, 'service-create',
                          'type' => new_resource.service_type,
                          'name' => new_resource.service_name,

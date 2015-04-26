@@ -103,14 +103,80 @@ describe 'openstack-identity::default' do
           end
         end
 
-        context 'when service does not already exist' do
-          it 'should not create a service' do
+        context 'when service does already exist' do
+          before do
             allow(provider).to receive(:identity_uuid)
               .with(resource, 'service', 'type', 'compute')
               .and_return('1234567890ABCDEFGH')
-            provider.run_action(:create_service)
+            allow(provider).to receive(:service_need_updated?)
+              .with(resource)
+              .and_return(false)
+          end
 
+          it 'should not create a service' do
+            provider.run_action(:create_service)
             expect(resource).to_not be_updated
+          end
+        end
+
+        context 'when service does already exist and needs to be updated' do
+          before do
+            allow(provider).to receive(:identity_uuid)
+              .with(resource, 'service', 'type', 'compute')
+              .and_return('1234567890ABCDEFGH')
+            allow(provider).to receive(:service_need_updated?)
+              .with(resource)
+              .and_return(true)
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'service-delete',
+                    '' => '1234567890ABCDEFGH')
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'service-create',
+                    'type' => 'compute',
+                    'name' => 'service1',
+                    'description' => 'service1 Service')
+          end
+
+          it 'should update the service' do
+            provider.run_action(:create_service)
+            expect(resource).to be_updated
+          end
+        end
+
+        context '#service_need_updated?, when service exists and does not need to be updated' do
+          before do
+            output = ' | 1234567890ABCDEFGH | service1 | compute | service1 Service '
+            output_array = [{ 'id' => '1234567890ABCDEFGH', 'name' => 'service1', 'type' => 'compute', 'description' => 'service1 Service' }]
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'service-list', {})
+              .and_return(output)
+            allow(provider).to receive(:prettytable_to_array)
+              .with(output)
+              .and_return(output_array)
+          end
+
+          it 'service should not be updated' do
+            expect(
+              provider.send(:service_need_updated?, resource)
+            ).to eq(false)
+          end
+        end
+
+        context '#service_need_updated?, when service exists and needs to be updated' do
+          before do
+            output = ' | 1234567890ABCDEFGH | service11 | compute | service11 Service '
+            output_array = [{ 'id' => '1234567890ABCDEFGH', 'name' => 'service11', 'type' => 'compute', 'description' => 'service11 Service' }]
+            allow(provider).to receive(:identity_command)
+              .with(resource, 'service-list', {})
+              .and_return(output)
+            allow(provider).to receive(:prettytable_to_array)
+              .with(output)
+              .and_return(output_array)
+          end
+          it 'service should be updated' do
+            expect(
+              provider.send(:service_need_updated?, resource)
+            ).to eq(true)
           end
         end
       end
