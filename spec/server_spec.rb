@@ -47,20 +47,20 @@ describe 'openstack-identity::server' do
     end
 
     it 'upgrades mysql python packages' do
-      expect(chef_run).to upgrade_package('python-mysqldb')
+      expect(chef_run).to upgrade_package('identity cookbook package python-mysqldb')
     end
 
     it 'upgrades postgresql python packages if explicitly told' do
       node.set['openstack']['db']['identity']['service_type'] = 'postgresql'
-      expect(chef_run).to upgrade_package('python-psycopg2')
+      expect(chef_run).to upgrade_package('identity cookbook package python-psycopg2')
     end
 
     it 'upgrades memcache python packages' do
-      expect(chef_run).to upgrade_package('python-memcache')
+      expect(chef_run).to upgrade_package('identity cookbook package python-memcache')
     end
 
     it 'upgrades keystone packages' do
-      expect(chef_run).to upgrade_package('keystone')
+      expect(chef_run).to upgrade_package('identity cookbook package keystone')
     end
 
     it 'starts keystone on boot' do
