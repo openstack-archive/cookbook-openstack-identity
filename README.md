@@ -350,6 +350,7 @@ Author:: Sean Gallagher (<sean.gallagher@att.com>)
 Author:: Ionut Artarisi (<iartarisi@suse.cz>)
 Author:: Chen Zhiwei (zhiwchen@cn.ibm.com)
 Author:: Eric Zhou (zyouzhou@cn.ibm.com)
+Author:: Jan Klare (j.klare@x-ion.de)
 
 Copyright 2012, Rackspace US, Inc.
 Copyright 2012-2013, Opscode, Inc.

@@ -6,7 +6,7 @@ require_relative 'spec_helper'
 describe 'openstack-identity::registration' do
   describe 'ubuntu' do
     let(:node)     { runner.node }
-    let(:runner)   { ChefSpec::Runner.new(UBUNTU_OPTS) }
+    let(:runner)   { ChefSpec::SoloRunner.new(UBUNTU_OPTS) }
     let(:chef_run) { runner.converge(described_recipe) }
     let(:node_add_user) do
       node.set_unless['openstack']['identity']['users'] = {
