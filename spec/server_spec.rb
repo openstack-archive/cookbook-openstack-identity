@@ -67,9 +67,17 @@ describe 'openstack-identity::server' do
       expect(chef_run).to enable_service('keystone')
     end
 
-    it 'sleep on keystone service enable' do
-      expect(chef_run.service('keystone')).to notify(
-        'execute[Keystone: sleep]').to(:run)
+    describe 'sleep on keystone service enable' do
+      let(:sleep) { chef_run.execute('Keystone: sleep') }
+
+      it 'has sleep notified to run' do
+        expect(chef_run.service('keystone')).to notify(
+          "execute[#{sleep.name}]").to(:run)
+      end
+
+      it 'has correct sleep seconds' do
+        expect(sleep.command).to eq('sleep 10s')
+      end
     end
 
     it 'has flush tokens cronjob running every day at 3:30am' do

@@ -60,7 +60,7 @@ platform_options['keystone_packages'].each do |pkg|
 end
 
 execute 'Keystone: sleep' do
-  command 'sleep 10s'
+  command "sleep #{node['openstack']['identity']['start_delay']}s"
 
   action :nothing
 end
