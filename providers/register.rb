@@ -40,10 +40,10 @@ def generate_admin_creds(resource)
   identity_endpoint = resource.identity_endpoint
   identity_endpoint = endpoint('identity-admin').to_s unless identity_endpoint
   {
-      'OS_USERNAME' => resource.admin_user,
-      'OS_PASSWORD' => resource.admin_pass,
-      'OS_TENANT_NAME' => resource.admin_tenant_name,
-      'OS_AUTH_URL' => identity_endpoint
+    'OS_USERNAME' => resource.admin_user,
+    'OS_PASSWORD' => resource.admin_pass,
+    'OS_TENANT_NAME' => resource.admin_tenant_name,
+    'OS_AUTH_URL' => identity_endpoint
   }
 end
 
@@ -53,10 +53,10 @@ def generate_user_creds(resource)
   identity_endpoint = resource.identity_endpoint
   identity_endpoint = endpoint('identity-api').to_s unless identity_endpoint
   {
-      'OS_USERNAME' => resource.user_name,
-      'OS_PASSWORD' => resource.user_pass,
-      'OS_TENANT_NAME' => resource.tenant_name,
-      'OS_AUTH_URL' => identity_endpoint
+    'OS_USERNAME' => resource.user_name,
+    'OS_PASSWORD' => resource.user_pass,
+    'OS_TENANT_NAME' => resource.tenant_name,
+    'OS_AUTH_URL' => identity_endpoint
   }
 end
 

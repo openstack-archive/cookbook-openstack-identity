@@ -96,13 +96,12 @@ describe 'openstack-identity::server' do
     describe '/etc/keystone' do
       let(:dir) { chef_run.directory('/etc/keystone') }
 
-      it 'has proper owner' do
-        expect(dir.owner).to eq('keystone')
-        expect(dir.group).to eq('keystone')
-      end
-
-      it 'has proper modes' do
-        expect(sprintf('%o', dir.mode)).to eq('700')
+      it 'creates directory /etc/keystone' do
+        expect(chef_run).to create_directory(dir.name).with(
+          user: 'keystone',
+          group: 'keystone',
+          mode: 00700
+        )
       end
     end
 
@@ -118,7 +117,7 @@ describe 'openstack-identity::server' do
         expect(chef_run).to create_directory(dir).with(
           user: 'keystone',
           group: 'keystone',
-          mode: 0700
+          mode: 00700
         )
       end
     end
@@ -149,16 +148,11 @@ describe 'openstack-identity::server' do
           let(:dir_resource) { chef_run.directory(ssl_dir) }
 
           it 'creates /etc/keystone/ssl' do
-            expect(chef_run).to create_directory(ssl_dir)
-          end
-
-          it 'has proper owner' do
-            expect(dir_resource.owner).to eq('keystone')
-            expect(dir_resource.group).to eq('keystone')
-          end
-
-          it 'has proper modes' do
-            expect(sprintf('%o', dir_resource.mode)).to eq('700')
+            expect(chef_run).to create_directory(ssl_dir).with(
+              owner: 'keystone',
+              group: 'keystone',
+              mode: 0700
+            )
           end
         end
 
@@ -166,16 +160,11 @@ describe 'openstack-identity::server' do
           let(:dir_resource) { chef_run.directory(certs_dir) }
 
           it 'creates /etc/keystone/ssl/certs' do
-            expect(chef_run).to create_directory(certs_dir)
-          end
-
-          it 'has proper owner' do
-            expect(dir_resource.owner).to eq('keystone')
-            expect(dir_resource.group).to eq('keystone')
-          end
-
-          it 'has proper modes' do
-            expect(sprintf('%o', dir_resource.mode)).to eq('755')
+            expect(chef_run).to create_directory(certs_dir).with(
+              user: 'keystone',
+              group: 'keystone',
+              mode: 0755
+            )
           end
         end
 
@@ -183,16 +172,11 @@ describe 'openstack-identity::server' do
           let(:dir_resource) { chef_run.directory(private_dir) }
 
           it 'creates /etc/keystone/ssl/private' do
-            expect(chef_run).to create_directory(private_dir)
-          end
-
-          it 'has proper owner' do
-            expect(dir_resource.owner).to eq('keystone')
-            expect(dir_resource.group).to eq('keystone')
-          end
-
-          it 'has proper modes' do
-            expect(sprintf('%o', dir_resource.mode)).to eq('750')
+            expect(chef_run).to create_directory(private_dir).with(
+              user: 'keystone',
+              group: 'keystone',
+              mode: 0750
+            )
           end
         end
       end
@@ -212,16 +196,11 @@ describe 'openstack-identity::server' do
             let(:file_resource) { chef_run.remote_file(cert_file) }
 
             it 'creates files' do
-              expect(chef_run).to create_remote_file(cert_file)
-            end
-
-            it 'has proper owner' do
-              expect(file_resource.owner).to eq('keystone')
-              expect(file_resource.group).to eq('keystone')
-            end
-
-            it 'has proper modes' do
-              expect(sprintf('%o', file_resource.mode)).to eq('640')
+              expect(chef_run).to create_remote_file(cert_file).with(
+                user: 'keystone',
+                group: 'keystone',
+                mode: 0640
+              )
             end
 
             it 'notifies keystone restart' do
@@ -234,16 +213,11 @@ describe 'openstack-identity::server' do
             let(:file_resource) { chef_run.remote_file(key_file) }
 
             it 'creates file' do
-              expect(chef_run).to create_remote_file(key_file)
-            end
-
-            it 'has proper owner' do
-              expect(file_resource.owner).to eq('keystone')
-              expect(file_resource.group).to eq('keystone')
-            end
-
-            it 'has proper modes' do
-              expect(sprintf('%o', file_resource.mode)).to eq('640')
+              expect(chef_run).to create_remote_file(key_file).with(
+                user: 'keystone',
+                group: 'keystone',
+                mode: 0640
+              )
             end
 
             it 'notifies keystone restart' do
@@ -256,16 +230,11 @@ describe 'openstack-identity::server' do
             let(:file_resource) { chef_run.remote_file(ca_certs) }
 
             it 'creates file' do
-              expect(chef_run).to create_remote_file(ca_certs)
-            end
-
-            it 'has proper owner' do
-              expect(file_resource.owner).to eq('keystone')
-              expect(file_resource.group).to eq('keystone')
-            end
-
-            it 'has proper modes' do
-              expect(sprintf('%o', file_resource.mode)).to eq('640')
+              expect(chef_run).to create_remote_file(ca_certs).with(
+                user: 'keystone',
+                group: 'keystone',
+                mode: 0640
+              )
             end
 
             it 'notifies keystone restart' do
@@ -375,23 +344,22 @@ describe 'openstack-identity::server' do
       let(:resource) { chef_run.template(path) }
 
       describe 'file properties' do
-        it 'has correct owner' do
-          expect(resource.owner).to eq('keystone')
-          expect(resource.group).to eq('keystone')
-        end
-
-        it 'has correct modes' do
-          expect(sprintf('%o', resource.mode)).to eq('640')
+        it 'creates /etc/keystone/keystone.conf' do
+          expect(chef_run).to create_template(resource.name).with(
+            user: 'keystone',
+            group: 'keystone',
+            mode: 0640
+          )
         end
       end
 
       describe '[eventlet_server_ssl] section' do
         opts = {
-            enable: 'True',
-            certfile: '/etc/keystone/ssl/certs/sslcert.pem',
-            keyfile: '/etc/keystone/ssl/private/sslkey.pem',
-            ca_certs: '/etc/keystone/ssl/certs/sslca.pem',
-            cert_required: 'false'
+          enable: 'True',
+          certfile: '/etc/keystone/ssl/certs/sslcert.pem',
+          keyfile: '/etc/keystone/ssl/private/sslkey.pem',
+          ca_certs: '/etc/keystone/ssl/certs/sslca.pem',
+          cert_required: 'false'
         }
         describe 'with ssl enabled' do
           before do
@@ -423,7 +391,7 @@ describe 'openstack-identity::server' do
         describe 'without ssl disabled' do
           before { node.set['openstack']['identity']['ssl']['enabled'] = false }
           it 'does not configure ssl options' do
-            opts.each do |key, val|
+            opts.each do |key|
               expect(chef_run).not_to render_config_file(path).with_section_content('eventlet_server_ssl', /^#{key} = /)
             end
           end
@@ -457,11 +425,11 @@ describe 'openstack-identity::server' do
         end
 
         describe 'optional saml ipd attributes' do
-          optional_attrs = %w{idp_entity_id idp_sso_endpoint idp_lang
+          optional_attrs = %w(idp_entity_id idp_sso_endpoint idp_lang
                               idp_organization_name idp_organization_display_name
                               idp_organization_url idp_contact_company idp_contact_name
                               idp_contact_surname idp_contact_email idp_contact_telephone
-                              idp_contact_type idp_metadata_path}
+                              idp_contact_type idp_metadata_path)
           it 'empty default ipd attributes' do
             optional_attrs.each do |attr|
               default_value = /^#{attr}=$/
@@ -661,12 +629,12 @@ describe 'openstack-identity::server' do
 
       describe '[ldap] section' do
         describe 'optional nil attributes' do
-          optional_attrs = %w{group_tree_dn group_filter user_filter
+          optional_attrs = %w(group_tree_dn group_filter user_filter
                               user_tree_dn user_enabled_emulation_dn
                               group_attribute_ignore role_attribute_ignore
                               role_tree_dn role_filter project_tree_dn
                               project_enabled_emulation_dn project_filter
-                              project_attribute_ignore}
+                              project_attribute_ignore)
 
           it 'does not configure attributes' do
             optional_attrs.each do |a|
@@ -711,11 +679,10 @@ describe 'openstack-identity::server' do
               end
             end
           end
-
         end
 
         it 'has required attributes' do
-          required_attrs = %w{alias_dereferencing allow_subtree_delete
+          required_attrs = %w(alias_dereferencing allow_subtree_delete
                               dumb_member group_allow_create group_allow_delete
                               group_allow_update group_desc_attribute
                               group_id_attribute
@@ -737,7 +704,7 @@ describe 'openstack-identity::server' do
                               user_enabled_emulation user_enabled_mask
                               user_id_attribute user_mail_attribute
                               user_name_attribute user_objectclass
-                              user_pass_attribute}
+                              user_pass_attribute)
 
           required_attrs.each do |a|
             expect(chef_run).to render_config_file(path).with_section_content('ldap', /^#{Regexp.quote(a)} = \w+/)
@@ -754,7 +721,7 @@ describe 'openstack-identity::server' do
         [
           /^default_domain_id=default$/,
           /^domain_specific_drivers_enabled=false$/,
-          %r(^domain_config_dir=/etc/keystone/domains$)
+          %r{^domain_config_dir=/etc/keystone/domains$}
         ].each do |line|
           it "has a #{line.source} line" do
             expect(chef_run).to render_config_file(path).with_section_content('identity', line)
@@ -838,7 +805,7 @@ describe 'openstack-identity::server' do
         describe 'without pki' do
           before { node.set['openstack']['auth']['strategy'] = 'uuid' }
           it 'does not configure cert options' do
-            opts.each do |key, val|
+            opts.each do |key|
               expect(chef_run).not_to render_config_file(path).with_section_content('signing', /^#{key} = /)
             end
           end
@@ -919,17 +886,12 @@ describe 'openstack-identity::server' do
         end
         let(:template) { chef_run.template(file) }
 
-        it 'creates' do
-          expect(chef_run).to render_file(file)
-        end
-
-        it 'has proper owner' do
-          expect(template.owner).to eq('keystone')
-          expect(template.group).to eq('keystone')
-        end
-
-        it 'has proper modes' do
-          expect(sprintf('%o', template.mode)).to eq('644')
+        it 'creates /etc/keystone/default_catalog.templates' do
+          expect(chef_run).to create_template(template.name).with(
+            user: 'keystone',
+            group: 'keystone',
+            mode: 0644
+          )
         end
 
         it 'notifies keystone restart' do
@@ -958,18 +920,17 @@ describe 'openstack-identity::server' do
     end
 
     describe 'keystone-paste.ini as template' do
-
       let(:path) { '/etc/keystone/keystone-paste.ini' }
       let(:template) { chef_run.template(path) }
 
-      it 'has proper owner' do
-        expect(template.owner).to eq('keystone')
-        expect(template.group).to eq('keystone')
+      it 'creates /etc/keystone/default_catalog.templates' do
+        expect(chef_run).to create_template(template.name).with(
+          user: 'keystone',
+          group: 'keystone',
+          mode: 0644
+        )
       end
 
-      it 'has proper modes' do
-        expect(sprintf('%o', template.mode)).to eq('644')
-      end
       it 'has default api pipeline value' do
         expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension user_crud_extension public_service$/)
         expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension s3_extension crud_extension admin_service$/)
@@ -1001,7 +962,8 @@ describe 'openstack-identity::server' do
           source: 'http://server/mykeystone-paste.ini',
           user: 'keystone',
           group: 'keystone',
-          mode: 00644)
+          mode: 00644
+        )
         expect(remote_paste).to notify('service[keystone]').to(:restart)
       end
     end
