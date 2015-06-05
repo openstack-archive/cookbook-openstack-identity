@@ -782,6 +782,12 @@ qpid_topology_version = <%= node['openstack']['mq']['identity']['qpid']['topolog
 # From oslo.messaging
 #
 
+# Number of seconds after which the Rabbit broker is considered down if heartbeat's keep-alive fails (0 disable the heartbeat)
+heartbeat_timeout_threshold=<%= node['openstack']['mq']['identity']['rabbit']['heartbeat_timeout_threshold'] %>
+
+# How often times during the heartbeat_timeout_threshold we check the heartbeat
+heartbeat_rate=<%= node['openstack']['mq']['identity']['rabbit']['heartbeat_rate'] %>
+
 # Use durable queues in AMQP. (boolean value)
 # Deprecated group/name - [DEFAULT]/rabbit_durable_queues
 #amqp_durable_queues = false
