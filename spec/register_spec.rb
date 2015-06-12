@@ -501,8 +501,7 @@ describe 'openstack-identity::default' do
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
           allow(provider).to receive(:identity_command)
-            .with(resource, 'user-list',
-                  'tenant-id' => '1234567890ABCDEFGH')
+            .with(resource, 'user-list')
           allow(provider).to receive(:identity_command)
             .with(resource, 'user-create',
                   'name' => 'user1',
@@ -525,8 +524,7 @@ describe 'openstack-identity::default' do
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
           allow(provider).to receive(:identity_command)
-            .with(resource, 'user-list',
-                  'tenant-id' => '1234567890ABCDEFGH')
+            .with(resource, 'user-list')
           allow(provider).to receive(:prettytable_to_array)
             .and_return([{ 'name' => 'user1' }])
           allow(provider).to receive(:identity_uuid)
@@ -548,8 +546,7 @@ describe 'openstack-identity::default' do
             .with(resource, 'tenant', 'name', 'tenant1')
             .and_return('1234567890ABCDEFGH')
           allow(provider).to receive(:identity_command)
-            .with(resource, 'user-list',
-                  'tenant-id' => '1234567890ABCDEFGH')
+            .with(resource, 'user-list')
           allow(provider).to receive(:prettytable_to_array)
             .and_return([{ 'name' => 'user1' }])
           allow(provider).to receive(:identity_uuid)
