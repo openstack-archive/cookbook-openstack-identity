@@ -848,6 +848,13 @@ rabbit_password = <%= @mq_password %>
 # Deprecated group/name - [DEFAULT]/rabbit_virtual_host
 #rabbit_virtual_host = /
 rabbit_virtual_host = <%= node["openstack"]["mq"]["identity"]["rabbit"]["vhost"] %>
+
+# Maximum retries with trying to connect to RabbitMQ
+# (the default of 0 implies an infinite retry count)
+rabbit_max_retries = <%= node["openstack"]["mq"]["identity"]["rabbit"]["rabbit_max_retries"] %>
+
+# RabbitMQ connection retry interval
+rabbit_retry_interval = <%= node["openstack"]["mq"]["identity"]["rabbit"]["rabbit_retry_interval"] %>
 <% end -%>
 
 [oslo_middleware]

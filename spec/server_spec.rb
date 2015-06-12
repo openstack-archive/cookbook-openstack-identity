@@ -843,7 +843,9 @@ describe 'openstack-identity::server' do
            /^rabbit_use_ssl = false$/,
            /^rabbit_userid = guest$/,
            /^rabbit_password = guest$/,
-           /^rabbit_virtual_host = \/$/
+           /^rabbit_virtual_host = \/$/,
+           /^rabbit_max_retries = 0$/,
+           /^rabbit_retry_interval = 1$/
           ].each do |line|
             expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
           end
