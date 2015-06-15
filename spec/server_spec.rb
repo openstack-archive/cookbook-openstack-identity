@@ -837,6 +837,8 @@ describe 'openstack-identity::server' do
         it 'has defaults for oslo_messaging_rabbit section' do
           [/^amqp_durable_queues = false$/,
            /^amqp_auto_delete = false$/,
+           /^heartbeat_timeout_threshold=0$/,
+           /^heartbeat_rate=2$/,
            /^rpc_conn_pool_size = 30$/,
            /^rabbit_host = 127.0.0.1$/,
            /^rabbit_port = 5672$/,
