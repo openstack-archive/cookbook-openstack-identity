@@ -842,7 +842,6 @@ describe 'openstack-identity::server' do
            /^rpc_conn_pool_size = 30$/,
            /^rabbit_host = 127.0.0.1$/,
            /^rabbit_port = 5672$/,
-           /^rabbit_use_ssl = false$/,
            /^rabbit_userid = guest$/,
            /^rabbit_password = guest$/,
            /^rabbit_virtual_host = \/$/,
@@ -858,7 +857,6 @@ describe 'openstack-identity::server' do
            /^amqp_auto_delete = false$/,
            /^rpc_conn_pool_size = 30$/,
            /^rabbit_hosts = rabbit_servers_value$/,
-           /^rabbit_use_ssl = false$/,
            /^rabbit_userid = guest$/,
            /^rabbit_password = guest$/,
            /^rabbit_virtual_host = \/$/,
@@ -867,10 +865,35 @@ describe 'openstack-identity::server' do
             expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
           end
         end
-        it 'has komdefaults for oslo_messaging_rabbit section with ha' do
+        it 'does not have ssl config set' do
+          [/^rabbit_use_ssl=/,
+           /^kombu_ssl_version=/,
+           /^kombu_ssl_keyfile=/,
+           /^kombu_ssl_certfile=/,
+           /^kombu_ssl_ca_certs=/,
+           /^kombu_reconnect_delay=/,
+           /^kombu_reconnect_timeout=/].each do |line|
+            expect(chef_run).not_to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
+          end
+        end
+
+        it 'sets ssl config' do
           node.set['openstack']['mq']['identity']['rabbit']['use_ssl'] = true
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_version'] = 'ssl_version'
-          expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', /^kombu_ssl_version = ssl_version$/)
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_version'] = 'TLSv1.2'
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_keyfile'] = 'keyfile'
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_certfile'] = 'certfile'
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_ca_certs'] = 'certsfile'
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_reconnect_delay'] = 123.123
+          node.set['openstack']['mq']['identity']['rabbit']['kombu_reconnect_timeout'] = 123
+          [/^rabbit_use_ssl=true/,
+           /^kombu_ssl_version=TLSv1.2$/,
+           /^kombu_ssl_keyfile=keyfile$/,
+           /^kombu_ssl_certfile=certfile$/,
+           /^kombu_ssl_ca_certs=certsfile$/,
+           /^kombu_reconnect_delay=123.123$/,
+           /^kombu_reconnect_timeout=123$/].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
+          end
         end
       end
     end
