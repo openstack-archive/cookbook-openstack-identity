@@ -26,7 +26,7 @@ client
 Installs the keystone client packages
 
 
-server
+server (deprecated, will be removed in M release)
 ------
 
 Installs and Configures Keystone Service
@@ -34,6 +34,17 @@ Installs and Configures Keystone Service
 ```json
 "run_list": [
     "recipe[openstack-identity::server]"
+]
+```
+
+server-apache
+-------------
+
+Installs and Configures Keystone Service under Apache
+
+```json
+"run_list": [
+    "recipe[openstack-identity::server-apache]"
 ]
 ```
 

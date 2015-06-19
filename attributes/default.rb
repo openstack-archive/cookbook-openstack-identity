@@ -144,6 +144,13 @@ default['openstack']['identity']['ssl']['certfile'] = "#{node['openstack']['iden
 default['openstack']['identity']['ssl']['keyfile'] = "#{node['openstack']['identity']['ssl']['basedir']}/private/sslkey.pem"
 # Path of the CA cert file for SSL.
 default['openstack']['identity']['ssl']['ca_certs'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/sslca.pem"
+# Path of the CA cert files for SSL (Apache)
+default['openstack']['identity']['ssl']['ca_certs_path'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/"
+# Protocol for SSL (Apache)
+default['openstack']['identity']['ssl']['protocol'] = 'All -SSLv2 -SSLv3'
+# Which ciphers to use with the SSL/TLS protocol (Apache)
+# Example: 'RSA:HIGH:MEDIUM:!LOW:!kEDH:!aNULL:!ADH:!eNULL:!EXP:!SSLv2:!SEED:!CAMELLIA:!PSK!RC4:!RC4-MD5:!RC4-SHA'
+default['openstack']['identity']['ssl']['ciphers'] = nil
 
 # Security Assertion Markup Language (SAML)
 
@@ -362,6 +369,7 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
     'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
+    'keystone_wsgi_file' => '/usr/share/keystone/wsgi.py',
     'package_options' => ''
   }
 when 'suse'
@@ -373,6 +381,7 @@ when 'suse'
     'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
+    'keystone_wsgi_file' => '/usr/share/keystone/wsgi.py',
     'package_options' => ''
   }
 when 'debian'
@@ -384,6 +393,7 @@ when 'debian'
     'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'keystone',
     'keystone_process_name' => 'keystone-all',
+    'keystone_wsgi_file' => '/usr/share/keystone/wsgi.py',
     'package_options' => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
   }
 end

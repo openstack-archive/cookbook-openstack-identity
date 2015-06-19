@@ -54,5 +54,6 @@ shared_context 'identity_stubs' do
     allow_any_instance_of(Chef::Recipe).to receive(:get_secret)
       .with('openstack_identity_bootstrap_token')
       .and_return('bootstrap-token')
+    stub_command('/usr/sbin/apache2 -t')
   end
 end
