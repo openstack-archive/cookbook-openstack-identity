@@ -16,4 +16,4 @@ recipe 'openstack-identity::registration', 'Adds user, tenant, role and endpoint
 end
 
 depends 'apache2', '~> 3.1.0'
-depends 'openstack-common', '>= 11.4.0'
+depends 'openstack-common', '>= 11.5.0'

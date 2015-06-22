@@ -159,7 +159,7 @@ db_user = node['openstack']['db']['identity']['username']
 db_pass = get_password 'db', 'keystone'
 sql_connection = db_uri('identity', db_user, db_pass)
 
-bootstrap_token = get_secret 'openstack_identity_bootstrap_token'
+bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
 
 bind_address = bind_endpoint.host
 admin_bind_address = admin_bind_endpoint.host
