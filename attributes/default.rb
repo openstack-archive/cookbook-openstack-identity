@@ -118,6 +118,15 @@ default['openstack']['identity']['identity']['domain_specific_drivers_enabled'] 
 # set to true. (string value)
 default['openstack']['identity']['identity']['domain_config_dir'] = '/etc/keystone/domains'
 
+# Keystone Identity Mapping attributes
+# # Keystone Identity Mapping backend driver, default is sql.
+default['openstack']['identity']['identity_mapping']['driver'] = 'keystone.identity.mapping_backends.sql.Mapping'
+# Public ID generator for user and group entities, default is sha256.
+default['openstack']['identity']['identity_mapping']['generator'] = 'keystone.identity.id_generators.sha256.Generator'
+# Setting this value to True makes that any user and group from default domain being handled by LDAP will still not be
+# mapped to ensure their IDs remain backward compatible. You can only set it to False when configuring a fresh installation.
+default['openstack']['identity']['identity_mapping']['backward_compatible_ids'] = 'True'
+
 default['openstack']['identity']['admin_user'] = 'admin'
 default['openstack']['identity']['admin_tenant_name'] = 'admin'
 

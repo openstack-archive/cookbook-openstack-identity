@@ -729,6 +729,18 @@ describe 'openstack-identity::server' do
         end
       end
 
+      describe '[identity_mapping] section' do
+        it 'has identity_mapping section attributes' do
+          [
+            /^driver = keystone.identity.mapping_backends.sql.Mapping$/,
+            /^generator = keystone.identity.id_generators.sha256.Generator$/,
+            /^backward_compatible_ids = True$/
+          ].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('identity_mapping', line)
+          end
+        end
+      end
+
       describe '[assignment] section' do
         it 'configures driver' do
           r = line_regexp('driver = keystone.assignment.backends.sql.Assignment')
