@@ -497,15 +497,12 @@ describe 'openstack-identity::default' do
 
       context 'when user does not already exist' do
         before do
-          allow(provider).to receive(:identity_uuid)
-            .with(resource, 'tenant', 'name', 'tenant1')
-            .and_return('1234567890ABCDEFGH')
           allow(provider).to receive(:identity_command)
             .with(resource, 'user-list')
           allow(provider).to receive(:identity_command)
             .with(resource, 'user-create',
                   'name' => 'user1',
-                  'tenant-id' => '1234567890ABCDEFGH',
+                  'tenant' => 'tenant1',
                   'pass' => 'password',
                   'enabled' => true)
           allow(provider).to receive(:prettytable_to_array)
@@ -613,24 +610,18 @@ describe 'openstack-identity::default' do
       context 'when role has not already been granted' do
         before do
           allow(provider).to receive(:identity_uuid)
-            .with(resource, 'tenant', 'name', 'tenant1')
-            .and_return('1234567890ABCDEFGH')
-          allow(provider).to receive(:identity_uuid)
-            .with(resource, 'user', 'name', 'user1')
-            .and_return('HGFEDCBA0987654321')
-          allow(provider).to receive(:identity_uuid)
             .with(resource, 'role', 'name', 'role1')
             .and_return('ABC1234567890DEF')
           allow(provider).to receive(:identity_uuid)
             .with(resource, 'user-role', 'name', 'role1',
-                  'tenant-id' => '1234567890ABCDEFGH',
-                  'user-id' => 'HGFEDCBA0987654321')
+                  'tenant' => 'tenant1',
+                  'user' => 'user1')
             .and_return('ABCD1234567890EFGH')
           allow(provider).to receive(:identity_command)
             .with(resource, 'user-role-add',
-                  'tenant-id' => '1234567890ABCDEFGH',
+                  'tenant' => 'tenant1',
                   'role-id' => 'ABC1234567890DEF',
-                  'user-id' => 'HGFEDCBA0987654321')
+                  'user' => 'user1')
         end
 
         it 'should grant a role' do
@@ -642,24 +633,18 @@ describe 'openstack-identity::default' do
       context 'when role has already been granted' do
         before do
           allow(provider).to receive(:identity_uuid)
-            .with(resource, 'tenant', 'name', 'tenant1')
-            .and_return('1234567890ABCDEFGH')
-          allow(provider).to receive(:identity_uuid)
-            .with(resource, 'user', 'name', 'user1')
-            .and_return('HGFEDCBA0987654321')
-          allow(provider).to receive(:identity_uuid)
             .with(resource, 'role', 'name', 'role1')
             .and_return('ABC1234567890DEF')
           allow(provider).to receive(:identity_uuid)
             .with(resource, 'user-role', 'name', 'role1',
-                  'tenant-id' => '1234567890ABCDEFGH',
-                  'user-id' => 'HGFEDCBA0987654321')
+                  'tenant' => 'tenant1',
+                  'user' => 'user1')
             .and_return('ABC1234567890DEF')
           allow(provider).to receive(:identity_command)
             .with(resource, 'user-role-add',
-                  'tenant-id' => '1234567890ABCDEFGH',
+                  'tenant' => 'tenant1',
                   'role-id' => 'ABC1234567890DEF',
-                  'user-id' => 'HGFEDCBA0987654321')
+                  'user' => 'user1')
         end
 
         it 'should not grant a role' do

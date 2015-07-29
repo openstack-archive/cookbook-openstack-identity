@@ -249,8 +249,6 @@ end
 action :create_user do
   begin
     new_resource.updated_by_last_action(false)
-    tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
-    fail "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
 
     output = identity_command(new_resource, 'user-list')
     users = prettytable_to_array output
@@ -277,7 +275,7 @@ action :create_user do
 
     identity_command(new_resource, 'user-create',
                      'name' => new_resource.user_name,
-                     'tenant-id' => tenant_uuid,
+                     'tenant' => new_resource.tenant_name,
                      'pass' => new_resource.user_pass,
                      'enabled' => new_resource.user_enabled)
     Chef::Log.info("Created user '#{new_resource.user_name}' for tenant '#{new_resource.tenant_name}'")
@@ -290,26 +288,21 @@ end
 action :grant_role do
   begin
     new_resource.updated_by_last_action(false)
-    tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
-    fail "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
-
-    user_uuid = identity_uuid new_resource, 'user', 'name', new_resource.user_name
-    fail "Unable to find user '#{new_resource.user_name}'" unless tenant_uuid
 
     role_uuid = identity_uuid new_resource, 'role', 'name', new_resource.role_name
     fail "Unable to find role '#{new_resource.role_name}'" unless role_uuid
 
     assigned_role_uuid = identity_uuid(new_resource, 'user-role', 'name',
                                        new_resource.role_name,
-                                       'tenant-id' => tenant_uuid,
-                                       'user-id' => user_uuid)
+                                       'tenant' => new_resource.tenant_name,
+                                       'user' => new_resource.user_name)
     if role_uuid == assigned_role_uuid
       Chef::Log.info("Role '#{new_resource.role_name}' already granted to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
     else
       identity_command(new_resource, 'user-role-add',
-                       'tenant-id' => tenant_uuid,
+                       'tenant' => new_resource.tenant_name,
                        'role-id' => role_uuid,
-                       'user-id' => user_uuid)
+                       'user' => new_resource.user_name)
       Chef::Log.info("Granted Role '#{new_resource.role_name}' to User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}'")
       new_resource.updated_by_last_action(true)
     end
@@ -327,7 +320,7 @@ action :create_ec2_credentials do
     user_uuid = identity_uuid(new_resource, 'user', 'name',
                               new_resource.user_name,
                               'tenant-id' => tenant_uuid)
-    fail "Unable to find user '#{new_resource.user_name}'" unless user_uuid
+    fail "Unable to find user '#{new_resource.user_name}' with tenant '#{new_resource.tenant_name}'" unless user_uuid
 
     # this is not really a uuid, but this will work nonetheless
     access = identity_uuid new_resource, 'ec2-credentials', 'tenant', new_resource.tenant_name, { 'user-id' => user_uuid }, 'access'
