@@ -710,6 +710,27 @@ describe 'openstack-identity::server' do
             expect(chef_run).to render_config_file(path).with_section_content('ldap', /^#{Regexp.quote(a)} = \w+/)
           end
         end
+
+        context 'when connection pool enabled' do
+          before do
+            node.set['openstack']['identity']['ldap']['use_pool'] = true
+          end
+          [
+            /use_pool = true/,
+            /pool_size = 10/,
+            /pool_retry_max = 3/,
+            /pool_retry_delay = 0.1/,
+            /pool_connection_timeout = 3/,
+            /pool_connection_lifetime = 600/,
+            /use_auth_pool = false/,
+            /auth_pool_size = 100/,
+            /auth_pool_connection_lifetime = 60/
+          ].each do |line|
+            it "has LDAP setting #{line.source}" do
+              expect(chef_run).to render_config_file(path).with_section_content('ldap', line)
+            end
+          end
+        end
       end
 
       describe '[identity] section' do

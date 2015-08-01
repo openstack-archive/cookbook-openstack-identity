@@ -354,6 +354,17 @@ default['openstack']['identity']['ldap']['group_allow_create'] = true
 default['openstack']['identity']['ldap']['group_allow_update'] = true
 default['openstack']['identity']['ldap']['group_allow_delete'] = true
 
+# LDAP connection pool settings
+default['openstack']['identity']['ldap']['use_pool'] = false
+default['openstack']['identity']['ldap']['pool_size'] = 10
+default['openstack']['identity']['ldap']['pool_retry_max'] = 3
+default['openstack']['identity']['ldap']['pool_retry_delay'] = 0.1
+default['openstack']['identity']['ldap']['pool_connection_timeout'] = 3
+default['openstack']['identity']['ldap']['pool_connection_lifetime'] = 600
+default['openstack']['identity']['ldap']['use_auth_pool'] = false
+default['openstack']['identity']['ldap']['auth_pool_size'] = 100
+default['openstack']['identity']['ldap']['auth_pool_connection_lifetime'] = 60
+
 # Token flushing cronjob
 default['openstack']['identity']['token_flush_cron']['enabled'] = node['openstack']['identity']['token']['backend'] == 'sql'
 default['openstack']['identity']['token_flush_cron']['log_file'] = '/var/log/keystone/token-flush.log'

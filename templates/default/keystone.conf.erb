@@ -663,6 +663,41 @@ group_allow_update = <%= @ldap["group_allow_update"] %>
 #group_allow_delete = true
 group_allow_delete = <%= @ldap["group_allow_delete"] %>
 
+<% if @ldap['use_pool'] -%>
+# Enable LDAP connection pooling. (boolean value)
+use_pool = true
+
+# Connection pool size. (integer value)
+pool_size = <%= @ldap['pool_size'] %>
+
+# Maximum count of reconnect trials. (integer value)
+pool_retry_max = <%= @ldap['pool_retry_max'] %>
+
+# Time span in seconds to wait between two reconnect trials.
+# (floating point value)
+pool_retry_delay = <%= @ldap['pool_retry_delay'] %>
+
+# Connector timeout in seconds. Value -1 indicates indefinite
+# wait for response. (integer value)
+pool_connection_timeout = <%= @ldap['pool_connection_timeout'] %>
+
+# Connection lifetime in seconds. (integer value)
+pool_connection_lifetime = <%= @ldap['pool_connection_lifetime'] %>
+
+# Enable LDAP connection pooling for end user authentication.
+# If use_pool is disabled, then this setting is meaningless
+# and is not used at all. (boolean value)
+use_auth_pool = <%= @ldap['use_auth_pool'] %>
+
+# End user auth connection pool size. (integer value)
+auth_pool_size = <%= @ldap['auth_pool_size'] %>
+
+# End user auth connection lifetime in seconds. (integer
+# value)
+auth_pool_connection_lifetime = <%= @ldap['auth_pool_connection_lifetime'] %>
+<% end -%>
+
+
 # Enable TLS for communicating with LDAP servers. (boolean value)
 #use_tls = false
 <% if @ldap["use_tls"] -%>
