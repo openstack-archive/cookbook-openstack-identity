@@ -277,6 +277,12 @@ default['openstack']['identity']['catalog']['list_limit'] = nil
 # policy collection. (integer value)
 default['openstack']['identity']['policy']['list_limit'] = nil
 
+# The authorization configuration options
+# The external (REMOTE_USER) auth plugin module. (String value)
+default['openstack']['identity']['auth']['external'] = 'keystone.auth.plugins.external.DefaultDomain'
+# Default auth methods. (List value)
+default['openstack']['identity']['auth']['methods'] = 'external, password, token, oauth1'
+
 # LDAP backend general settings
 default['openstack']['identity']['ldap']['url'] = 'ldap://localhost'
 default['openstack']['identity']['ldap']['user'] = 'dc=Manager,dc=example,dc=com'

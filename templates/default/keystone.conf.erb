@@ -136,6 +136,12 @@ list_limit=<%= node['openstack']['identity']['assignment']['list_limit'] %>
 # From keystone
 #
 
+# The external (REMOTE_USER) auth plugin module. (String value)
+external = <%= node['openstack']['identity']['auth']['external'] %>
+
+# Default auth methods. (List value)
+methods = <%= node['openstack']['identity']['auth']['methods'] %>
+
 [cache]
 
 #

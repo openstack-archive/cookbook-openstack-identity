@@ -769,6 +769,17 @@ describe 'openstack-identity::server' do
         end
       end
 
+      describe '[auth] section' do
+        it 'configures authorization options' do
+          [
+            /^external = keystone.auth.plugins.external.DefaultDomain$/,
+            /^methods = external, password, token, oauth1$/
+          ].each do |line|
+            expect(chef_run).to render_config_file(path).with_section_content('auth', line)
+          end
+        end
+      end
+
       describe '[catalog] section' do
         # use let() to access Helpers#line_regexp method
         let(:templated) do
