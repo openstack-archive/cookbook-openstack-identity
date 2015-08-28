@@ -478,8 +478,8 @@ describe 'openstack-identity::server-apache' do
         end
 
         describe 'syslog configuration' do
-          log_file = /^log_file = \/\w+/
-          log_conf = /^log_config_append = \/\w+/
+          log_file = %r{^log_file = /\w+}
+          log_conf = %r{^log_config_append = /\w+}
 
           it 'renders log_file correctly' do
             expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', log_file)
@@ -759,7 +759,7 @@ describe 'openstack-identity::server-apache' do
            /^rabbit_port = 5672$/,
            /^rabbit_userid = guest$/,
            /^rabbit_password = guest$/,
-           /^rabbit_virtual_host = \/$/,
+           %r{^rabbit_virtual_host = /$},
            /^rabbit_max_retries = 0$/,
            /^rabbit_retry_interval = 1$/
           ].each do |line|
@@ -774,7 +774,7 @@ describe 'openstack-identity::server-apache' do
            /^rabbit_hosts = rabbit_servers_value$/,
            /^rabbit_userid = guest$/,
            /^rabbit_password = guest$/,
-           /^rabbit_virtual_host = \/$/,
+           %r{^rabbit_virtual_host = /$},
            /^rabbit_ha_queues = true$/
           ].each do |line|
             expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)

@@ -36,7 +36,6 @@ auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
 # FIXME(invsblduck): RuboCop gating was enabled mid-review;
 #   Remove these variables in a separate commit if really not needed.
-# rubocop:disable UselessAssignment
 admin_tenant_name = node['openstack']['identity']['admin_tenant_name']
 admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
