@@ -76,7 +76,7 @@ describe 'openstack-identity::server' do
       end
 
       it 'has correct sleep seconds' do
-        expect(sleep.command).to eq('sleep 10s')
+        expect(sleep.command).to eq('sleep 10')
       end
     end
 

@@ -344,7 +344,7 @@ wsgi_apps.each do |app, opt|
 end
 
 execute 'Keystone: sleep' do
-  command "sleep #{node['openstack']['identity']['start_delay']}s"
+  command "sleep #{node['openstack']['identity']['start_delay']}"
   action :nothing
 end
 

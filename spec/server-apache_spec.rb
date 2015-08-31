@@ -1028,7 +1028,7 @@ describe 'openstack-identity::server-apache' do
         end
 
         it 'has sleep resource' do
-          expect(sleep.command).to eq('sleep 10s')
+          expect(sleep.command).to eq('sleep 10')
         end
 
         it 'has notified apache to reload' do
