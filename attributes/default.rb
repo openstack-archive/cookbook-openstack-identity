@@ -395,7 +395,7 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
     'keystone_client_packages' => ['python-keystoneclient'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
-    'keystone_wsgi_file' => '/usr/share/keystone/wsgi.py',
+    'keystone_wsgi_file' => '/usr/share/keystone/keystone.wsgi',
     'package_options' => ''
   }
 when 'suse'
