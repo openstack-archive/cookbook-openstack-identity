@@ -1005,7 +1005,7 @@ describe 'openstack-identity::server' do
       it 'has default api pipeline value' do
         expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension user_crud_extension public_service$/)
         expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension s3_extension crud_extension admin_service$/)
-        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension_v3 s3_extension simple_cert_extension revoke_extension federation_extension oauth1_extension endpoint_filter_extension endpoint_policy_extension service_v3$/)
+        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension_v3 s3_extension simple_cert_extension revoke_extension federation_extension oauth1_extension endpoint_filter_extension service_v3$/)
       end
       it 'template api pipeline set correct' do
         node.set['openstack']['identity']['pipeline']['public_api'] = 'public_service'
