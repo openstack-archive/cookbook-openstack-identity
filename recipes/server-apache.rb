@@ -349,8 +349,8 @@ execute 'Keystone: sleep' do
 end
 
 # Hack until Apache cookbook has lwrp's for proper use of notify
-execute 'Keystone apache reload' do
+execute 'Keystone apache restart' do
   command 'uname'
-  notifies :reload, 'service[apache2]', :immediately
+  notifies :restart, 'service[apache2]', :immediately
   notifies :run, 'execute[Keystone: sleep]', :immediately
 end

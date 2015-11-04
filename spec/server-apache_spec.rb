@@ -1017,12 +1017,12 @@ describe 'openstack-identity::server-apache' do
         end
       end
 
-      describe 'reload apache and sleep' do
-        let(:reload) { chef_run.execute('Keystone apache reload') }
+      describe 'restart apache and sleep' do
+        let(:restart) { chef_run.execute('Keystone apache restart') }
         let(:sleep) { chef_run.execute('Keystone: sleep') }
 
-        it 'has reload resource' do
-          expect(chef_run).to run_execute(reload.name).with(
+        it 'has restart resource' do
+          expect(chef_run).to run_execute(restart.name).with(
             command: 'uname'
           )
         end
@@ -1031,12 +1031,12 @@ describe 'openstack-identity::server-apache' do
           expect(sleep.command).to eq('sleep 10')
         end
 
-        it 'has notified apache to reload' do
-          expect(reload).to notify('service[apache2]').to(:reload).immediately
+        it 'has notified apache to restart' do
+          expect(restart).to notify('service[apache2]').to(:restart).immediately
         end
 
         it 'has notified sleep to run' do
-          expect(reload).to notify("execute[#{sleep.name}]").to(:run).immediately
+          expect(restart).to notify("execute[#{sleep.name}]").to(:run).immediately
         end
       end
     end
