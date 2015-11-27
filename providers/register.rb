@@ -25,119 +25,6 @@ require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut
 include ::Openstack
 
-private
-
-def generate_boot_creds(resource)
-  {
-    'OS_SERVICE_ENDPOINT' => resource.auth_uri,
-    'OS_SERVICE_TOKEN' => resource.bootstrap_token
-  }
-end
-
-private
-
-def generate_admin_creds(resource)
-  identity_endpoint = resource.identity_endpoint
-  identity_endpoint = endpoint('identity-admin').to_s unless identity_endpoint
-  {
-    'OS_USERNAME' => resource.admin_user,
-    'OS_PASSWORD' => resource.admin_pass,
-    'OS_TENANT_NAME' => resource.admin_tenant_name,
-    'OS_AUTH_URL' => identity_endpoint
-  }
-end
-
-private
-
-def generate_user_creds(resource)
-  identity_endpoint = resource.identity_endpoint
-  identity_endpoint = endpoint('identity-api').to_s unless identity_endpoint
-  {
-    'OS_USERNAME' => resource.user_name,
-    'OS_PASSWORD' => resource.user_pass,
-    'OS_TENANT_NAME' => resource.tenant_name,
-    'OS_AUTH_URL' => identity_endpoint
-  }
-end
-
-private
-
-def get_env(resource, env = 'boot')
-  case env
-  when 'boot'
-    generate_boot_creds(resource)
-  when 'user'
-    generate_user_creds(resource)
-  when 'admin'
-    generate_admin_creds(resource)
-  end
-end
-
-private
-
-def identity_command(resource, cmd, args = {}, env = 'boot')
-  keystonecmd = ['keystone'] << '--insecure' << cmd
-  args.each do |key, val|
-    keystonecmd << "--#{key}" unless key.empty?
-    keystonecmd << val.to_s
-  end
-  cmd_env = get_env(resource, env)
-  Chef::Log.debug("Running identity command: #{keystonecmd} env: " + cmd_env.to_s)
-  rc = shell_out(keystonecmd, env: cmd_env)
-  fail "#{rc.stderr} (#{rc.exitstatus})" if rc.exitstatus != 0
-  rc.stdout
-end
-
-private
-
-def identity_uuid(resource, type, key, value, args = {}, uuid_field = 'id')  # rubocop: disable ParameterLists
-  rc = nil
-  begin
-    output = identity_command resource, "#{type}-list", args
-    output = prettytable_to_array(output)
-    rc = (type == 'endpoint') ? (search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region)) : (search_uuid(output, uuid_field, key => value))
-  rescue RuntimeError => e
-    raise "Could not lookup uuid for #{type}:#{key}=>#{value}. Error was #{e.message}"
-  end
-  rc
-end
-
-private
-
-def search_uuid(output, uuid_field, required_hash = {})
-  rc = nil
-  output.each do |obj|
-    rc = obj[uuid_field] if obj.key?(uuid_field) && required_hash.values - obj.values_at(*required_hash.keys) == []
-  end
-  rc
-end
-
-private
-
-def service_need_updated?(resource, args = {}, uuid_field = 'id')
-  begin
-    output = identity_command resource, 'service-list', args
-    output = prettytable_to_array(output)
-    return search_uuid(output, uuid_field, 'name' => resource.service_name).nil?
-  rescue RuntimeError => e
-    raise "Could not check service attributes for service: type => #{resource.service_type}, name => #{resource.service_name}. Error was #{e.message}"
-  end
-  false
-end
-
-private
-
-def endpoint_need_updated?(resource, key, value, args = {}, uuid_field = 'id')
-  begin
-    output = identity_command resource, 'endpoint-list', args
-    output = prettytable_to_array(output)
-    return search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region, 'publicurl' => resource.endpoint_publicurl, 'internalurl' => resource.endpoint_internalurl, 'adminurl' => resource.endpoint_adminurl).nil?
-  rescue RuntimeError => e
-    raise "Could not check endpoint attributes for endpoint:#{key}=>#{value}. Error was #{e.message}"
-  end
-  false
-end
-
 action :create_service do
   new_resource.updated_by_last_action(false)
   if node['openstack']['identity']['catalog']['backend'] == 'templated'
@@ -347,4 +234,106 @@ action :create_ec2_credentials do
   rescue StandardError => e
     raise "Unable to create EC2 Credentials for User '#{new_resource.user_name}' in Tenant '#{new_resource.tenant_name}' Error: " + e.message
   end
+end
+
+private
+
+def generate_boot_creds(resource)
+  {
+    'OS_SERVICE_ENDPOINT' => resource.auth_uri,
+    'OS_SERVICE_TOKEN' => resource.bootstrap_token
+  }
+end
+
+def generate_admin_creds(resource)
+  identity_endpoint = resource.identity_endpoint
+  identity_endpoint = admin_endpoint('identity').to_s unless identity_endpoint
+  {
+    'OS_USERNAME' => resource.admin_user,
+    'OS_PASSWORD' => resource.admin_pass,
+    'OS_TENANT_NAME' => resource.admin_tenant_name,
+    'OS_AUTH_URL' => identity_endpoint
+  }
+end
+
+def generate_user_creds(resource)
+  identity_endpoint = resource.identity_endpoint
+  identity_endpoint = public_endpoint('identity').to_s unless identity_endpoint
+  {
+    'OS_USERNAME' => resource.user_name,
+    'OS_PASSWORD' => resource.user_pass,
+    'OS_TENANT_NAME' => resource.tenant_name,
+    'OS_AUTH_URL' => identity_endpoint
+  }
+end
+
+def get_env(resource, env = 'boot')
+  case env
+  when 'boot'
+    generate_boot_creds(resource)
+  when 'user'
+    generate_user_creds(resource)
+  when 'admin'
+    generate_admin_creds(resource)
+  end
+end
+
+def identity_command(resource, cmd, args = {}, env = 'boot')
+  keystonecmd = build_keystone_cmd(cmd, args)
+  cmd_env = get_env(resource, env)
+  Chef::Log.debug("Running identity command: #{keystonecmd} env: " + cmd_env.to_s)
+  rc = shell_out(keystonecmd, env: cmd_env)
+  fail "#{rc.stderr} (#{rc.exitstatus})" if rc.exitstatus != 0
+  rc.stdout
+end
+
+def build_keystone_cmd(cmd, args)
+  keystonecmd = ['keystone'] << '--insecure' << cmd
+  args.each do |key, val|
+    keystonecmd << "--#{key}" unless key.empty?
+    keystonecmd << val.to_s
+  end
+  keystonecmd
+end
+
+def identity_uuid(resource, type, key, value, args = {}, uuid_field = 'id')
+  rc = nil
+  begin
+    output = identity_command resource, "#{type}-list", args
+    output = prettytable_to_array(output)
+    rc = (type == 'endpoint') ? (search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region)) : (search_uuid(output, uuid_field, key => value))
+  rescue RuntimeError => e
+    raise "Could not lookup uuid for #{type}:#{key}=>#{value}. Error was #{e.message}"
+  end
+  rc
+end
+
+def search_uuid(output, uuid_field, required_hash = {})
+  rc = nil
+  output.each do |obj|
+    rc = obj[uuid_field] if obj.key?(uuid_field) && required_hash.values - obj.values_at(*required_hash.keys) == []
+  end
+  rc
+end
+
+def service_need_updated?(resource, args = {}, uuid_field = 'id')
+  begin
+    output = identity_command resource, 'service-list', args
+    output = prettytable_to_array(output)
+    return search_uuid(output, uuid_field, 'name' => resource.service_name).nil?
+  rescue RuntimeError => e
+    raise "Could not check service attributes for service: type => #{resource.service_type}, name => #{resource.service_name}. Error was #{e.message}"
+  end
+  false
+end
+
+def endpoint_need_updated?(resource, key, value, args = {}, uuid_field = 'id')
+  begin
+    output = identity_command resource, 'endpoint-list', args
+    output = prettytable_to_array(output)
+    return search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region, 'publicurl' => resource.endpoint_publicurl, 'internalurl' => resource.endpoint_internalurl, 'adminurl' => resource.endpoint_adminurl).nil?
+  rescue RuntimeError => e
+    raise "Could not check endpoint attributes for endpoint:#{key}=>#{value}. Error was #{e.message}"
+  end
+  false
 end

@@ -142,87 +142,6 @@ describe 'openstack-identity::server-apache' do
       end
     end
 
-    describe 'ssl files' do
-      describe 'with pki' do
-        describe 'with {certfile,keyfile,ca_certs}_url attributes set' do
-          before do
-            node.set['openstack']['identity']['signing']['certfile_url'] = 'http://www.test.com/signing_cert.pem'
-            node.set['openstack']['identity']['signing']['keyfile_url']  = 'http://www.test.com/signing_key.pem'
-            node.set['openstack']['identity']['signing']['ca_certs_url'] = 'http://www.test.com/ca.pem'
-          end
-
-          describe 'cert file' do
-            let(:cert_file) { node['openstack']['identity']['signing']['certfile'] }
-            let(:file_resource) { chef_run.remote_file(cert_file) }
-
-            it 'creates files' do
-              expect(chef_run).to create_remote_file(cert_file).with(
-                user: 'keystone',
-                group: 'keystone',
-                mode: 0640
-              )
-            end
-          end
-
-          describe 'key file' do
-            let(:key_file) { node['openstack']['identity']['signing']['keyfile'] }
-            let(:file_resource) { chef_run.remote_file(key_file) }
-
-            it 'creates file' do
-              expect(chef_run).to create_remote_file(key_file).with(
-                user: 'keystone',
-                group: 'keystone',
-                mode: 0640
-              )
-            end
-          end
-
-          describe 'ca_certs' do
-            let(:ca_certs) { node['openstack']['identity']['signing']['ca_certs'] }
-            let(:file_resource) { chef_run.remote_file(ca_certs) }
-
-            it 'creates file' do
-              expect(chef_run).to create_remote_file(ca_certs).with(
-                user: 'keystone',
-                group: 'keystone',
-                mode: 0640
-              )
-            end
-          end
-        end
-
-        describe 'without {certfile,keyfile,ca_certs}_url attributes set' do
-          it 'does not create cert file' do
-            expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['certfile'])
-          end
-
-          it 'does not create key file' do
-            expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['keyfile'])
-          end
-
-          it 'does not create ca_certs file' do
-            expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['ca_certs'])
-          end
-        end
-      end
-
-      describe 'without pki' do
-        before { node.set['openstack']['auth']['strategy'] = 'uuid' }
-
-        it 'does not create cert file' do
-          expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['certfile'])
-        end
-
-        it 'does not create key file' do
-          expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['keyfile'])
-        end
-
-        it 'does not create ca_certs file' do
-          expect(chef_run).not_to create_remote_file(node['openstack']['identity']['signing']['ca_certs'])
-        end
-      end
-    end
-
     it 'deletes keystone.db' do
       expect(chef_run).to delete_file('/var/lib/keystone/keystone.db')
     end
@@ -259,21 +178,6 @@ describe 'openstack-identity::server-apache' do
           end
         end
 
-        describe 'with {certfile,keyfile,ca_certs}_url attributes set' do
-          before do
-            node.set['openstack']['identity']['signing']['certfile_url'] = 'http://www.test.com/signing_cert.pem'
-            node.set['openstack']['identity']['signing']['keyfile_url']  = 'http://www.test.com/signing_key.pem'
-            node.set['openstack']['identity']['signing']['ca_certs_url'] = 'http://www.test.com/ca.pem'
-          end
-
-          it 'does not execute' do
-            expect(chef_run).to_not run_execute(cmd).with(
-              user: 'keystone',
-              group: 'keystone'
-            )
-          end
-        end
-
         it 'does not execute when dir exists' do
           expect(FileTest).to receive(:exists?)
             .with('/etc/keystone/ssl/private/signing_key.pem')
@@ -290,7 +194,6 @@ describe 'openstack-identity::server-apache' do
     describe 'keystone.conf' do
       let(:path) { '/etc/keystone/keystone.conf' }
       let(:resource) { chef_run.template(path) }
-
       describe 'file properties' do
         it 'creates /etc/keystone/keystone.conf' do
           expect(chef_run).to create_template(resource.name).with(
@@ -301,165 +204,12 @@ describe 'openstack-identity::server-apache' do
         end
       end
 
-      describe '[eventlet_server_ssl] section' do
-        opts = {
-          enable: 'True',
-          certfile: '/etc/keystone/ssl/certs/sslcert.pem',
-          keyfile: '/etc/keystone/ssl/private/sslkey.pem',
-          ca_certs: '/etc/keystone/ssl/certs/sslca.pem',
-          cert_required: 'false'
-        }
-        describe 'with ssl enabled' do
-          before do
-            node.set['openstack']['identity']['ssl']['enabled'] = true
-            node.set['openstack']['identity']['ssl']['basedir'] = '/etc/keystone/ssl'
-          end
-          describe 'with client cert not required' do
-            it 'configures ssl options without client certificate' do
-              opts.each do |key, val|
-                r = line_regexp("#{key} = #{val}")
-                expect(chef_run).to render_config_file(path).with_section_content('eventlet_server_ssl', r)
-              end
-            end
-          end
-          describe 'with client cert required' do
-            before do
-              node.set['openstack']['identity']['ssl']['cert_required'] = true
-              opts['cert_required'.to_sym] = 'true'
-            end
-            it 'configures ssl options with client certificate' do
-              opts.each do |key, val|
-                r = line_regexp("#{key} = #{val}")
-                expect(chef_run).to render_config_file(path).with_section_content('eventlet_server_ssl', r)
-              end
-            end
-          end
-        end
-
-        describe 'without ssl disabled' do
-          before { node.set['openstack']['identity']['ssl']['enabled'] = false }
-          it 'does not configure ssl options' do
-            opts.each do |key|
-              expect(chef_run).not_to render_config_file(path).with_section_content('eventlet_server_ssl', /^#{key} = /)
-            end
-          end
-        end
-      end
-
-      describe '[saml] section' do
-        describe 'saml attributes' do
-          saml_default_attrs = %w(assertion_expiration_time=3600
-                                  xmlsec1_binary=xmlsec1
-                                  certfile=
-                                  keyfile=)
-          it 'default saml attributes' do
-            saml_default_attrs.each do |attr|
-              default_value = /^#{attr}$/
-              expect(chef_run).to render_config_file(path).with_section_content('saml', default_value)
-            end
-          end
-
-          saml_override_attrs = %w(assertion_expiration_time
-                                   xmlsec1_binary
-                                   certfile
-                                   keyfile)
-          it 'override saml attributes' do
-            saml_override_attrs.each do |attr|
-              node.set['openstack']['identity']['saml']["#{attr}"] = "value_for_#{attr}"
-              override_value = /^#{attr}=value_for_#{attr}$/
-              expect(chef_run).to render_config_file(path).with_section_content('saml', override_value)
-            end
-          end
-        end
-
-        describe 'optional saml ipd attributes' do
-          optional_attrs = %w(idp_entity_id idp_sso_endpoint idp_lang
-                              idp_organization_name idp_organization_display_name
-                              idp_organization_url idp_contact_company idp_contact_name
-                              idp_contact_surname idp_contact_email idp_contact_telephone
-                              idp_contact_type idp_metadata_path)
-          it 'empty default ipd attributes' do
-            optional_attrs.each do |attr|
-              default_value = /^#{attr}=$/
-              expect(chef_run).to render_config_file(path).with_section_content('saml', default_value)
-            end
-          end
-
-          it 'overridden ipd attributes' do
-            optional_attrs.each do |attr|
-              node.set['openstack']['identity']['saml']["#{attr}"] = "value_for_#{attr}"
-              override_value = /^#{attr}=value_for_#{attr}$/
-              expect(chef_run).to render_config_file(path).with_section_content('saml', override_value)
-            end
-          end
-        end
-      end
-
       it 'has no list_limits by default' do
-        expect(chef_run).not_to render_config_file(path).with_section_content('DEFAULT', /^list_limit=/)
-      end
-
-      it 'sets list limits correctly' do
-        node.set['openstack']['identity']['list_limit'] = 111
-        node.set['openstack']['identity']['assignment']['list_limit'] = 222
-        node.set['openstack']['identity']['catalog']['list_limit'] = 333
-        node.set['openstack']['identity']['identity']['list_limit'] = 444
-        node.set['openstack']['identity']['policy']['list_limit'] = 555
-        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^list_limit=111$/)
-        expect(chef_run).to render_config_file(path).with_section_content('assignment', /^list_limit=222$/)
-        expect(chef_run).to render_config_file(path).with_section_content('catalog', /^list_limit=333$/)
-        expect(chef_run).to render_config_file(path).with_section_content('identity', /^list_limit=444$/)
-        expect(chef_run).to render_config_file(path).with_section_content('policy', /^list_limit=555$/)
-      end
-
-      it 'templates misc_keystone array correctly' do
-        node.set['openstack']['identity']['misc_keystone'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
-        expect(chef_run).to render_file(path).with_content(
-          /^MISC1=OPTION1$/)
-        expect(chef_run).to render_file(path).with_content(
-          /^MISC2=OPTION2$/)
-      end
-
-      describe '[eventlet_server] section' do
-        it 'has default worker values' do
-          expect(chef_run).not_to render_config_file(path).with_section_content('eventlet_server', /^admin_workers=/)
-          expect(chef_run).not_to render_config_file(path).with_section_content('eventlet_server', /^public_workers=/)
-        end
-
-        it 'has specific worker values' do
-          node.set['openstack']['identity']['admin_workers'] = 123
-          node.set['openstack']['identity']['public_workers'] = 456
-          expect(chef_run).to render_config_file(path).with_section_content('eventlet_server', /^admin_workers=123$/)
-          expect(chef_run).to render_config_file(path).with_section_content('eventlet_server', /^public_workers=456$/)
-        end
-
-        it 'has bind host from endpoint' do
-          r = line_regexp('public_bind_host = 127.0.0.1')
-          expect(chef_run).to render_config_file(path).with_section_content('eventlet_server', r)
-        end
-
-        it 'has admin bind host from endpoint' do
-          r = line_regexp('admin_bind_host = 127.0.0.1')
-          expect(chef_run).to render_config_file(path).with_section_content('eventlet_server', r)
-        end
-
-        describe 'port numbers' do
-          ['public_port = 5000', 'admin_port = 35357'].each do |port|
-            it "has #{port}" do
-              expect(chef_run).to render_config_file(path).with_section_content('eventlet_server', /^#{port}$/)
-            end
-          end
-        end
+        expect(chef_run).not_to render_config_file(path).with_section_content('DEFAULT', /^list_limit = /)
       end
 
       it 'has rpc_backend set for rabbit' do
-        node.set['openstack']['mq']['service_type'] = 'rabbitmq'
         expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend = rabbit$/)
-      end
-
-      it 'has rpc_backend set for qpid' do
-        node.set['openstack']['mq']['service_type'] = 'qpid'
-        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend = qpid$/)
       end
 
       describe '[DEFAULT] section' do
@@ -469,16 +219,16 @@ describe 'openstack-identity::server-apache' do
         end
 
         describe 'logging verbosity' do
-          ['verbose', 'debug'].each do |x|
+          ['verbose'].each do |x|
             it "has #{x} option" do
-              r = line_regexp("#{x} = False")
+              r = line_regexp("#{x} = false")
               expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', r)
             end
           end
         end
 
         describe 'syslog configuration' do
-          log_file = %r{^log_file = /\w+}
+          log_file = %r{^log_dir = /var/log/keystone$}
           log_conf = %r{^log_config_append = /\w+}
 
           it 'renders log_file correctly' do
@@ -491,18 +241,6 @@ describe 'openstack-identity::server-apache' do
 
             expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', log_conf)
             expect(chef_run).not_to render_config_file(path).with_section_content('DEFAULT', log_file)
-          end
-        end
-
-        it 'has default for oslo.messaging configuration' do
-          [/^notification_driver = messaging$/,
-           /^notification_topics = notifications$/,
-           /^rpc_thread_pool_size = 64$/,
-           /^rpc_response_timeout = 60$/,
-           /^rpc_backend = rabbit$/,
-           /^control_exchange = openstack$/
-          ].each do |line|
-            expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', line)
           end
         end
 
@@ -553,7 +291,7 @@ describe 'openstack-identity::server-apache' do
 
           it 'does not configure attributes' do
             optional_attrs.each do |a|
-              r = /^#{Regexp.quote(a)} =$/
+              r = /^#{Regexp.quote(a)}  = $/
               expect(chef_run).not_to render_config_file(path).with_section_content('ldap', r)
             end
           end
@@ -571,75 +309,7 @@ describe 'openstack-identity::server-apache' do
               before do
                 node.set['openstack']['identity']['ldap']['use_tls'] = true
               end
-
-              context 'when cert paths are configured' do
-                it 'has a tls_cacertfile when configured' do
-                  node.set['openstack']['identity']['ldap']['tls_cacertfile'] = 'tls_cacertfile_value'
-                  expect(chef_run).to render_config_file(path).with_section_content('ldap', /^tls_cacertfile = tls_cacertfile_value$/)
-                  expect(chef_run).not_to render_config_file(path).with_section_content('ldap', /^tls_cacertdir = /)
-                end
-                it 'has a tls_cacertdir when configured and tls_cacertfile unset' do
-                  node.set['openstack']['identity']['ldap']['tls_cacertfile'] = nil
-                  node.set['openstack']['identity']['ldap']['tls_cacertdir'] = 'tls_cacertdir_value'
-                  expect(chef_run).to render_config_file(path).with_section_content('ldap', /^tls_cacertdir = tls_cacertdir_value$/)
-                  expect(chef_run).not_to render_config_file(path).with_section_content('ldap', /^tls_cacertfile = /)
-                end
-              end
-
-              context 'when tls_req_cert validation disabled' do
-                it 'has a tls_req_cert set to never' do
-                  node.set['openstack']['identity']['ldap']['tls_req_cert'] = 'never'
-                  expect(chef_run).to render_config_file(path).with_section_content('ldap', /^tls_req_cert = never$/)
-                end
-              end
             end
-          end
-        end
-
-        it 'has required attributes' do
-          required_attrs = %w(alias_dereferencing allow_subtree_delete
-                              dumb_member group_allow_create group_allow_delete
-                              group_allow_update group_desc_attribute
-                              group_id_attribute
-                              group_member_attribute group_name_attribute
-                              group_objectclass page_size query_scope
-                              role_allow_create role_allow_delete
-                              role_allow_update role_id_attribute
-                              role_member_attribute role_name_attribute
-                              role_objectclass suffix project_allow_create
-                              project_allow_delete project_allow_update
-                              project_desc_attribute project_domain_id_attribute
-                              project_enabled_attribute project_enabled_emulation
-                              project_id_attribute project_member_attribute
-                              project_name_attribute project_objectclass url
-                              use_dumb_member user user_allow_create
-                              user_allow_delete user_allow_update
-                              user_attribute_ignore
-                              user_enabled_attribute user_enabled_default
-                              user_enabled_emulation user_enabled_mask
-                              user_id_attribute user_mail_attribute
-                              user_name_attribute user_objectclass
-                              user_pass_attribute)
-
-          required_attrs.each do |a|
-            expect(chef_run).to render_config_file(path).with_section_content('ldap', /^#{Regexp.quote(a)} = \w+/)
-          end
-        end
-      end
-
-      describe '[identity] section' do
-        it 'configures driver' do
-          r = line_regexp('driver = keystone.identity.backends.sql.Identity')
-          expect(chef_run).to render_config_file(path).with_section_content('identity', r)
-        end
-
-        [
-          /^default_domain_id=default$/,
-          /^domain_specific_drivers_enabled=false$/,
-          %r{^domain_config_dir=/etc/keystone/domains$}
-        ].each do |line|
-          it "has a #{line.source} line" do
-            expect(chef_run).to render_config_file(path).with_section_content('identity', line)
           end
         end
       end
@@ -665,30 +335,6 @@ describe 'openstack-identity::server-apache' do
           expect(chef_run).to render_config_file(path).with_content(sql)
           expect(chef_run).not_to render_config_file(path).with_section_content('catalog', templated)
         end
-
-        it 'configures driver with templated backend' do
-          node.set['openstack']['identity']['catalog']['backend'] = 'templated'
-
-          expect(chef_run).to render_config_file(path).with_section_content('catalog', templated)
-          expect(chef_run).not_to render_config_file(path).with_section_content('catalog', sql)
-        end
-      end
-
-      describe '[token] section' do
-        it 'configures driver' do
-          r = line_regexp('driver = keystone.token.persistence.backends.sql.Token')
-          expect(chef_run).to render_config_file(path).with_section_content('token', r)
-        end
-
-        it 'sets token expiration time' do
-          r = line_regexp('expiration = 3600')
-          expect(chef_run).to render_config_file(path).with_section_content('token', r)
-        end
-
-        it 'sets token hash algorithm' do
-          r = line_regexp('hash_algorithm = md5')
-          expect(chef_run).to render_config_file(path).with_section_content('token', r)
-        end
       end
 
       describe '[policy] section' do
@@ -698,115 +344,12 @@ describe 'openstack-identity::server-apache' do
         end
       end
 
-      describe '[signing] section' do
-        opts = {
-          certfile: '/etc/keystone/ssl/certs/signing_cert.pem',
-          keyfile: '/etc/keystone/ssl/private/signing_key.pem',
-          ca_certs: '/etc/keystone/ssl/certs/ca.pem',
-          key_size: '2048',
-          valid_days: '3650',
-          ca_password: nil
-        }
-
-        describe 'with pki' do
-          it 'configures cert options' do
-            opts.each do |key, val|
-              r = line_regexp("#{key} = #{val}")
-              expect(chef_run).to render_config_file(path).with_section_content('signing', r)
-            end
-          end
-        end
-
-        describe 'without pki' do
-          before { node.set['openstack']['auth']['strategy'] = 'uuid' }
-          it 'does not configure cert options' do
-            opts.each do |key|
-              expect(chef_run).not_to render_config_file(path).with_section_content('signing', /^#{key} = /)
-            end
-          end
-        end
-      end
-
-      describe '[oslo_messaging_qpid] section' do
-        it 'has defaults for oslo_messaging_qpid section' do
-          node.set['openstack']['mq']['service_type'] = 'qpid'
-          [/^amqp_durable_queues = false$/,
-           /^amqp_auto_delete = false$/,
-           /^rpc_conn_pool_size = 30$/,
-           /^qpid_hostname = 127.0.0.1$/,
-           /^qpid_port = 5672$/,
-           /^qpid_username = guest$/,
-           /^qpid_password = guest$/,
-           /^qpid_sasl_mechanisms = $/,
-           /^qpid_heartbeat = 60$/,
-           /^qpid_protocol = tcp$/,
-           /^qpid_tcp_nodelay = true$/,
-           /^qpid_topology_version = 1$/
-          ].each do |line|
-            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_qpid', line)
-          end
-        end
-      end
-
       describe '[oslo_messaging_rabbit] section' do
         it 'has defaults for oslo_messaging_rabbit section' do
-          [/^amqp_durable_queues = false$/,
-           /^amqp_auto_delete = false$/,
-           /^heartbeat_timeout_threshold=0$/,
-           /^heartbeat_rate=2$/,
-           /^rpc_conn_pool_size = 30$/,
-           /^rabbit_host = 127.0.0.1$/,
-           /^rabbit_port = 5672$/,
-           /^rabbit_userid = guest$/,
-           /^rabbit_password = guest$/,
-           %r{^rabbit_virtual_host = /$},
-           /^rabbit_max_retries = 0$/,
-           /^rabbit_retry_interval = 1$/
+          [
+            /^rabbit_userid = guest$/,
+            /^rabbit_password = guest$/
           ].each do |line|
-            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
-          end
-        end
-        it 'has defaults for oslo_messaging_rabbit section with ha' do
-          node.set['openstack']['mq']['identity']['rabbit']['ha'] = true
-          [/^amqp_durable_queues = false$/,
-           /^amqp_auto_delete = false$/,
-           /^rpc_conn_pool_size = 30$/,
-           /^rabbit_hosts = rabbit_servers_value$/,
-           /^rabbit_userid = guest$/,
-           /^rabbit_password = guest$/,
-           %r{^rabbit_virtual_host = /$},
-           /^rabbit_ha_queues = true$/
-          ].each do |line|
-            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
-          end
-        end
-        it 'does not have ssl config set' do
-          [/^rabbit_use_ssl=/,
-           /^kombu_ssl_version=/,
-           /^kombu_ssl_keyfile=/,
-           /^kombu_ssl_certfile=/,
-           /^kombu_ssl_ca_certs=/,
-           /^kombu_reconnect_delay=/,
-           /^kombu_reconnect_timeout=/].each do |line|
-            expect(chef_run).not_to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
-          end
-        end
-
-        it 'sets ssl config' do
-          node.set['openstack']['mq']['identity']['rabbit']['use_ssl'] = true
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_version'] = 'TLSv1.2'
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_keyfile'] = 'keyfile'
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_certfile'] = 'certfile'
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_ssl_ca_certs'] = 'certsfile'
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_reconnect_delay'] = 123.123
-          node.set['openstack']['mq']['identity']['rabbit']['kombu_reconnect_timeout'] = 123
-          [/^rabbit_use_ssl=true/,
-           /^kombu_ssl_version=TLSv1.2$/,
-           /^kombu_ssl_keyfile=keyfile$/,
-           /^kombu_ssl_certfile=certfile$/,
-           /^kombu_ssl_ca_certs=certsfile$/,
-           /^kombu_reconnect_delay=123.123$/,
-           /^kombu_reconnect_timeout=123$/].each do |line|
             expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
           end
         end
@@ -819,21 +362,6 @@ describe 'openstack-identity::server-apache' do
       describe 'without templated backend' do
         it 'does not create' do
           expect(chef_run).not_to render_file(file)
-        end
-      end
-
-      describe 'with templated backend' do
-        before do
-          node.set['openstack']['identity']['catalog']['backend'] = 'templated'
-        end
-        let(:template) { chef_run.template(file) }
-
-        it 'creates /etc/keystone/default_catalog.templates' do
-          expect(chef_run).to create_template(template.name).with(
-            user: 'keystone',
-            group: 'keystone',
-            mode: 0644
-          )
         end
       end
     end
@@ -883,11 +411,11 @@ describe 'openstack-identity::server-apache' do
         expect(chef_run).to render_file(path).with_content(/^pipeline = service_v3$/)
       end
       it 'template misc_paste array correctly' do
-        node.set['openstack']['identity']['misc_paste'] = ['MISC1=OPTION1', 'MISC2=OPTION2']
+        node.set['openstack']['identity']['misc_paste'] = ['MISC1 = OPTION1', 'MISC2 = OPTION2']
         expect(chef_run).to render_file(path).with_content(
-          /^MISC1=OPTION1$/)
+          /^MISC1 = OPTION1$/)
         expect(chef_run).to render_file(path).with_content(
-          /^MISC2=OPTION2$/)
+          /^MISC2 = OPTION2$/)
       end
     end
 
@@ -912,8 +440,10 @@ describe 'openstack-identity::server-apache' do
       end
 
       it 'set apache addresses and ports' do
-        expect(chef_run.node['apache']['listen_addresses']).to eq ['127.0.0.1']
-        expect(chef_run.node['apache']['listen_ports']).to eq [5000, 35357]
+        expect(chef_run.node['apache']['listen']).to eq(
+          '*' => ['80'],
+          '127.0.0.1' => ['5000', '5001', '35357']
+        )
       end
 
       describe 'apache recipes' do
@@ -973,23 +503,6 @@ describe 'openstack-identity::server-apache' do
             [/^    LogLevel/,
              /^    SSL/].each do |line|
               expect(chef_run).not_to render_file(file).with_content(line)
-            end
-          end
-
-          it "configures #{file} triggered common lines" do
-            node.set['openstack']['identity']['debug'] = 'True'
-            node.set['openstack']['identity']['ssl']['cert_required'] = true
-            node.set['openstack']['identity']['ssl']['enabled'] = true
-            node.set['openstack']['identity']['ssl']['ciphers'] = 'ciphers'
-            [/^    LogLevel debug$/,
-             /^    SSLEngine On$/,
-             %r{^    SSLCertificateFile /etc/keystone/ssl/certs/sslcert.pem$},
-             %r{^    SSLCertificateKeyFile /etc/keystone/ssl/private/sslkey.pem$},
-             %r{^    SSLCACertificatePath /etc/keystone/ssl/certs/$},
-             /^    SSLProtocol All -SSLv2 -SSLv3$/,
-             /^    SSLCipherSuite ciphers$/,
-             /^    SSLVerifyClient require$/].each do |line|
-              expect(chef_run).to render_file(file).with_content(line)
             end
           end
         end

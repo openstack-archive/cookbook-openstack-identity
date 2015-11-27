@@ -11,6 +11,9 @@ describe 'openstack-identity::default' do
     let(:cookbook_collection) { Chef::CookbookCollection.new([]) }
     let(:run_context) { Chef::RunContext.new(node, cookbook_collection, events) }
 
+    # needed to create the provider class OpenstackIdentityRegister by chef magic
+    before { chef_run }
+
     describe 'tenant_create' do
       let(:resource) do
         r = Chef::Resource::OpenstackIdentityRegister.new('tenant1',

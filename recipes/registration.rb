@@ -21,34 +21,27 @@
 
 require 'uri'
 
-class ::Chef::Recipe # rubocop:disable Documentation
+class ::Chef::Recipe
   include ::Openstack
 end
 
-# TBD clean up item...
-# These should probably become admin, internal, public endpoints for a
-# single service 'identity-api'. To minimize impact, I propose that we
-# defer that work until later.
-identity_admin_endpoint = admin_endpoint 'identity-admin'
-identity_internal_endpoint = internal_endpoint 'identity-internal'
-identity_public_endpoint = public_endpoint 'identity-api'
+identity_admin_endpoint = admin_endpoint 'identity'
+identity_internal_endpoint = internal_endpoint 'identity'
+identity_public_endpoint = public_endpoint 'identity'
 auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
-# FIXME(invsblduck): RuboCop gating was enabled mid-review;
-#   Remove these variables in a separate commit if really not needed.
 admin_tenant_name = node['openstack']['identity']['admin_tenant_name']
 admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
-# rubocop:enable UselessAssignment
 
 bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
 
-# FIXME(galstrom21): This needs to be refactored, to not use a
-#   MultilineBlockChain.
 # Register all the tenants specified in the users hash
-node['openstack']['identity']['users'].values.map do |user_info|
+identity_tenants = node['openstack']['identity']['users'].values.map do |user_info|
   user_info['roles'].values.push(user_info['default_tenant'])
-end.flatten.uniq.each do |tenant_name| # rubocop: disable MultilineBlockChain
+end
+
+identity_tenants.flatten.uniq.each do |tenant_name|
   openstack_identity_register "Register '#{tenant_name}' Tenant" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token
@@ -59,12 +52,12 @@ end.flatten.uniq.each do |tenant_name| # rubocop: disable MultilineBlockChain
   end
 end
 
-# FIXME(galstrom21): This needs to be refactored, to not use a
-#   MultilineBlockChain.
 # Register all the roles from the users hash
-node['openstack']['identity']['users'].values.map do |user_info|
+identity_roles = node['openstack']['identity']['users'].values.map do |user_info|
   user_info['roles'].keys
-end.flatten.uniq.each do |role_name| # rubocop: disable MultilineBlockChain
+end
+
+identity_roles.flatten.uniq.each do |role_name|
   openstack_identity_register "Register '#{role_name}' Role" do
     auth_uri auth_uri
     bootstrap_token bootstrap_token

@@ -5,11 +5,6 @@ require 'chefspec/berkshelf'
 ChefSpec::Coverage.start! { add_filter 'openstack-identity' }
 
 LOG_LEVEL = :fatal
-SUSE_OPTS = {
-  platform: 'suse',
-  version: '11.3',
-  log_level: LOG_LEVEL
-}
 REDHAT_OPTS = {
   platform: 'redhat',
   version: '7.1',
@@ -55,5 +50,19 @@ shared_context 'identity_stubs' do
       .with('token', 'openstack_identity_bootstrap_token')
       .and_return('bootstrap-token')
     stub_command('/usr/sbin/apache2 -t')
+    allow_any_instance_of(Chef::Recipe).to receive(:search_for)
+      .with('os-identity').and_return(
+        [{
+          'openstack' => {
+            'identity' => {
+              'admin_tenant_name' => 'admin',
+              'admin_user' => 'admin'
+            }
+          }
+        }]
+      )
+    allow_any_instance_of(Chef::Recipe).to receive(:get_password)
+      .with('user', 'admin')
+      .and_return('admin')
   end
 end

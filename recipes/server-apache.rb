@@ -20,7 +20,7 @@
 
 require 'uri'
 
-class ::Chef::Recipe # rubocop:disable Documentation
+class ::Chef::Recipe
   include ::Openstack
 end
 
@@ -109,7 +109,7 @@ if node['openstack']['auth']['strategy'] == 'pki'
       user node['openstack']['identity']['user']
       group node['openstack']['identity']['group']
 
-      not_if { ::FileTest.exists? node['openstack']['identity']['signing']['keyfile'] }
+      not_if { ::FileTest.exists? "#{node['openstack']['identity']['signing']['basedir']}/private/signing_key.pem" }
     end
   else
     remote_file node['openstack']['identity']['signing']['certfile'] do
@@ -135,44 +135,30 @@ if node['openstack']['auth']['strategy'] == 'pki'
   end
 end
 
-# Note that identity-bind and identity-admin-bind are not
-# service endpoints where there could be separate 'admin',
-# 'public', and 'internal'. (Well, actually I suppose we
-# could shoehorn it into that infrastructure, but for now
-# I propose that we leave them with the general endpoint
-# lookup routine.)
-bind_endpoint = endpoint 'identity-bind'
-admin_bind_endpoint = endpoint 'identity-admin-bind'
-identity_admin_endpoint = admin_endpoint 'identity-admin'
+public_bind_service = node['openstack']['bind_service']['identity']['public']
+internal_bind_service = node['openstack']['bind_service']['identity']['internal']
+admin_bind_service = node['openstack']['bind_service']['identity']['admin']
 
-# These values are going into the templated catalog and
-# since they're the endpoints being used by the clients,
-# we should put in the public endpoints for each service.
-identity_endpoint = public_endpoint 'identity-api'
-compute_endpoint = public_endpoint 'compute-api'
-ec2_endpoint = public_endpoint 'compute-ec2-api'
-image_endpoint = public_endpoint 'image-api'
-network_endpoint = public_endpoint 'network-api'
-volume_endpoint = public_endpoint 'block-storage-api'
+identity_admin_endpoint = admin_endpoint 'identity'
 
 db_user = node['openstack']['db']['identity']['username']
 db_pass = get_password 'db', 'keystone'
-sql_connection = db_uri('identity', db_user, db_pass)
+node.default['openstack']['identity']['conf_secrets']
+.[]('database')['connection'] =
+  db_uri('identity', db_user, db_pass)
 
 bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
-
-bind_address = bind_endpoint.host
-admin_bind_address = admin_bind_endpoint.host
 
 # If the search role is set, we search for memcache
 # servers via a Chef search. If not, we look at the
 # memcache.servers attribute.
-memcache_servers = memcached_servers.join ','  # from openstack-common lib
+memcache_servers = memcached_servers.join ',' # from openstack-common lib
 
 # These configuration endpoints must not have the path (v2.0, etc)
 # added to them, as these values are used in returning the version
 # listing information from the root / endpoint.
-ie = identity_endpoint
+identity_public_endpoint = public_endpoint 'identity'
+ie = identity_public_endpoint
 public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 ae = identity_admin_endpoint
 admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
@@ -198,60 +184,79 @@ else
   end
 end
 
-mq_service_type = node['openstack']['mq']['identity']['service_type']
-
-if mq_service_type == 'rabbitmq'
-  node['openstack']['mq']['identity']['rabbit']['ha'] && (rabbit_hosts = rabbit_servers)
-  mq_password = get_password 'user', node['openstack']['mq']['identity']['rabbit']['userid']
-elsif mq_service_type == 'qpid'
-  mq_password = get_password 'user', node['openstack']['mq']['identity']['qpid']['username']
+if node['openstack']['identity']['conf']['DEFAULT']['rpc_backend'] == 'rabbit'
+  user = node['openstack']['mq']['identity']['rabbit']['userid']
+  node.default['openstack']['identity']['conf_secrets']
+  .[]('oslo_messaging_rabbit')['rabbit_userid'] = user
+  node.default['openstack']['identity']['conf_secrets']
+  .[]('oslo_messaging_rabbit')['rabbit_password'] =
+    get_password 'user', user
 end
 
+node.default['openstack']['identity']['conf'].tap do |conf|
+  # [DEFAULT] section
+  conf['DEFAULT']['admin_token'] = bootstrap_token
+  conf['DEFAULT']['public_endpoint'] = public_endpoint
+  conf['DEFAULT']['admin_endpoint'] = admin_endpoint
+  # [memcache] section
+  conf['memcache']['servers'] = memcache_servers if memcache_servers
+end
+
+# merge all config options and secrets to be used in the nova.conf.erb
+keystone_conf_options = merge_config_options 'identity'
+
 template '/etc/keystone/keystone.conf' do
-  source 'keystone.conf.erb'
+  source 'openstack-service.conf.erb'
+  cookbook 'openstack-common'
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
   mode 00640
   variables(
-    sql_connection: sql_connection,
-    bind_address: bind_address,
-    admin_bind_address: admin_bind_address,
-    bootstrap_token: bootstrap_token,
-    memcache_servers: memcache_servers,
-    public_endpoint: public_endpoint,
-    public_port: identity_endpoint.port,
-    admin_endpoint: admin_endpoint,
-    admin_port: identity_admin_endpoint.port,
-    ldap: node['openstack']['identity']['ldap'],
-    token_expiration: node['openstack']['identity']['token']['expiration'],
-    rabbit_hosts: rabbit_hosts,
-    notification_driver: node['openstack']['identity']['notification_driver'],
-    mq_service_type: mq_service_type,
-    mq_password: mq_password
+    service_config: keystone_conf_options
   )
 end
 
-# populate the templated catlog, if you're using the templated catalog backend
-uris = {
-  'identity-admin' => identity_admin_endpoint.to_s.gsub('%25', '%'),
-  'identity' => identity_endpoint.to_s.gsub('%25', '%'),
-  'image' => image_endpoint.to_s.gsub('%25', '%'),
-  'compute' => compute_endpoint.to_s.gsub('%25', '%'),
-  'ec2' => ec2_endpoint.to_s.gsub('%25', '%'),
-  'network' => network_endpoint.to_s.gsub('%25', '%'),
-  'volume' => volume_endpoint.to_s.gsub('%25', '%')
-}
+# delete all secrets saved in the attribute
+# node['openstack']['identity']['conf_secrets'] after creating the keystone.conf
+ruby_block "delete all attributes in node['openstack']['identity']['conf_secrets']" do
+  block do
+    node.rm(:openstack, :identity, :conf_secrets)
+  end
+end
 
-template '/etc/keystone/default_catalog.templates' do
-  source 'default_catalog.templates.erb'
-  owner node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
-  mode 00644
-  variables(
-    uris: uris
-  )
+# TODO: (jklare) needs to be refactored and filled by the service cookbooks, to
+# avoid dependencies on unused cookbooks
+if node['openstack']['identity']['catalog']['backend'] == 'templated'
+  # These values are going into the templated catalog and
+  # since they're the endpoints being used by the clients,
+  # we should put in the public endpoints for each service.
+  compute_public_endpoint = public_endpoint 'compute'
+  ec2_public_endpoint = public_endpoint 'compute-ec2'
+  image_public_endpoint = public_endpoint 'image'
+  network_public_endpoint = public_endpoint 'network'
+  volume_public_endpoint = public_endpoint 'block-storage'
 
-  only_if { node['openstack']['identity']['catalog']['backend'] == 'templated' }
+  # populate the templated catlog, if you're using the templated catalog backend
+  # TODO: (jklare) this should be done in a helper method
+  uris = {
+    'identity-admin' => identity_admin_endpoint.to_s.gsub('%25', '%'),
+    'identity' => identity_public_endpoint.to_s.gsub('%25', '%'),
+    'image' => image_public_endpoint.to_s.gsub('%25', '%'),
+    'compute' => compute_public_endpoint.to_s.gsub('%25', '%'),
+    'ec2' => ec2_public_endpoint.to_s.gsub('%25', '%'),
+    'network' => network_public_endpoint.to_s.gsub('%25', '%'),
+    'volume' => volume_public_endpoint.to_s.gsub('%25', '%')
+  }
+
+  template '/etc/keystone/default_catalog.templates' do
+    source 'default_catalog.templates.erb'
+    owner node['openstack']['identity']['user']
+    group node['openstack']['identity']['group']
+    mode 00644
+    variables(
+      uris: uris
+    )
+  end
 end
 
 # sync db after keystone.conf is generated
@@ -279,10 +284,13 @@ end
 
 #### Start of Apache specific work
 
-listen_addresses = node['apache']['listen_addresses'] - ['*'] + [bind_address, admin_bind_address]
-listen_ports = node['apache']['listen_ports'] - ['80'] + [identity_endpoint.port, identity_admin_endpoint.port]
-node.set['apache']['listen_addresses'] = listen_addresses.uniq
-node.set['apache']['listen_ports'] = listen_ports.uniq
+apache_listen_public = { public_bind_service.host => [public_bind_service.port.to_s] }
+apache_listen_internal = { internal_bind_service.host => [internal_bind_service.port.to_s] }
+apache_listen_admin = { admin_bind_service.host => [admin_bind_service.port.to_s] }
+apache_listen = Chef::Mixin::DeepMerge.merge(Chef::Mixin::DeepMerge.merge(apache_listen_public, apache_listen_internal), apache_listen_admin)
+
+node.normal['apache']['listen'] =
+  Chef::Mixin::DeepMerge.merge(node['apache']['listen'], apache_listen)
 
 include_recipe 'apache2'
 include_recipe 'apache2::mod_wsgi'
@@ -296,11 +304,12 @@ directory keystone_apache_dir do
 end
 
 server_entry_public = "#{keystone_apache_dir}/main"
+server_entry_internal = "#{keystone_apache_dir}/internal"
 server_entry_admin = "#{keystone_apache_dir}/admin"
 
 # Note: Using lazy here as the wsgi file is not available until after
 # the keystone package is installed during execution phase.
-[server_entry_public, server_entry_admin].each do |server_entry|
+[server_entry_public, server_entry_internal, server_entry_admin].each do |server_entry|
   file server_entry do
     content lazy { IO.read(platform_options['keystone_wsgi_file']) }
     owner 'root'
@@ -311,13 +320,18 @@ end
 
 wsgi_apps = {
   'public' => {
-    server_host: bind_address,
-    server_port: identity_endpoint.port,
+    server_host: public_bind_service.host,
+    server_port: public_bind_service.port,
     server_entry: server_entry_public
   },
+  'internal' => {
+    server_host: internal_bind_service.host,
+    server_port: internal_bind_service.port,
+    server_entry: server_entry_internal
+  },
   'admin' => {
-    server_host: admin_bind_address,
-    server_port: identity_admin_endpoint.port,
+    server_host: admin_bind_service.host,
+    server_port: admin_bind_service.port,
     server_entry: server_entry_admin
   }
 }

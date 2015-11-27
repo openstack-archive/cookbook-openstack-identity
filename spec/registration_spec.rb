@@ -104,7 +104,7 @@ describe 'openstack-identity::registration' do
                 auth_uri: 'http://127.0.0.1:35357/v2.0',
                 bootstrap_token: 'bootstrap-token',
                 user_name: user,
-                user_pass: '',
+                user_pass: 'admin',
                 tenant_name: tenant
               )
             end
@@ -134,7 +134,7 @@ describe 'openstack-identity::registration' do
                 tenant_name: tenant,
                 admin_tenant_name: 'admin',
                 admin_user: 'admin',
-                admin_pass: ''
+                admin_pass: 'admin'
               )
             end
           end
@@ -178,7 +178,7 @@ describe 'openstack-identity::registration' do
             tenant_name: 'default_tenant1',
             admin_tenant_name: 'admin',
             admin_user: 'admin',
-            admin_pass: ''
+            admin_pass: 'admin'
           )
         end
       end
@@ -239,7 +239,7 @@ describe 'openstack-identity::registration' do
             service_type: 'identity',
             endpoint_region: 'RegionOne',
             endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
-            endpoint_internalurl: 'http://127.0.0.1:5000/v2.0',
+            endpoint_internalurl: 'http://127.0.0.1:5001/v2.0',
             endpoint_publicurl: 'http://127.0.0.1:5000/v2.0'
           )
         end
@@ -252,15 +252,15 @@ describe 'openstack-identity::registration' do
         end
 
         it 'overrides identity endpoints' do
-          node.set['openstack']['endpoints']['identity-admin']['host'] = '127.0.0.2'
-          node.set['openstack']['endpoints']['identity-admin']['port'] = '5002'
-          node.set['openstack']['endpoints']['identity-admin']['path'] = '/v2.2'
-          node.set['openstack']['endpoints']['identity-internal']['host'] = '127.0.0.3'
-          node.set['openstack']['endpoints']['identity-internal']['port'] = '5003'
-          node.set['openstack']['endpoints']['identity-internal']['path'] = '/v2.3'
-          node.set['openstack']['endpoints']['identity-api']['host'] = '127.0.0.4'
-          node.set['openstack']['endpoints']['identity-api']['port'] = '5004'
-          node.set['openstack']['endpoints']['identity-api']['path'] = '/v2.4'
+          node.set['openstack']['endpoints']['identity']['admin']['host'] = '127.0.0.2'
+          node.set['openstack']['endpoints']['identity']['admin']['port'] = '5002'
+          node.set['openstack']['endpoints']['identity']['admin']['path'] = '/v2.2'
+          node.set['openstack']['endpoints']['identity']['internal']['host'] = '127.0.0.3'
+          node.set['openstack']['endpoints']['identity']['internal']['port'] = '5003'
+          node.set['openstack']['endpoints']['identity']['internal']['path'] = '/v2.3'
+          node.set['openstack']['endpoints']['identity']['public']['host'] = '127.0.0.4'
+          node.set['openstack']['endpoints']['identity']['public']['port'] = '5004'
+          node.set['openstack']['endpoints']['identity']['public']['path'] = '/v2.4'
           expect(chef_run).to create_endpoint_openstack_identity_register(
             'Register Identity Endpoint'
           ).with(
@@ -270,76 +270,13 @@ describe 'openstack-identity::registration' do
           )
         end
 
-        it 'register endpoint with different admin URL' do
-          admin_url = 'https://admin.host:123/admin_path'
-          general_url = 'http://general.host:456/general_path'
-
-          # Set the general endpoint
-          node.set['openstack']['endpoints']['identity-api']['uri'] = general_url
-          # TBD, clean this up so that admin is picked up from 'identiy-api'
-          node.set['openstack']['endpoints']['identity-admin']['uri'] = general_url
-          node.set['openstack']['endpoints']['identity-internal']['uri'] = general_url
-          # Set the admin endpoint override
-          node.set['openstack']['endpoints']['admin']['identity-admin']['uri'] = admin_url
-
-          expect(chef_run).to create_endpoint_openstack_identity_register(
-            'Register Identity Endpoint'
-          ).with(
-            endpoint_adminurl: admin_url,
-            endpoint_internalurl: general_url,
-            endpoint_publicurl: general_url
-          )
-        end
-
-        it 'register endpoint with different internal URL' do
-          internal_url = 'http://internal.host:456/internal_path'
-          general_url = 'http://general.host:456/general_path'
-
-          # Set the general endpoint
-          node.set['openstack']['endpoints']['identity-api']['uri'] = general_url
-          node.set['openstack']['endpoints']['identity-admin']['uri'] = general_url
-          node.set['openstack']['endpoints']['identity-internal']['uri'] = general_url
-          # Set the internal endpoint override
-          node.set['openstack']['endpoints']['internal']['identity-internal']['uri'] = internal_url
-
-          expect(chef_run).to create_endpoint_openstack_identity_register(
-            'Register Identity Endpoint'
-          ).with(
-            endpoint_adminurl: general_url,
-            endpoint_internalurl: internal_url,
-            endpoint_publicurl: general_url
-          )
-        end
-
-        it 'register endpoint with different public  URL' do
-          public_url = 'https://public.host:789/public_path'
-          general_url = 'http://general.host:456/general_path'
-
-          # Set the general endpoint
-          node.set['openstack']['endpoints']['identity-api']['uri'] = general_url
-          node.set['openstack']['endpoints']['identity-admin']['uri'] = general_url
-          node.set['openstack']['endpoints']['identity-internal']['uri'] = general_url
-          # Set the public endpoint override
-          node.set['openstack']['endpoints']['public']['identity-api']['uri'] = public_url
-
-          expect(chef_run).to create_endpoint_openstack_identity_register(
-            'Register Identity Endpoint'
-          ).with(
-            endpoint_adminurl: general_url,
-            endpoint_internalurl: general_url,
-            endpoint_publicurl: public_url
-          )
-        end
-
         it 'register endpoint with all different URLs' do
           public_url = 'https://public.host:789/public_path'
           internal_url = 'http://internal.host:456/internal_path'
           admin_url = 'https://admin.host:123/admin_path'
-
-          # Set the type specific overrides
-          node.set['openstack']['endpoints']['public']['identity-api']['uri'] = public_url
-          node.set['openstack']['endpoints']['internal']['identity-internal']['uri'] = internal_url
-          node.set['openstack']['endpoints']['admin']['identity-admin']['uri'] = admin_url
+          node.set['openstack']['endpoints']['identity']['public']['uri'] = public_url
+          node.set['openstack']['endpoints']['identity']['internal']['uri'] = internal_url
+          node.set['openstack']['endpoints']['identity']['admin']['uri'] = admin_url
 
           expect(chef_run).to create_endpoint_openstack_identity_register(
             'Register Identity Endpoint'
