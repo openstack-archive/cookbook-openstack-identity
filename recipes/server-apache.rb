@@ -135,9 +135,9 @@ if node['openstack']['auth']['strategy'] == 'pki'
   end
 end
 
-public_bind_service = node['openstack']['bind_service']['identity']['public']
-internal_bind_service = node['openstack']['bind_service']['identity']['internal']
-admin_bind_service = node['openstack']['bind_service']['identity']['admin']
+public_bind_service = node['openstack']['bind_service']['public']['identity']
+internal_bind_service = node['openstack']['bind_service']['internal']['identity']
+admin_bind_service = node['openstack']['bind_service']['admin']['identity']
 
 identity_admin_endpoint = admin_endpoint 'identity'
 
