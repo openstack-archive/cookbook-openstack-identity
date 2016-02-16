@@ -88,8 +88,11 @@ when 'fernet'
 end
 
 public_bind_service = node['openstack']['bind_service']['public']['identity']
+public_bind_address = bind_address public_bind_service
 internal_bind_service = node['openstack']['bind_service']['internal']['identity']
+internal_bind_address = bind_address internal_bind_service
 admin_bind_service = node['openstack']['bind_service']['admin']['identity']
+admin_bind_address = bind_address admin_bind_service
 
 identity_admin_endpoint = admin_endpoint 'identity'
 
@@ -236,9 +239,9 @@ end
 
 #### Start of Apache specific work
 
-apache_listen_public = { public_bind_service.host => [public_bind_service.port.to_s] }
-apache_listen_internal = { internal_bind_service.host => [internal_bind_service.port.to_s] }
-apache_listen_admin = { admin_bind_service.host => [admin_bind_service.port.to_s] }
+apache_listen_public = { public_bind_address => [public_bind_service.port.to_s] }
+apache_listen_internal = { internal_bind_address => [internal_bind_service.port.to_s] }
+apache_listen_admin = { admin_bind_address => [admin_bind_service.port.to_s] }
 apache_listen = Chef::Mixin::DeepMerge.merge(Chef::Mixin::DeepMerge.merge(apache_listen_public, apache_listen_internal), apache_listen_admin)
 
 node.normal['apache']['listen'] =
@@ -272,17 +275,17 @@ end
 
 wsgi_apps = {
   'public' => {
-    server_host: public_bind_service.host,
+    server_host: public_bind_address,
     server_port: public_bind_service.port,
     server_entry: server_entry_public
   },
   'internal' => {
-    server_host: internal_bind_service.host,
+    server_host: internal_bind_address,
     server_port: internal_bind_service.port,
     server_entry: server_entry_internal
   },
   'admin' => {
-    server_host: admin_bind_service.host,
+    server_host: admin_bind_address,
     server_port: admin_bind_service.port,
     server_entry: server_entry_admin
   }
