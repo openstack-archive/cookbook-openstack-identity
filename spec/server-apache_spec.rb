@@ -102,44 +102,6 @@ describe 'openstack-identity::server-apache' do
           expect(chef_run).not_to create_directory(private_dir)
         end
       end
-
-      describe 'with pki' do
-        describe '/etc/keystone/ssl' do
-          let(:dir_resource) { chef_run.directory(ssl_dir) }
-
-          it 'creates /etc/keystone/ssl' do
-            expect(chef_run).to create_directory(ssl_dir).with(
-              owner: 'keystone',
-              group: 'keystone',
-              mode: 0700
-            )
-          end
-        end
-
-        describe '/etc/keystone/ssl/certs' do
-          let(:dir_resource) { chef_run.directory(certs_dir) }
-
-          it 'creates /etc/keystone/ssl/certs' do
-            expect(chef_run).to create_directory(certs_dir).with(
-              user: 'keystone',
-              group: 'keystone',
-              mode: 0755
-            )
-          end
-        end
-
-        describe '/etc/keystone/ssl/private' do
-          let(:dir_resource) { chef_run.directory(private_dir) }
-
-          it 'creates /etc/keystone/ssl/private' do
-            expect(chef_run).to create_directory(private_dir).with(
-              user: 'keystone',
-              group: 'keystone',
-              mode: 0750
-            )
-          end
-        end
-      end
     end
 
     it 'deletes keystone.db' do
@@ -149,46 +111,6 @@ describe 'openstack-identity::server-apache' do
     it 'does not delete keystone.db when configured to use sqlite' do
       node.set['openstack']['db']['identity']['service_type'] = 'sqlite'
       expect(chef_run).not_to delete_file('/var/lib/keystone/keystone.db')
-    end
-
-    describe 'pki setup' do
-      let(:cmd) { 'keystone-manage pki_setup' }
-
-      describe 'without pki' do
-        before { node.set['openstack']['auth']['strategy'] = 'uuid' }
-        it 'does not execute' do
-          expect(chef_run).to_not run_execute(cmd).with(
-            user: 'keystone',
-            group: 'keystone'
-          )
-        end
-      end
-
-      describe 'with pki' do
-        describe 'without {certfile,keyfile,ca_certs}_url attributes set' do
-          it 'executes' do
-            expect(FileTest).to receive(:exists?)
-              .with('/etc/keystone/ssl/private/signing_key.pem')
-              .and_return(false)
-
-            expect(chef_run).to run_execute(cmd).with(
-              user: 'keystone',
-              group: 'keystone'
-            )
-          end
-        end
-
-        it 'does not execute when dir exists' do
-          expect(FileTest).to receive(:exists?)
-            .with('/etc/keystone/ssl/private/signing_key.pem')
-            .and_return(true)
-
-          expect(chef_run).not_to run_execute(cmd).with(
-            user: 'keystone',
-            group: 'keystone'
-          )
-        end
-      end
     end
 
     describe 'keystone.conf' do

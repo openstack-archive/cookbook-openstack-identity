@@ -122,6 +122,16 @@ default['openstack']['identity']['ssl']['ciphers'] = nil
 # Note this section is only written if node['openstack']['auth']['strategy'] == 'pki'
 default['openstack']['identity']['signing']['basedir'] = '/etc/keystone/ssl'
 
+# Fernet keys. Note this section is only written if
+# node['openstack']['auth']['strategy'] == 'fernet'
+# Fernet keys to read from databags/vaults. This should be changed in the
+# environment when rotating keys (with the defaults below, the items
+# 'fernet_key0' and 'fernet_key1' will be read from the databag/vault
+# 'keystone).
+# For more information please read:
+# http://docs.openstack.org/admin-guide-cloud/keystone_fernet_token_faq.html
+default['openstack']['identity']['fernet']['keys'] = [0, 1]
+
 # The authorization configuration options
 # The external (REMOTE_USER) auth plugin module. (String value)
 default['openstack']['identity']['auth']['external'] = 'keystone.auth.plugins.external.DefaultDomain'
