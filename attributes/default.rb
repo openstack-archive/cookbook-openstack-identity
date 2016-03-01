@@ -34,15 +34,15 @@ default['openstack']['identity']['custom_template_banner'] = "
   default['openstack']['endpoints'][ep_type]['identity']['host'] = '127.0.0.1'
   default['openstack']['endpoints'][ep_type]['identity']['scheme'] = 'http'
   default['openstack']['endpoints'][ep_type]['identity']['path'] = '/v2.0'
-  # web-service (e.g. apache) listen address (can be different from openstack
-  # identity endpoints)
-  default['openstack']['bind_service'][ep_type]['identity']['host'] = '127.0.0.1'
 end
-%w(endpoints bind_service).each do |type|
-  default['openstack'][type]['public']['identity']['port'] = 5000
-  default['openstack'][type]['internal']['identity']['port'] = 5001
-  default['openstack'][type]['admin']['identity']['port'] = 35357
-end
+default['openstack']['endpoints']['public']['identity']['port'] = 5000
+default['openstack']['endpoints']['internal']['identity']['port'] = 5000
+default['openstack']['endpoints']['admin']['identity']['port'] = 35357
+
+default['openstack']['bind_service']['main']['identity']['host'] = '127.0.0.1'
+default['openstack']['bind_service']['main']['identity']['port'] = 5000
+default['openstack']['bind_service']['admin']['identity']['host'] = '127.0.0.1'
+default['openstack']['bind_service']['admin']['identity']['port'] = 35357
 
 default['openstack']['identity']['catalog']['backend'] = 'sql'
 default['openstack']['identity']['token']['backend'] = 'sql'

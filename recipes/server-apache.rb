@@ -87,10 +87,8 @@ when 'fernet'
   include_recipe 'openstack-identity::_fernet_tokens'
 end
 
-public_bind_service = node['openstack']['bind_service']['public']['identity']
-public_bind_address = bind_address public_bind_service
-internal_bind_service = node['openstack']['bind_service']['internal']['identity']
-internal_bind_address = bind_address internal_bind_service
+main_bind_service = node['openstack']['bind_service']['main']['identity']
+main_bind_address = bind_address main_bind_service
 admin_bind_service = node['openstack']['bind_service']['admin']['identity']
 admin_bind_address = bind_address admin_bind_service
 
@@ -240,9 +238,8 @@ end
 #### Start of Apache specific work
 
 apache_listen = Array(node['apache']['listen']) # include already defined listen attributes
-apache_listen += ["#{public_bind_service.host}:#{public_bind_service.port}"]
-apache_listen += ["#{internal_bind_service.host}:#{internal_bind_service.port}"]
-apache_listen += ["#{admin_bind_service.host}:#{admin_bind_service.port}"]
+apache_listen += ["#{main_bind_address}:#{main_bind_service.port}"]
+apache_listen += ["#{admin_bind_address}:#{admin_bind_service.port}"]
 
 node.normal['apache']['listen'] = apache_listen.uniq
 
@@ -257,13 +254,12 @@ directory keystone_apache_dir do
   mode 00755
 end
 
-server_entry_public = "#{keystone_apache_dir}/main"
-server_entry_internal = "#{keystone_apache_dir}/internal"
+server_entry_main = "#{keystone_apache_dir}/main"
 server_entry_admin = "#{keystone_apache_dir}/admin"
 
 # Note: Using lazy here as the wsgi file is not available until after
 # the keystone package is installed during execution phase.
-[server_entry_public, server_entry_internal, server_entry_admin].each do |server_entry|
+[server_entry_main, server_entry_admin].each do |server_entry|
   file server_entry do
     content lazy { IO.read(platform_options['keystone_wsgi_file']) }
     owner 'root'
@@ -273,15 +269,10 @@ server_entry_admin = "#{keystone_apache_dir}/admin"
 end
 
 wsgi_apps = {
-  'public' => {
-    server_host: public_bind_address,
-    server_port: public_bind_service.port,
-    server_entry: server_entry_public
-  },
-  'internal' => {
-    server_host: internal_bind_address,
-    server_port: internal_bind_service.port,
-    server_entry: server_entry_internal
+  'main' => {
+    server_host: main_bind_address,
+    server_port: main_bind_service.port,
+    server_entry: server_entry_main
   },
   'admin' => {
     server_host: admin_bind_address,

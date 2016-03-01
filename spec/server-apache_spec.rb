@@ -363,7 +363,7 @@ describe 'openstack-identity::server-apache' do
 
       it 'set apache addresses and ports' do
         expect(chef_run.node['apache']['listen']).to eq(
-          %w(*:80 127.0.0.1:5000 127.0.0.1:5001 127.0.0.1:35357)
+          %w(*:80 127.0.0.1:5000 127.0.0.1:35357)
         )
       end
 
@@ -399,7 +399,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       describe 'apache wsgi' do
-        ['/etc/apache2/sites-available/keystone-public.conf',
+        ['/etc/apache2/sites-available/keystone-main.conf',
          '/etc/apache2/sites-available/keystone-admin.conf'].each do |file|
           it "creates #{file}" do
             expect(chef_run).to create_template(file).with(
@@ -428,13 +428,13 @@ describe 'openstack-identity::server-apache' do
           end
         end
 
-        describe 'keystone-public.conf' do
+        describe 'keystone-main.conf' do
           it 'configures required lines' do
             [/^<VirtualHost 127.0.0.1:5000>$/,
-             /^    WSGIDaemonProcess keystone-public/,
-             /^    WSGIProcessGroup keystone-public$/,
+             /^    WSGIDaemonProcess keystone-main/,
+             /^    WSGIProcessGroup keystone-main$/,
              %r{^    WSGIScriptAlias / /var/www/html/keystone/main$}].each do |line|
-              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-public.conf').with_content(line)
+              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-main.conf').with_content(line)
             end
           end
         end
