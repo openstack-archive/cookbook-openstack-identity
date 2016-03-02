@@ -239,13 +239,12 @@ end
 
 #### Start of Apache specific work
 
-apache_listen_public = { public_bind_address => [public_bind_service.port.to_s] }
-apache_listen_internal = { internal_bind_address => [internal_bind_service.port.to_s] }
-apache_listen_admin = { admin_bind_address => [admin_bind_service.port.to_s] }
-apache_listen = Chef::Mixin::DeepMerge.merge(Chef::Mixin::DeepMerge.merge(apache_listen_public, apache_listen_internal), apache_listen_admin)
+apache_listen = Array(node['apache']['listen']) # include already defined listen attributes
+apache_listen += ["#{public_bind_service.host}:#{public_bind_service.port}"]
+apache_listen += ["#{internal_bind_service.host}:#{internal_bind_service.port}"]
+apache_listen += ["#{admin_bind_service.host}:#{admin_bind_service.port}"]
 
-node.normal['apache']['listen'] =
-  Chef::Mixin::DeepMerge.merge(node['apache']['listen'], apache_listen)
+node.normal['apache']['listen'] = apache_listen.uniq
 
 include_recipe 'apache2'
 include_recipe 'apache2::mod_wsgi'
