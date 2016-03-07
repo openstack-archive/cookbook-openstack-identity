@@ -239,7 +239,7 @@ describe 'openstack-identity::registration' do
             service_type: 'identity',
             endpoint_region: 'RegionOne',
             endpoint_adminurl: 'http://127.0.0.1:35357/v2.0',
-            endpoint_internalurl: 'http://127.0.0.1:5001/v2.0',
+            endpoint_internalurl: 'http://127.0.0.1:5000/v2.0',
             endpoint_publicurl: 'http://127.0.0.1:5000/v2.0'
           )
         end
