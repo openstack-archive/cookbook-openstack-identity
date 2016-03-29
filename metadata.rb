@@ -15,5 +15,5 @@ recipe 'openstack-identity::openrc', 'Creates openrc file'
   supports os
 end
 
-depends 'apache2', '~> 3.1.0'
+depends 'apache2', '~> 3.1'
 depends 'openstack-common', '>= 13.0.0'
