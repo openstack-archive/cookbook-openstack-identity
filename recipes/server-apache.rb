@@ -238,6 +238,10 @@ end
 #### Start of Apache specific work
 
 apache_listen = Array(node['apache']['listen']) # include already defined listen attributes
+# Remove the default apache2 cookbook port, as that is also the default for horizon, but with
+# a different address syntax.  *:80   vs  0.0.0.0:80
+apache_listen -= ['*:80']
+
 apache_listen += ["#{main_bind_address}:#{main_bind_service.port}"]
 apache_listen += ["#{admin_bind_address}:#{admin_bind_service.port}"]
 

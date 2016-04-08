@@ -363,7 +363,7 @@ describe 'openstack-identity::server-apache' do
 
       it 'set apache addresses and ports' do
         expect(chef_run.node['apache']['listen']).to eq(
-          %w(*:80 127.0.0.1:5000 127.0.0.1:35357)
+          %w(127.0.0.1:5000 127.0.0.1:35357)
         )
       end
 
