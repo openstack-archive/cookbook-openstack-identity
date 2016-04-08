@@ -244,6 +244,7 @@ Create EC2 credentials for a given user in the specified tenant
 Attributes
 ==========
 
+**TODO**: Clean up after refactoring.
 Please refer to the Common cookbook for more attributes.
 
 * `openstack['identity']['db_server_chef_role']` - The name of the Chef role that knows about the db server
@@ -254,8 +255,6 @@ Please refer to the Common cookbook for more attributes.
 * `openstack['identity']['db_passwd']` - Password for keystone database access
 * `openstack['identity']['db_ipaddress']` - IP address of the keystone database
 * `openstack['identity']['api_ipaddress']` - IP address for the keystone API to bind to. _TODO_: Rename to bind_address
-* `openstack['identity']['verbose']` - Enables/disables verbose output for keystone API server
-* `openstack['identity']['debug']` - Enables/disables debug output for keystone API server
 * `openstack['identity']['admin_token']` - Admin token for bootstraping keystone server
 * `openstack['identity']['admin_workers']` - The number of worker processes to serve the admin WSGI application
 * `openstack['identity']['public_workers']` - The number of worker processes to serve the public WSGI application

@@ -140,15 +140,6 @@ describe 'openstack-identity::server-apache' do
           expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', r)
         end
 
-        describe 'logging verbosity' do
-          ['verbose'].each do |x|
-            it "has #{x} option" do
-              r = line_regexp("#{x} = false")
-              expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', r)
-            end
-          end
-        end
-
         describe 'syslog configuration' do
           log_file = %r{^log_dir = /var/log/keystone$}
           log_conf = %r{^log_config_append = /\w+}

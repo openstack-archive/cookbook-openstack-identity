@@ -1,7 +1,6 @@
 default['openstack']['identity']['conf_secrets'] = {}
 default['openstack']['identity']['conf'].tap do |conf|
   # [DEFAULT]
-  conf['DEFAULT']['verbose'] = false # true in docs
   if node['openstack']['identity']['syslog']['use']
     conf['DEFAULT']['log_config_append'] = '/etc/openstack/logging.conf'
   else
