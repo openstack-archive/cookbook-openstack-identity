@@ -17,26 +17,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+# This recipe registers the initial keystone endpoint as well as users, tenants
+# and roles needed for the initial configuration utilizing the LWRP provided
+# inside of this cookbook. The recipe is documented in detail with inline
+# comments inside the recipe.
 
 require 'uri'
-
 class ::Chef::Recipe
   include ::Openstack
 end
 
+# define the endpoints to register for the keystone identity service
 identity_admin_endpoint = admin_endpoint 'identity'
 identity_internal_endpoint = internal_endpoint 'identity'
 identity_public_endpoint = public_endpoint 'identity'
 auth_uri = ::URI.decode identity_admin_endpoint.to_s
 
+# define the credentials to use for the initial admin user
 admin_tenant_name = node['openstack']['identity']['admin_tenant_name']
 admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
 
 bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
 
-# Register all the tenants specified in the users hash
+# register all the tenants specified in the users hash
 identity_tenants = node['openstack']['identity']['users'].values.map do |user_info|
   user_info['roles'].values.push(user_info['default_tenant'])
 end
@@ -52,7 +57,7 @@ identity_tenants.flatten.uniq.each do |tenant_name|
   end
 end
 
-# Register all the roles from the users hash
+# register all the roles and users from the users hash
 identity_roles = node['openstack']['identity']['users'].values.map do |user_info|
   user_info['roles'].keys
 end
@@ -95,6 +100,7 @@ node['openstack']['identity']['users'].each do |username, user_info|
   end
 end
 
+# register the identity service itself
 openstack_identity_register 'Register Identity Service' do
   auth_uri auth_uri
   bootstrap_token bootstrap_token
@@ -114,6 +120,7 @@ Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint}"
 Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint}"
 Chef::Log.info "Keystone PublicURL: #{identity_public_endpoint}"
 
+# register the identity service endpoints
 openstack_identity_register 'Register Identity Endpoint' do
   auth_uri auth_uri
   bootstrap_token bootstrap_token
@@ -127,6 +134,7 @@ openstack_identity_register 'Register Identity Endpoint' do
   not_if { node['openstack']['identity']['catalog']['backend'] == 'templated' }
 end
 
+# create ec2 creadentials for the users from the users hash
 node['openstack']['identity']['users'].each do |username, user_info|
   openstack_identity_register "Create EC2 credentials for '#{username}' user" do
     auth_uri auth_uri

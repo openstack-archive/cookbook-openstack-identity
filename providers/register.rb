@@ -19,12 +19,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut
 include ::Openstack
 
+# creates the defined service as new service for keystone
 action :create_service do
   new_resource.updated_by_last_action(false)
   if node['openstack']['identity']['catalog']['backend'] == 'templated'
@@ -57,6 +57,7 @@ action :create_service do
   end
 end
 
+# registers all endpoints for the defined service in keystone
 action :create_endpoint do
   new_resource.updated_by_last_action(false)
   if node['openstack']['identity']['catalog']['backend'] == 'templated'
@@ -93,6 +94,7 @@ action :create_endpoint do
   end
 end
 
+# creates the defined tenant in keystone
 action :create_tenant do
   begin
     new_resource.updated_by_last_action(false)
@@ -114,6 +116,7 @@ action :create_tenant do
   end
 end
 
+# creates the defined role in keystone
 action :create_role do
   begin
     new_resource.updated_by_last_action(false)
@@ -133,6 +136,7 @@ action :create_role do
   end
 end
 
+# creates the defined user in keystone
 action :create_user do
   begin
     new_resource.updated_by_last_action(false)
@@ -172,6 +176,7 @@ action :create_user do
   end
 end
 
+# grants the defined role to a given user in a given tenant
 action :grant_role do
   begin
     new_resource.updated_by_last_action(false)
@@ -198,6 +203,7 @@ action :grant_role do
   end
 end
 
+# creates ec2_credentials for a given user in a given tenant
 action :create_ec2_credentials do
   begin
     new_resource.updated_by_last_action(false)

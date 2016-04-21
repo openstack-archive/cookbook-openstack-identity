@@ -16,20 +16,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+# This recipe installs and configures the OpenStack Identity Service running
+# inside of an apache webserver. The recipe is documented in detail with inline
+# comments inside the recipe.
 
 require 'uri'
 
+# load the methods defined in cookbook-openstack-common libraries
 class ::Chef::Recipe
   include ::Openstack
 end
 
+# include the logging recipe from openstack-common if syslog usage is enbaled
 if node['openstack']['identity']['syslog']['use']
   include_recipe 'openstack-common::logging'
 end
 
 platform_options = node['openstack']['identity']['platform']
 
+# install the database python adapter packages for the selected database
+# service_type
 db_type = node['openstack']['db']['identity']['service_type']
 unless db_type == 'sqlite'
   node['openstack']['db']['python_packages'][db_type].each do |pkg|
@@ -41,6 +48,7 @@ unless db_type == 'sqlite'
   end
 end
 
+# install the python memcache adapter packages
 platform_options['memcache_python_packages'].each do |pkg|
   package "identity cookbook package #{pkg}" do
     package_name pkg
@@ -49,6 +57,7 @@ platform_options['memcache_python_packages'].each do |pkg|
   end
 end
 
+# install the keystone packages
 platform_options['keystone_packages'].each do |pkg|
   package "identity cookbook package #{pkg}" do
     package_name pkg
@@ -57,17 +66,21 @@ platform_options['keystone_packages'].each do |pkg|
   end
 end
 
+# stop and disable the service keystone itself, since it should be run inside
+# of apache
 service 'keystone' do
   service_name platform_options['keystone_service']
   action [:stop, :disable]
 end
 
+# create the keystone config directory and set correct permissions
 directory '/etc/keystone' do
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
   mode 00700
 end
 
+# create keystone domain config dir if needed
 directory node['openstack']['identity']['identity']['domain_config_dir'] do
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
@@ -75,11 +88,14 @@ directory node['openstack']['identity']['identity']['domain_config_dir'] do
   only_if { node['openstack']['identity']['identity']['domain_specific_drivers_enabled'] }
 end
 
+# delete the keystone.db sqlite file if another db backend is used
 file '/var/lib/keystone/keystone.db' do
   action :delete
   not_if { node['openstack']['db']['identity']['service_type'] == 'sqlite' }
 end
 
+# include the recipe to setup the selected keystone auth strategy (pki or
+# fernet)
 case node['openstack']['auth']['strategy']
 when 'pki'
   include_recipe 'openstack-identity::_pki_tokens'
@@ -87,33 +103,36 @@ when 'fernet'
   include_recipe 'openstack-identity::_fernet_tokens'
 end
 
+# define the address to bind the keystone apache main service to
 main_bind_service = node['openstack']['bind_service']['main']['identity']
 main_bind_address = bind_address main_bind_service
+# define the address to bind the keystone apache admin service to
 admin_bind_service = node['openstack']['bind_service']['admin']['identity']
 admin_bind_address = bind_address admin_bind_service
 
+# define the address where the keystone admin endpoint will be reachable
 identity_admin_endpoint = admin_endpoint 'identity'
 
+# set the keystone database credentials
 db_user = node['openstack']['db']['identity']['username']
 db_pass = get_password 'db', 'keystone'
 node.default['openstack']['identity']['conf_secrets']
 .[]('database')['connection'] =
   db_uri('identity', db_user, db_pass)
 
+# define the admin keystone bootstrap token
 bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
 
-# If the search role is set, we search for memcache
-# servers via a Chef search. If not, we look at the
-# memcache.servers attribute.
-memcache_servers = memcached_servers.join ',' # from openstack-common lib
+# search for memcache servers using the method from cookbook-openstack-common
+memcache_servers = memcached_servers.join ','
 
-# These configuration endpoints must not have the path (v2.0, etc)
-# added to them, as these values are used in returning the version
-# listing information from the root / endpoint.
+# define the address where the keystone public endpoint will be reachable
 identity_public_endpoint = public_endpoint 'identity'
 ie = identity_public_endpoint
+# define the keystone public endpoint full path
 public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 ae = identity_admin_endpoint
+# define the keystone admin endpoint full path
 admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
 
 # If a keystone-paste.ini is specified use it.
@@ -137,6 +156,7 @@ else
   end
 end
 
+# set keystone config parameter for rabbitmq if rabbit is the rpc_backend
 if node['openstack']['identity']['conf']['DEFAULT']['rpc_backend'] == 'rabbit'
   user = node['openstack']['mq']['identity']['rabbit']['userid']
   node.default['openstack']['identity']['conf_secrets']
@@ -146,18 +166,18 @@ if node['openstack']['identity']['conf']['DEFAULT']['rpc_backend'] == 'rabbit'
     get_password 'user', user
 end
 
+# set keystone config parameters for admin_token, endpoints and memcache
 node.default['openstack']['identity']['conf'].tap do |conf|
-  # [DEFAULT] section
   conf['DEFAULT']['admin_token'] = bootstrap_token
   conf['DEFAULT']['public_endpoint'] = public_endpoint
   conf['DEFAULT']['admin_endpoint'] = admin_endpoint
-  # [memcache] section
   conf['memcache']['servers'] = memcache_servers if memcache_servers
 end
 
 # merge all config options and secrets to be used in the nova.conf.erb
 keystone_conf_options = merge_config_options 'identity'
 
+# create the keystone.conf from attributes
 template '/etc/keystone/keystone.conf' do
   source 'openstack-service.conf.erb'
   cookbook 'openstack-common'
@@ -179,6 +199,9 @@ end
 
 # TODO: (jklare) needs to be refactored and filled by the service cookbooks, to
 # avoid dependencies on unused cookbooks
+
+# configure the endpoints in keystone_catalog.templates if the catalog backend
+# is templated
 if node['openstack']['identity']['catalog']['backend'] == 'templated'
   # These values are going into the templated catalog and
   # since they're the endpoints being used by the clients,
@@ -189,7 +212,7 @@ if node['openstack']['identity']['catalog']['backend'] == 'templated'
   network_public_endpoint = public_endpoint 'network'
   volume_public_endpoint = public_endpoint 'block-storage'
 
-  # populate the templated catlog, if you're using the templated catalog backend
+  # populate the templated catlog
   # TODO: (jklare) this should be done in a helper method
   uris = {
     'identity-admin' => identity_admin_endpoint.to_s.gsub('%25', '%'),
@@ -220,7 +243,7 @@ execute 'keystone-manage db_sync' do
   only_if { node['openstack']['db']['identity']['migrate'] }
 end
 
-# Configure the flush tokens cronjob
+# configure the flush tokens cronjob
 should_run_cron = node['openstack']['identity']['token_flush_cron']['enabled'] && node['openstack']['identity']['token']['backend'] == 'sql'
 log_file = node['openstack']['identity']['token_flush_cron']['log_file']
 
@@ -237,20 +260,22 @@ end
 
 #### Start of Apache specific work
 
+# configure attributes for apache2 cookbook to align with openstack settings
 apache_listen = Array(node['apache']['listen']) # include already defined listen attributes
 # Remove the default apache2 cookbook port, as that is also the default for horizon, but with
 # a different address syntax.  *:80   vs  0.0.0.0:80
 apache_listen -= ['*:80']
-
 apache_listen += ["#{main_bind_address}:#{main_bind_service.port}"]
 apache_listen += ["#{admin_bind_address}:#{admin_bind_service.port}"]
-
 node.normal['apache']['listen'] = apache_listen.uniq
 
+# include the apache2 default recipe and the recipes for mod_wsgi
 include_recipe 'apache2'
 include_recipe 'apache2::mod_wsgi'
+# include the apache2 mod_ssl recipe if ssl is enabled for identity
 include_recipe 'apache2::mod_ssl' if node['openstack']['identity']['ssl']['enabled']
 
+# create the keystone apache directory
 keystone_apache_dir = "#{node['apache']['docroot_dir']}/keystone"
 directory keystone_apache_dir do
   owner 'root'
@@ -285,6 +310,8 @@ wsgi_apps = {
   }
 }
 
+# create the keystone apache config using the web_app resource from the apache2
+# cookbook
 wsgi_apps.each do |app, opt|
   web_app "keystone-#{app}" do
     template 'wsgi-keystone.conf.erb'
@@ -306,12 +333,15 @@ wsgi_apps.each do |app, opt|
   end
 end
 
+# wait for apache2 to be fully reloaded and the keystone endpoint to become
+# available
 execute 'Keystone: sleep' do
   command "sleep #{node['openstack']['identity']['start_delay']}"
   action :nothing
 end
 
 # Hack until Apache cookbook has lwrp's for proper use of notify
+# restart apache2 after keystone if completely configured
 execute 'Keystone apache restart' do
   command 'uname'
   notifies :restart, 'service[apache2]', :immediately

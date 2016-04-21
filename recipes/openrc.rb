@@ -16,9 +16,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-# Chef
+# This recipe create a fully usable openrc file to export the needed environment
+# variables to use the openstack client.
+
 class ::Chef::Recipe
   include ::Openstack
 end

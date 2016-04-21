@@ -14,7 +14,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+# This recipe is automatically included in openstack-identiy::service-apache
+# when node['openstack']['auth']['strategy'] is set to 'pki'. It will either
+# create the needed pki secrets or load them as remote files. The usage of
+# keystone pki tokens is deprecated in favor of fernet tokens and this recipe
+# might be removed in future releases when the support for pki is removed from
+# keystone.
 
 certfile_url = node['openstack']['identity']['signing']['certfile_url']
 keyfile_url = node['openstack']['identity']['signing']['keyfile_url']

@@ -14,7 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+# This recipe is automatically included in openstack-identiy::service-apache
+# when node['openstack']['auth']['strategy'] is set to 'fernet'. It will add the
+# needed configuration options to the keystone.conf and create the needed fernet
+# tokens from predefined secrets (e.g. encrypted data bags or vaults).
 
 class ::Chef::Recipe
   include ::Openstack
@@ -24,7 +28,8 @@ node.default['openstack']['identity']['conf']['fernet_tokens']['key_repository']
   '/etc/keystone/fernet-tokens'
 node.default['openstack']['identity']['conf']['token']['provider'] = 'fernet'
 
-key_repository = node['openstack']['identity']['conf']['fernet_tokens']['key_repository']
+key_repository =
+  node['openstack']['identity']['conf']['fernet_tokens']['key_repository']
 
 directory key_repository do
   owner node['openstack']['identity']['user']
