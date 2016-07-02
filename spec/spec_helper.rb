@@ -9,12 +9,12 @@ REDHAT_OPTS = {
   platform: 'redhat',
   version: '7.1',
   log_level: LOG_LEVEL
-}
+}.freeze
 UBUNTU_OPTS = {
   platform: 'ubuntu',
   version: '14.04',
   log_level: LOG_LEVEL
-}
+}.freeze
 
 # Helper methods
 module Helpers

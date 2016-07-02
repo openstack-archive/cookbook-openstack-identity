@@ -24,6 +24,8 @@ require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut
 include ::Openstack
 
+use_inline_resources
+
 # creates the defined service as new service for keystone
 action :create_service do
   new_resource.updated_by_last_action(false)
@@ -65,7 +67,7 @@ action :create_endpoint do
   else
     begin
       service_uuid = identity_uuid new_resource, 'service', 'type', new_resource.service_type
-      fail "Unable to find service type '#{new_resource.service_type}'" unless service_uuid
+      raise "Unable to find service type '#{new_resource.service_type}'" unless service_uuid
 
       endpoint_uuid = identity_uuid new_resource, 'endpoint', 'service_id', service_uuid
       need_updated = false
@@ -182,7 +184,7 @@ action :grant_role do
     new_resource.updated_by_last_action(false)
 
     role_uuid = identity_uuid new_resource, 'role', 'name', new_resource.role_name
-    fail "Unable to find role '#{new_resource.role_name}'" unless role_uuid
+    raise "Unable to find role '#{new_resource.role_name}'" unless role_uuid
 
     assigned_role_uuid = identity_uuid(new_resource, 'user-role', 'name',
                                        new_resource.role_name,
@@ -208,12 +210,12 @@ action :create_ec2_credentials do
   begin
     new_resource.updated_by_last_action(false)
     tenant_uuid = identity_uuid new_resource, 'tenant', 'name', new_resource.tenant_name
-    fail "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
+    raise "Unable to find tenant '#{new_resource.tenant_name}'" unless tenant_uuid
 
     user_uuid = identity_uuid(new_resource, 'user', 'name',
                               new_resource.user_name,
                               'tenant-id' => tenant_uuid)
-    fail "Unable to find user '#{new_resource.user_name}' with tenant '#{new_resource.tenant_name}'" unless user_uuid
+    raise "Unable to find user '#{new_resource.user_name}' with tenant '#{new_resource.tenant_name}'" unless user_uuid
 
     # this is not really a uuid, but this will work nonetheless
     access = identity_uuid new_resource, 'ec2-credentials', 'tenant', new_resource.tenant_name, { 'user-id' => user_uuid }, 'access'
@@ -228,7 +230,7 @@ action :create_ec2_credentials do
       data = prettytable_to_array(output)
 
       if data.length != 1
-        fail "Got bad data when creating ec2 credentials for #{new_resource.user_name} Data: #{data}"
+        raise "Got bad data when creating ec2 credentials for #{new_resource.user_name} Data: #{data}"
       else
         # Update node attributes
         node.set['credentials']['EC2'][new_resource.user_name]['access'] = data[0]['access']
@@ -289,7 +291,7 @@ def identity_command(resource, cmd, args = {}, env = 'boot')
   cmd_env = get_env(resource, env)
   Chef::Log.debug("Running identity command: #{keystonecmd} env: " + cmd_env.to_s)
   rc = shell_out(keystonecmd, env: cmd_env)
-  fail "#{rc.stderr} (#{rc.exitstatus})" if rc.exitstatus != 0
+  raise "#{rc.stderr} (#{rc.exitstatus})" if rc.exitstatus != 0
   rc.stdout
 end
 
@@ -307,7 +309,7 @@ def identity_uuid(resource, type, key, value, args = {}, uuid_field = 'id')
   begin
     output = identity_command resource, "#{type}-list", args
     output = prettytable_to_array(output)
-    rc = (type == 'endpoint') ? (search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region)) : (search_uuid(output, uuid_field, key => value))
+    rc = (type == 'endpoint') ? search_uuid(output, uuid_field, key => value, 'region' => resource.endpoint_region) : search_uuid(output, uuid_field, key => value)
   rescue RuntimeError => e
     raise "Could not lookup uuid for #{type}:#{key}=>#{value}. Error was #{e.message}"
   end

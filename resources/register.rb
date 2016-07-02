@@ -30,7 +30,7 @@ def initialize(*args)
   @action = :create
 end
 
-BOOLEAN = [TrueClass, FalseClass]
+BOOLEAN = [TrueClass, FalseClass].freeze
 
 # The uri used to as authentication endpoint for requests
 attribute :auth_uri, kind_of: String
