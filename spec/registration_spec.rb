@@ -9,7 +9,7 @@ describe 'openstack-identity::registration' do
     let(:runner)   { ChefSpec::SoloRunner.new(UBUNTU_OPTS) }
     let(:chef_run) { runner.converge(described_recipe) }
     let(:node_add_user) do
-      node.set_unless['openstack']['identity']['users'] = {
+      node.set['openstack']['identity']['users'] = {
         'user1' => {
           'default_tenant' => 'default_tenant1',
           'password' => 'secret1',
