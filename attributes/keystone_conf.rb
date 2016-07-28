@@ -27,9 +27,6 @@ default['openstack']['identity']['conf'].tap do |conf|
   # [catalog] option in keystone.conf to set catalog driver
   conf['catalog']['driver'] = 'keystone.catalog.backends.sql.Catalog'
 
-  # [identity] option in keystone.conf to enable domain_specific drivers
-  conf['identity']['domain_specific_drivers_enabled'] = false
-
   # [policy] option in keystone.conf to set policy backend driver
   conf['policy']['driver'] = 'keystone.policy.backends.sql.Policy'
 end
