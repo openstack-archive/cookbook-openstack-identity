@@ -124,6 +124,7 @@ default['openstack']['identity']['ssl']['ciphers'] = nil
 default['openstack']['identity']['ssl']['certfile'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/sslcert.pem"
 # path of the keyfile for SSL.
 default['openstack']['identity']['ssl']['keyfile'] = "#{node['openstack']['identity']['ssl']['basedir']}/private/sslkey.pem"
+default['openstack']['identity']['ssl']['chainfile'] = nil
 # path of the CA cert file for SSL.
 default['openstack']['identity']['ssl']['ca_certs'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/sslca.pem"
 # path of the CA cert files for SSL (Apache)

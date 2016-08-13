@@ -19,6 +19,9 @@
     SSLCertificateFile <%= @params[:cert_file] %>
     SSLCertificateKeyFile <%= @params[:key_file] %>
     SSLCACertificatePath <%= @params[:ca_certs_path] %>
+      <% if @params[:chain_file] %>
+    SSLCertificateChainFile <%= @params[:chain_file] %>
+      <% end -%>
     SSLProtocol <%= @params[:protocol] %>
       <% if @params[:ciphers] -%>
     SSLCipherSuite <%= @params[:ciphers] %>

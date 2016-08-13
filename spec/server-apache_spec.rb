@@ -417,6 +417,42 @@ describe 'openstack-identity::server-apache' do
               expect(chef_run).not_to render_file(file).with_content(line)
             end
           end
+          context 'Enable SSL' do
+            before do
+              node.set['openstack']['identity']['ssl']['enabled'] = true
+            end
+            it "configures #{file} common ssl lines" do
+              [/^    SSLEngine On$/,
+               %r{^    SSLCertificateFile /etc/keystone/ssl/certs/sslcert.pem$},
+               %r{^    SSLCertificateKeyFile /etc/keystone/ssl/private/sslkey.pem$},
+               %r{^    SSLCACertificatePath /etc/keystone/ssl/certs/$},
+               /^    SSLProtocol All -SSLv2 -SSLv3$/].each do |line|
+                expect(chef_run).to render_file(file).with_content(line)
+              end
+            end
+            it "does not configure #{file} common ssl lines" do
+              [/^    SSLCertificateChainFile/,
+               /^    SSLCipherSuite/,
+               /^    SSLVerifyClient require/].each do |line|
+                expect(chef_run).not_to render_file(file).with_content(line)
+              end
+            end
+            it "configures #{file} chainfile when set" do
+              node.set['openstack']['identity']['ssl']['chainfile'] = '/etc/keystone/ssl/certs/chainfile.pem'
+              expect(chef_run).to render_file(file)
+                .with_content(%r{^    SSLCertificateChainFile /etc/keystone/ssl/certs/chainfile.pem$})
+            end
+            it "configures #{file} ciphers when set" do
+              node.set['openstack']['identity']['ssl']['ciphers'] = 'ciphers_value'
+              expect(chef_run).to render_file(file)
+                .with_content(/^    SSLCipherSuite ciphers_value$/)
+            end
+            it "configures #{file} cert_required set" do
+              node.set['openstack']['identity']['ssl']['cert_required'] = true
+              expect(chef_run).to render_file(file)
+                .with_content(/^    SSLVerifyClient require$/)
+            end
+          end
         end
 
         describe 'keystone-main.conf' do
