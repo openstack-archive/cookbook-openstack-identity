@@ -12,7 +12,7 @@ REDHAT_OPTS = {
 }.freeze
 UBUNTU_OPTS = {
   platform: 'ubuntu',
-  version: '14.04',
+  version: '16.04',
   log_level: LOG_LEVEL
 }.freeze
 
@@ -47,8 +47,8 @@ shared_context 'identity_stubs' do
       .with('user', 'user1')
       .and_return('secret1')
     allow_any_instance_of(Chef::Recipe).to receive(:get_password)
-      .with('token', 'openstack_identity_bootstrap_token')
-      .and_return('bootstrap-token')
+      .with('user', 'identity_admin')
+      .and_return('identity_admin_pass')
     stub_command('/usr/sbin/apache2 -t')
     allow_any_instance_of(Chef::Recipe).to receive(:search_for)
       .with('os-identity').and_return(

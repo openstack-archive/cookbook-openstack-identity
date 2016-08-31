@@ -24,25 +24,15 @@ class ::Chef::Recipe
   include ::Openstack
 end
 
-# check attributes before searching
-if node['openstack']['identity'] && node['openstack']['identity']['admin_tenant_name'] && node['openstack']['identity']['admin_user']
-  ksadmin_tenant_name = node['openstack']['identity']['admin_tenant_name']
-  ksadmin_user = node['openstack']['identity']['admin_user']
-else
-  identity_service_role = node['openstack']['identity_service_chef_role']
-  keystone = search_for(identity_service_role).first
+ksadmin_project = node['openstack']['identity']['admin_project']
+project_domain_name = node['openstack']['identity']['admin_project_domain']
+ksadmin_user = node['openstack']['identity']['admin_user']
+admin_domain_name = node['openstack']['identity']['admin_domain_name']
 
-  if keystone.nil?
-    Chef::Log.warn("openrc not created, identity role node not found: #{identity_service_role}")
-    return
-  end
-
-  ksadmin_tenant_name = keystone['openstack']['identity']['admin_tenant_name']
-  ksadmin_user = keystone['openstack']['identity']['admin_user']
-end
-
+auth_api_version = node['openstack']['api']['auth']['version']
 ksadmin_pass = get_password 'user', ksadmin_user
 identity_public_endpoint = public_endpoint 'identity'
+auth_url = auth_uri_transform identity_public_endpoint.to_s, auth_api_version
 
 directory node['openstack']['openrc']['path'] do
   owner node['openstack']['openrc']['user']
@@ -59,8 +49,11 @@ template "#{node['openstack']['openrc']['path']}/#{node['openstack']['openrc']['
   sensitive true
   variables(
     user: ksadmin_user,
-    tenant: ksadmin_tenant_name,
+    user_domain_name: admin_domain_name,
+    project: ksadmin_project,
+    project_domain_name: project_domain_name,
+    api_version: '3',
     password: ksadmin_pass,
-    identity_endpoint: identity_public_endpoint
+    identity_endpoint: auth_url
   )
 end

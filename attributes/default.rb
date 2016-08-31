@@ -30,7 +30,7 @@ default['openstack']['identity']['custom_template_banner'] =
   # scheme for openstack admin/internal/public identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['scheme'] = 'http'
   # path for openstack admin/internal/public identity endpoint
-  default['openstack']['endpoints'][ep_type]['identity']['path'] = '/v2.0'
+  default['openstack']['endpoints'][ep_type]['identity']['path'] = '/v3'
 end
 
 # port for openstack public identity endpoint
@@ -96,18 +96,14 @@ default['openstack']['identity']['syslog']['config_facility'] = 'local2'
 
 # user to be created and used for identity service
 default['openstack']['identity']['admin_user'] = 'admin'
-# tenant to be created and used for identity service
-default['openstack']['identity']['admin_tenant_name'] = 'admin'
-
-default['openstack']['identity']['users'] = {
-  default['openstack']['identity']['admin_user'] => {
-    'default_tenant' => default['openstack']['identity']['admin_tenant_name'],
-    'roles' => {
-      'admin' => ['admin'],
-      'service' => ['admin']
-    }
-  }
-}
+# project to be created and used for identity service
+default['openstack']['identity']['admin_project'] = 'admin'
+# domain to be created and used for identity service project
+default['openstack']['identity']['admin_project_domain'] = 'default'
+# role to be created and used for identity service
+default['openstack']['identity']['admin_role'] = 'admin'
+# domain to be created and used for identity service user
+default['openstack']['identity']['admin_domain_name'] = 'default'
 
 # specify whether to enable SSL for Keystone API endpoint
 default['openstack']['identity']['ssl']['enabled'] = false
@@ -144,6 +140,8 @@ default['openstack']['identity']['fernet']['keys'] = [0, 1]
 default['openstack']['identity']['auth']['external'] = 'keystone.auth.plugins.external.DefaultDomain'
 # Default auth methods. (List value)
 default['openstack']['identity']['auth']['methods'] = 'external, password, token, oauth1'
+# Default auth_version for now
+default['openstack']['identity']['auth']['version'] = 'v3'
 
 # enable or disable the usage of the token flushing cronjob
 default['openstack']['identity']['token_flush_cron']['enabled'] = true

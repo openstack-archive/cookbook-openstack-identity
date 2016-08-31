@@ -33,9 +33,12 @@ describe 'openstack-identity::openrc' do
       it 'contains auth environment variables' do
         [
           /^export OS_USERNAME=admin$/,
-          /^export OS_TENANT_NAME=admin$/,
+          /^export OS_USER_DOMAIN_NAME=default$/,
           /^export OS_PASSWORD=admin$/,
-          %r{^export OS_AUTH_URL=http://127.0.0.1:5000/v2.0$},
+          /^export OS_PROJECT_NAME=admin$/,
+          /^export OS_PROJECT_DOMAIN_NAME=default$/,
+          /^export OS_IDENTITY_API_VERSION=3$/,
+          %r{^export OS_AUTH_URL=http://127.0.0.1:5000/v3$},
           /^export OS_REGION_NAME=RegionOne$/
         ].each do |line|
           expect(chef_run).to render_file(file.name).with_content(line)
@@ -51,11 +54,19 @@ describe 'openstack-identity::openrc' do
       end
 
       it 'contains overridden auth environment variables' do
-        node.set['openstack']['identity']['admin_tenant_name'] = 'admin-tenant-name-override'
-        node.set['openstack']['identity']['admin_user'] = 'admin-user-override'
+        node.set['openstack']['identity']['admin_project'] =
+          'admin-project-name-override'
+        node.set['openstack']['identity']['admin_user'] =
+          'identity_admin'
+        node.set['openstack']['identity']['admin_domain_id'] =
+          'admin-domain-override'
+        node.set['openstack']['endpoints']['public']['identity']['uri'] =
+          'https://public.identity:1234/v3'
         [
-          /^export OS_USERNAME=admin-user-override$/,
-          /^export OS_TENANT_NAME=admin-tenant-name-override$/
+          /^export OS_USERNAME=identity_admin$/,
+          /^export OS_PROJECT_NAME=admin-project-name-override$/,
+          /^export OS_PASSWORD=identity_admin_pass$/,
+          %r{^export OS_AUTH_URL=https://public.identity:1234/v3$}
         ].each do |line|
           expect(chef_run).to render_file(file.name).with_content(line)
         end

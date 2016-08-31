@@ -120,9 +120,6 @@ node.default['openstack']['identity']['conf_secrets']
 .[]('database')['connection'] =
   db_uri('identity', db_user, db_pass)
 
-# define the admin keystone bootstrap token
-bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
-
 # search for memcache servers using the method from cookbook-openstack-common
 memcache_servers = memcached_servers.join ','
 
@@ -168,7 +165,6 @@ end
 
 # set keystone config parameters for admin_token, endpoints and memcache
 node.default['openstack']['identity']['conf'].tap do |conf|
-  conf['DEFAULT']['admin_token'] = bootstrap_token
   conf['DEFAULT']['public_endpoint'] = public_endpoint
   conf['DEFAULT']['admin_endpoint'] = admin_endpoint
   conf['memcache']['servers'] = memcache_servers if memcache_servers
@@ -332,6 +328,11 @@ wsgi_apps.each do |app, opt|
     protocol node['openstack']['identity']['ssl']['protocol']
     ciphers node['openstack']['identity']['ssl']['ciphers']
   end
+end
+
+# disable keystone-site since ubuntu autoenables this
+apache_site 'keystone' do
+  enable false
 end
 
 # wait for apache2 to be fully reloaded and the keystone endpoint to become

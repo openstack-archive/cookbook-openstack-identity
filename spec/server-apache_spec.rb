@@ -135,11 +135,6 @@ describe 'openstack-identity::server-apache' do
       end
 
       describe '[DEFAULT] section' do
-        it 'has admin token' do
-          r = line_regexp('admin_token = bootstrap-token')
-          expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', r)
-        end
-
         describe 'syslog configuration' do
           log_file = %r{^log_dir = /var/log/keystone$}
           log_conf = %r{^log_config_append = /\w+}

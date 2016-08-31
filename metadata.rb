@@ -14,3 +14,4 @@ end
 
 depends 'apache2', '~> 3.1'
 depends 'openstack-common', '>= 14.0.0'
+depends 'openstackclient'

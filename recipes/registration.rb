@@ -24,92 +24,65 @@
 # comments inside the recipe.
 
 require 'uri'
+require 'chef/mixin/shell_out'
+
 class ::Chef::Recipe
   include ::Openstack
 end
 
-# define the endpoints to register for the keystone identity service
 identity_admin_endpoint = admin_endpoint 'identity'
 identity_internal_endpoint = internal_endpoint 'identity'
 identity_public_endpoint = public_endpoint 'identity'
-auth_uri = ::URI.decode identity_admin_endpoint.to_s
+auth_url = ::URI.decode identity_admin_endpoint.to_s
 
 # define the credentials to use for the initial admin user
-admin_tenant_name = node['openstack']['identity']['admin_tenant_name']
+admin_project = node['openstack']['identity']['admin_project']
 admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
+admin_role = node['openstack']['identity']['admin_role']
+admin_domain = node['openstack']['identity']['admin_domain_name']
+region = node['openstack']['identity']['region']
 
-bootstrap_token = get_password 'token', 'openstack_identity_bootstrap_token'
-
-# register all the tenants specified in the users hash
-identity_tenants = node['openstack']['identity']['users'].values.map do |user_info|
-  user_info['roles'].values.push(user_info['default_tenant'])
+execute 'bootstrap_keystone' do
+  command "keystone-manage bootstrap \\
+          --bootstrap-password #{admin_pass} \\
+          --bootstrap-username #{admin_user} \\
+          --bootstrap-project-name #{admin_project} \\
+          --bootstrap-role-name #{admin_role} \\
+          --bootstrap-service-name keystone \\
+          --bootstrap-region-id #{region} \\
+          --bootstrap-admin-url #{identity_admin_endpoint} \\
+          --bootstrap-public-url #{identity_public_endpoint} \\
+          --bootstrap-internal-url #{identity_internal_endpoint}"
 end
 
-identity_tenants.flatten.uniq.each do |tenant_name|
-  openstack_identity_register "Register '#{tenant_name}' Tenant" do
-    auth_uri auth_uri
-    bootstrap_token bootstrap_token
-    tenant_name tenant_name
-    tenant_description "#{tenant_name} Tenant"
+connection_params = {
+  openstack_auth_url:     "#{auth_url}/auth/tokens",
+  openstack_username:     admin_user,
+  openstack_api_key:      admin_pass,
+  openstack_project_name: admin_project,
+  openstack_domain_name:    admin_domain
+}
 
-    action :create_tenant
-  end
+openstack_domain admin_domain do
+  connection_params connection_params
 end
 
-# register all the roles and users from the users hash
-identity_roles = node['openstack']['identity']['users'].values.map do |user_info|
-  user_info['roles'].keys
+openstack_user admin_user do
+  domain_name admin_domain
+  role_name admin_role
+  connection_params connection_params
+  action :grant_domain
 end
 
-identity_roles.flatten.uniq.each do |role_name|
-  openstack_identity_register "Register '#{role_name}' Role" do
-    auth_uri auth_uri
-    bootstrap_token bootstrap_token
-    role_name role_name
-
-    action :create_role
-  end
+# create default service role
+openstack_role 'service' do
+  connection_params connection_params
 end
 
-node['openstack']['identity']['users'].each do |username, user_info|
-  pwd = get_password 'user', username
-  openstack_identity_register "Register '#{username}' User" do
-    auth_uri auth_uri
-    bootstrap_token bootstrap_token
-    user_name username
-    user_pass pwd
-    tenant_name user_info['default_tenant']
-    user_enabled true # Not required as this is the default
-
-    action :create_user
-  end
-
-  user_info['roles'].each do |rolename, tenant_list|
-    tenant_list.each do |tenantname|
-      openstack_identity_register "Grant '#{rolename}' Role to '#{username}' User in '#{tenantname}' Tenant" do
-        auth_uri auth_uri
-        bootstrap_token bootstrap_token
-        user_name username
-        role_name rolename
-        tenant_name tenantname
-
-        action :grant_role
-      end
-    end
-  end
-end
-
-# register the identity service itself
-openstack_identity_register 'Register Identity Service' do
-  auth_uri auth_uri
-  bootstrap_token bootstrap_token
-  service_name 'keystone'
-  service_type 'identity'
-  service_description 'Keystone Identity Service'
-
-  action :create_service
-  not_if { node['openstack']['identity']['catalog']['backend'] == 'templated' }
+# create default role for horizon dashboard login
+openstack_role '_member_' do
+  connection_params connection_params
 end
 
 node.set['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
@@ -119,32 +92,3 @@ node.set['openstack']['identity']['publicURL'] = identity_public_endpoint.to_s
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint}"
 Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint}"
 Chef::Log.info "Keystone PublicURL: #{identity_public_endpoint}"
-
-# register the identity service endpoints
-openstack_identity_register 'Register Identity Endpoint' do
-  auth_uri auth_uri
-  bootstrap_token bootstrap_token
-  service_type 'identity'
-  endpoint_region node['openstack']['identity']['region']
-  endpoint_adminurl node['openstack']['identity']['adminURL']
-  endpoint_internalurl node['openstack']['identity']['internalURL']
-  endpoint_publicurl node['openstack']['identity']['publicURL']
-
-  action :create_endpoint
-  not_if { node['openstack']['identity']['catalog']['backend'] == 'templated' }
-end
-
-# create ec2 creadentials for the users from the users hash
-node['openstack']['identity']['users'].each do |username, user_info|
-  openstack_identity_register "Create EC2 credentials for '#{username}' user" do
-    auth_uri auth_uri
-    bootstrap_token bootstrap_token
-    user_name username
-    tenant_name user_info['default_tenant']
-    admin_tenant_name admin_tenant_name
-    admin_user admin_user
-    admin_pass admin_pass
-
-    action :create_ec2_credentials
-  end
-end
