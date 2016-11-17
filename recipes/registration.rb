@@ -64,6 +64,22 @@ connection_params = {
   openstack_domain_name:    admin_domain
 }
 
+ruby_block 'wait for identity admin endpoint' do
+  block do
+    begin
+      Timeout.timeout(60) do
+        until Net::HTTP.get_response(URI(auth_url)).message == 'OK'
+          Chef::Log.info 'waiting for identity admin endpoint to be up...'
+          sleep 1
+        end
+      end
+    rescue Timeout::Error
+      raise 'Waited 60 seconds for identity admin endpoint to become ready'\
+        ' and will not wait any longer'
+    end
+  end
+end
+
 openstack_domain admin_domain do
   connection_params connection_params
 end

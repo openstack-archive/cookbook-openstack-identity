@@ -335,17 +335,9 @@ apache_site 'keystone' do
   enable false
 end
 
-# wait for apache2 to be fully reloaded and the keystone endpoint to become
-# available
-execute 'Keystone: sleep' do
-  command "sleep #{node['openstack']['identity']['start_delay']}"
-  action :nothing
-end
-
 # Hack until Apache cookbook has lwrp's for proper use of notify
 # restart apache2 after keystone if completely configured
 execute 'Keystone apache restart' do
   command 'uname'
   notifies :restart, 'service[apache2]', :immediately
-  notifies :run, 'execute[Keystone: sleep]', :immediately
 end

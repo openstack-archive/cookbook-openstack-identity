@@ -44,6 +44,11 @@ describe 'openstack-identity::registration' do
           --bootstrap-public-url #{public_url} \\
           --bootstrap-internal-url #{internal_url}")
         end
+
+        it do
+          expect(chef_run).to run_ruby_block('wait for identity admin endpoint')
+        end
+
         it "registers #{domain_name} domain" do
           expect(chef_run).to create_openstack_domain(
             domain_name
