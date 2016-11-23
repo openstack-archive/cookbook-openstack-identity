@@ -54,9 +54,6 @@ default['openstack']['identity']['catalog']['backend'] = 'sql'
 # identity service token backend for user and service tokens
 default['openstack']['identity']['token']['backend'] = 'sql'
 
-# identity service startup delay, in seconds
-default['openstack']['identity']['start_delay'] = 10
-
 # Specify a location to retrieve keystone-paste.ini from
 # which can either be a remote url using http:// or a
 # local path to a file using file:// which would generally

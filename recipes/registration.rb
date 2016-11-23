@@ -46,6 +46,22 @@ identity_tenants = node['openstack']['identity']['users'].values.map do |user_in
   user_info['roles'].values.push(user_info['default_tenant'])
 end
 
+ruby_block 'wait for identity admin endpoint' do
+  block do
+    begin
+      Timeout.timeout(60) do
+        until Net::HTTP.get_response(URI(auth_uri)).message == 'OK'
+          Chef::Log.info 'waiting for identity admin endpoint to be up...'
+          sleep 1
+        end
+      end
+    rescue Timeout::Error
+      raise 'Waited 60 seconds for identity admin endpoint to become ready'\
+        ' and will not wait any longer'
+    end
+  end
+end
+
 identity_tenants.flatten.uniq.each do |tenant_name|
   openstack_identity_register "Register '#{tenant_name}' Tenant" do
     auth_uri auth_uri

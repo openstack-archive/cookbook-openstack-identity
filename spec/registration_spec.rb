@@ -24,6 +24,10 @@ describe 'openstack-identity::registration' do
     include_context 'identity_stubs'
 
     describe 'tenant registration' do
+      it do
+        expect(chef_run).to run_ruby_block('wait for identity admin endpoint')
+      end
+
       context 'default tenants' do
         ['admin'].each do |tenant_name|
           it "registers the #{tenant_name} tenant" do
