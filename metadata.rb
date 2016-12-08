@@ -12,6 +12,6 @@ version '14.0.0'
   supports os
 end
 
-depends 'apache2', '~> 3.1'
+depends 'apache2', '~> 3.2'
 depends 'openstack-common', '>= 14.0.0'
 depends 'openstackclient'
