@@ -64,5 +64,8 @@ shared_context 'identity_stubs' do
     allow_any_instance_of(Chef::Recipe).to receive(:get_password)
       .with('user', 'admin')
       .and_return('admin')
+    allow_any_instance_of(Chef::Recipe).to receive(:rabbit_transport_url)
+      .with('identity')
+      .and_return('rabbit://guest:mypass@127.0.0.1:5672')
   end
 end

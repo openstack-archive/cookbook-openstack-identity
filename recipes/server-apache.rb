@@ -154,13 +154,8 @@ else
 end
 
 # set keystone config parameter for rabbitmq if rabbit is the rpc_backend
-if node['openstack']['identity']['conf']['DEFAULT']['rpc_backend'] == 'rabbit'
-  user = node['openstack']['mq']['identity']['rabbit']['userid']
-  node.default['openstack']['identity']['conf_secrets']
-  .[]('oslo_messaging_rabbit')['rabbit_userid'] = user
-  node.default['openstack']['identity']['conf_secrets']
-  .[]('oslo_messaging_rabbit')['rabbit_password'] =
-    get_password 'user', user
+if node['openstack']['mq']['service_type'] == 'rabbit'
+  node.default['openstack']['identity']['conf_secrets']['DEFAULT']['transport_url'] = rabbit_transport_url 'identity'
 end
 
 # set keystone config parameters for admin_token, endpoints and memcache

@@ -130,8 +130,10 @@ describe 'openstack-identity::server-apache' do
         expect(chef_run).not_to render_config_file(path).with_section_content('DEFAULT', /^list_limit = /)
       end
 
-      it 'has rpc_backend set for rabbit' do
-        expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', /^rpc_backend = rabbit$/)
+      it 'has default transport_url/AMQP options set' do
+        [%r{^transport_url = rabbit://guest:mypass@127.0.0.1:5672$}].each do |line|
+          expect(chef_run).to render_file(path).with_content(line)
+        end
       end
 
       describe '[DEFAULT] section' do
@@ -249,17 +251,6 @@ describe 'openstack-identity::server-apache' do
         it 'configures driver' do
           r = line_regexp('driver = keystone.policy.backends.sql.Policy')
           expect(chef_run).to render_config_file(path).with_section_content('policy', r)
-        end
-      end
-
-      describe '[oslo_messaging_rabbit] section' do
-        it 'has defaults for oslo_messaging_rabbit section' do
-          [
-            /^rabbit_userid = guest$/,
-            /^rabbit_password = guest$/
-          ].each do |line|
-            expect(chef_run).to render_config_file(path).with_section_content('oslo_messaging_rabbit', line)
-          end
         end
       end
     end
