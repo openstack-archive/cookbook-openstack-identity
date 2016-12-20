@@ -15,7 +15,6 @@ default['openstack']['identity']['conf'].tap do |conf|
     conf['DEFAULT']['notification_topics'] = 'notifications'
   end
   conf['DEFAULT']['rpc_backend'] = node['openstack']['mq']['service_type']
-
   # [assignment] option in keystone.conf to set driver
   conf['assignment']['driver'] = 'keystone.assignment.backends.sql.Assignment'
 
