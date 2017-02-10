@@ -274,30 +274,16 @@ directory keystone_apache_dir do
   mode 00755
 end
 
-server_entry_main = "#{keystone_apache_dir}/main"
-server_entry_admin = "#{keystone_apache_dir}/admin"
-
-# Note: Using lazy here as the wsgi file is not available until after
-# the keystone package is installed during execution phase.
-[server_entry_main, server_entry_admin].each do |server_entry|
-  file server_entry do
-    content lazy { IO.read(platform_options['keystone_wsgi_file']) }
-    owner 'root'
-    group 'root'
-    mode 00755
-  end
-end
-
 wsgi_apps = {
   'main' => {
     server_host: main_bind_address,
     server_port: main_bind_service.port,
-    server_entry: server_entry_main
+    server_entry: '/usr/bin/keystone-wsgi-public'
   },
   'admin' => {
     server_host: admin_bind_address,
     server_port: admin_bind_service.port,
-    server_entry: server_entry_admin
+    server_entry: '/usr/bin/keystone-wsgi-admin'
   }
 }
 

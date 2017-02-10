@@ -357,24 +357,6 @@ describe 'openstack-identity::server-apache' do
         end
       end
 
-      it 'creates directory /var/www/html/keystone' do
-        expect(chef_run).to create_directory('/var/www/html/keystone').with(
-          user: 'root',
-          group: 'root',
-          mode: 00755
-        )
-      end
-
-      it 'creates wsgi files' do
-        %w(main admin).each do |file|
-          expect(chef_run).to create_file("/var/www/html/keystone/#{file}").with(
-            user: 'root',
-            group: 'root',
-            mode: 00755
-          )
-        end
-      end
-
       describe 'apache wsgi' do
         ['/etc/apache2/sites-available/keystone-main.conf',
          '/etc/apache2/sites-available/keystone-admin.conf'].each do |file|
@@ -446,7 +428,7 @@ describe 'openstack-identity::server-apache' do
             [/^<VirtualHost 127.0.0.1:5000>$/,
              /^    WSGIDaemonProcess keystone-main/,
              /^    WSGIProcessGroup keystone-main$/,
-             %r{^    WSGIScriptAlias / /var/www/html/keystone/main$}].each do |line|
+             %r{^    WSGIScriptAlias / /usr/bin/keystone-wsgi-public$}].each do |line|
               expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-main.conf').with_content(line)
             end
           end
@@ -457,7 +439,7 @@ describe 'openstack-identity::server-apache' do
             [/^<VirtualHost 127.0.0.1:35357>$/,
              /^    WSGIDaemonProcess keystone-admin/,
              /^    WSGIProcessGroup keystone-admin$/,
-             %r{^    WSGIScriptAlias / /var/www/html/keystone/admin$}].each do |line|
+             %r{^    WSGIScriptAlias / /usr/bin/keystone-wsgi-admin$}].each do |line|
               expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-admin.conf').with_content(line)
             end
           end
