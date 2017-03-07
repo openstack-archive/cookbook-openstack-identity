@@ -109,7 +109,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       it 'has default transport_url/AMQP options set' do
-        [%r{^transport_url = rabbit://guest:mypass@127.0.0.1:5672$}].each do |line|
+        [%r{^transport_url = rabbit://openstack:mypass@127.0.0.1:5672$}].each do |line|
           expect(chef_run).to render_file(path).with_content(line)
         end
       end

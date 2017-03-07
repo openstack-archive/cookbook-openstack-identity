@@ -168,7 +168,7 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
   # platform specific package and service name options
   default['openstack']['identity']['platform'] = {
     'memcache_python_packages' => ['python-memcached'],
-    'keystone_packages' => ['openstack-keystone'],
+    'keystone_packages' => ['openstack-keystone', 'openstack-selinux'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
     'package_options' => ''

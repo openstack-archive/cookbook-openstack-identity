@@ -28,6 +28,19 @@ class ::Chef::Recipe
   include ::Openstack
 end
 
+# Workaround lifted from openstack-dashboard::apache2-server to install apache2
+# on a RHEL-ish machine with SELinux set to enforcing.
+#
+# TODO(sc): once apache2 is in a place to allow for subscribes to web_app,
+#           this workaround should go away
+#
+execute 'set-selinux-permissive' do
+  command '/sbin/setenforce Permissive'
+  action :run
+
+  only_if "[ ! -e /etc/httpd/conf/httpd.conf ] && [ -e /etc/redhat-release ] && [ $(/sbin/sestatus | grep -c '^Current mode:.*enforcing') -eq 1 ]"
+end
+
 # include the logging recipe from openstack-common if syslog usage is enbaled
 if node['openstack']['identity']['syslog']['use']
   include_recipe 'openstack-common::logging'
@@ -314,5 +327,12 @@ end
 # restart apache2 after keystone if completely configured
 execute 'Keystone apache restart' do
   command 'uname'
+  notifies :run, 'execute[restore-selinux-context]', :immediately
   notifies :restart, 'service[apache2]', :immediately
+end
+
+execute 'restore-selinux-context' do
+  command 'restorecon -Rv /etc/httpd /etc/pki || :'
+  action :nothing
+  only_if { platform_family?('rhel') }
 end

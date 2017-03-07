@@ -72,6 +72,7 @@ shared_context 'identity_stubs' do
       .and_return('thisisfernetkey1')
     allow_any_instance_of(Chef::Recipe).to receive(:rabbit_transport_url)
       .with('identity')
-      .and_return('rabbit://guest:mypass@127.0.0.1:5672')
+      .and_return('rabbit://openstack:mypass@127.0.0.1:5672')
+    stub_command("[ ! -e /etc/httpd/conf/httpd.conf ] && [ -e /etc/redhat-release ] && [ $(/sbin/sestatus | grep -c '^Current mode:.*enforcing') -eq 1 ]").and_return(true)
   end
 end
