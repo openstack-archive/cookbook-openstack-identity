@@ -94,14 +94,8 @@ file '/var/lib/keystone/keystone.db' do
   not_if { node['openstack']['db']['identity']['service_type'] == 'sqlite' }
 end
 
-# include the recipe to setup the selected keystone auth strategy (pki or
-# fernet)
-case node['openstack']['auth']['strategy']
-when 'pki'
-  include_recipe 'openstack-identity::_pki_tokens'
-when 'fernet'
-  include_recipe 'openstack-identity::_fernet_tokens'
-end
+# include the recipe to setup fernet tokens
+include_recipe 'openstack-identity::_fernet_tokens'
 
 # define the address to bind the keystone apache main service to
 main_bind_service = node['openstack']['bind_service']['main']['identity']

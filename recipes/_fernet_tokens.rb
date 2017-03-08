@@ -15,18 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This recipe is automatically included in openstack-identiy::service-apache
-# when node['openstack']['auth']['strategy'] is set to 'fernet'. It will add the
-# needed configuration options to the keystone.conf and create the needed fernet
-# tokens from predefined secrets (e.g. encrypted data bags or vaults).
+# This recipe is automatically included in openstack-identity::service-apache.
+# It will add the needed configuration options to the keystone.conf and create
+# the needed fernet keys from predefined secrets (e.g. encrypted data bags or vaults).
 
 class ::Chef::Recipe
   include ::Openstack
 end
-
-node.default['openstack']['identity']['conf']['fernet_tokens']['key_repository'] =
-  '/etc/keystone/fernet-tokens'
-node.default['openstack']['identity']['conf']['token']['provider'] = 'fernet'
 
 key_repository =
   node['openstack']['identity']['conf']['fernet_tokens']['key_repository']
@@ -43,6 +38,6 @@ node['openstack']['identity']['fernet']['keys'].each do |key_index|
     content key
     owner node['openstack']['identity']['user']
     group node['openstack']['identity']['group']
-    mode 00600
+    mode 00400
   end
 end
