@@ -82,28 +82,6 @@ describe 'openstack-identity::server-apache' do
       end
     end
 
-    describe 'ssl directories' do
-      let(:ssl_dir) { '/etc/keystone/ssl' }
-      let(:certs_dir) { "#{ssl_dir}/certs" }
-      let(:private_dir) { "#{ssl_dir}/private" }
-
-      describe 'without pki' do
-        before { node.set['openstack']['auth']['strategy'] = 'uuid' }
-
-        it 'does not create /etc/keystone/ssl' do
-          expect(chef_run).not_to create_directory(ssl_dir)
-        end
-
-        it 'does not create /etc/keystone/ssl/certs' do
-          expect(chef_run).not_to create_directory(certs_dir)
-        end
-
-        it 'does not create /etc/keystone/ssl/private' do
-          expect(chef_run).not_to create_directory(private_dir)
-        end
-      end
-    end
-
     it 'deletes keystone.db' do
       expect(chef_run).to delete_file('/var/lib/keystone/keystone.db')
     end
@@ -296,18 +274,36 @@ describe 'openstack-identity::server-apache' do
         )
       end
 
-      it 'has default api pipeline value' do
-        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension user_crud_extension public_service$/)
-        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension s3_extension crud_extension admin_service$/)
-        expect(chef_run).to render_file(path).with_content(/^pipeline = sizelimit url_normalize request_id build_auth_context token_auth admin_token_auth json_body ec2_extension_v3 s3_extension simple_cert_extension revoke_extension federation_extension oauth1_extension endpoint_filter_extension service_v3$/)
+      it 'has default api pipeline values' do
+        expect(chef_run).to render_config_file(path).with_section_content(
+          'pipeline:public_api',
+          /^pipeline = healthcheck cors sizelimit http_proxy_to_wsgi url_normalize request_id build_auth_context token_auth json_body ec2_extension public_service$/
+        )
+        expect(chef_run).to render_config_file(path).with_section_content(
+          'pipeline:admin_api',
+          /^pipeline = healthcheck cors sizelimit http_proxy_to_wsgi url_normalize request_id build_auth_context token_auth json_body ec2_extension s3_extension admin_service$/
+        )
+        expect(chef_run).to render_config_file(path).with_section_content(
+          'pipeline:api_v3',
+          /^pipeline = healthcheck cors sizelimit http_proxy_to_wsgi url_normalize request_id build_auth_context token_auth json_body ec2_extension_v3 s3_extension service_v3$/
+        )
       end
       it 'template api pipeline set correct' do
         node.set['openstack']['identity']['pipeline']['public_api'] = 'public_service'
         node.set['openstack']['identity']['pipeline']['admin_api'] = 'admin_service'
         node.set['openstack']['identity']['pipeline']['api_v3'] = 'service_v3'
-        expect(chef_run).to render_file(path).with_content(/^pipeline = public_service$/)
-        expect(chef_run).to render_file(path).with_content(/^pipeline = admin_service$/)
-        expect(chef_run).to render_file(path).with_content(/^pipeline = service_v3$/)
+        expect(chef_run).to render_config_file(path).with_section_content(
+          'pipeline:public_api',
+          /^pipeline = public_service$/
+        )
+        expect(chef_run).to render_config_file(path).with_section_content(
+          'pipeline:admin_api',
+          /^pipeline = admin_service$/
+        )
+        expect(chef_run).to render_config_file(path).with_section_content(
+          'pipeline:api_v3',
+          /^pipeline = service_v3$/
+        )
       end
       it 'template misc_paste array correctly' do
         node.set['openstack']['identity']['misc_paste'] = ['MISC1 = OPTION1', 'MISC2 = OPTION2']
@@ -333,11 +329,6 @@ describe 'openstack-identity::server-apache' do
     end
 
     describe 'apache setup' do
-      it 'stop and disable keystone service' do
-        expect(chef_run).to stop_service('keystone')
-        expect(chef_run).to disable_service('keystone')
-      end
-
       it 'set apache addresses and ports' do
         expect(chef_run.node['apache']['listen']).to eq(
           %w(127.0.0.1:5000 127.0.0.1:35357)
