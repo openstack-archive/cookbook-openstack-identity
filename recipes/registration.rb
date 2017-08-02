@@ -41,20 +41,6 @@ admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
 admin_role = node['openstack']['identity']['admin_role']
 admin_domain = node['openstack']['identity']['admin_domain_name']
-region = node['openstack']['identity']['region']
-
-execute 'bootstrap_keystone' do
-  command "keystone-manage bootstrap \\
-          --bootstrap-password #{admin_pass} \\
-          --bootstrap-username #{admin_user} \\
-          --bootstrap-project-name #{admin_project} \\
-          --bootstrap-role-name #{admin_role} \\
-          --bootstrap-service-name keystone \\
-          --bootstrap-region-id #{region} \\
-          --bootstrap-admin-url #{identity_admin_endpoint} \\
-          --bootstrap-public-url #{identity_public_endpoint} \\
-          --bootstrap-internal-url #{identity_internal_endpoint}"
-end
 
 connection_params = {
   openstack_auth_url:     "#{auth_url}/auth/tokens",

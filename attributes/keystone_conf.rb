@@ -16,16 +16,16 @@ default['openstack']['identity']['conf'].tap do |conf|
   end
 
   # [assignment] option in keystone.conf to set driver
-  conf['assignment']['driver'] = 'keystone.assignment.backends.sql.Assignment'
+  conf['assignment']['driver'] = 'sql'
 
   # [auth] option in keystone.conf to set auth plugins
-  conf['auth']['external'] = 'keystone.auth.plugins.external.DefaultDomain'
+  conf['auth']['external'] = 'DefaultDomain'
   # [auth] option in keystone.conf to set auth methods
   conf['auth']['methods'] = 'external, password, token, oauth1'
 
   # [catalog] option in keystone.conf to set catalog driver
-  conf['catalog']['driver'] = 'keystone.catalog.backends.sql.Catalog'
+  conf['catalog']['driver'] = 'sql'
 
   # [policy] option in keystone.conf to set policy backend driver
-  conf['policy']['driver'] = 'keystone.policy.backends.sql.Policy'
+  conf['policy']['driver'] = 'sql'
 end

@@ -1,12 +1,12 @@
-<%= node["openstack"]["identity"]["custom_template_banner"] %>
+<%= node['openstack']['identity']['custom_template_banner'] %>
 
 # Keystone PasteDeploy configuration file.
 
 [filter:debug]
-use = egg:keystone#debug
+use = egg:oslo.middleware#debug
 
 [filter:request_id]
-use = egg:keystone#request_id
+use = egg:oslo.middleware#request_id
 
 [filter:build_auth_context]
 use = egg:keystone#build_auth_context
@@ -40,7 +40,7 @@ use = egg:keystone#s3_extension
 use = egg:keystone#url_normalize
 
 [filter:sizelimit]
-use = egg:keystone#sizelimit
+use = egg:oslo.middleware#sizelimit
 
 [filter:osprofiler]
 use = egg:osprofiler#osprofiler
@@ -55,13 +55,13 @@ use = egg:keystone#service_v3
 use = egg:keystone#admin_service
 
 [pipeline:public_api]
-pipeline = <%=node["openstack"]["identity"]["pipeline"]["public_api"] %>
+pipeline = <%=node['openstack']['identity']['pipeline']['public_api'] %>
 
 [pipeline:admin_api]
-pipeline = <%=node["openstack"]["identity"]["pipeline"]["admin_api"] %>
+pipeline = <%=node['openstack']['identity']['pipeline']['admin_api'] %>
 
 [pipeline:api_v3]
-pipeline = <%=node["openstack"]["identity"]["pipeline"]["api_v3"] %>
+pipeline = <%=node['openstack']['identity']['pipeline']['api_v3'] %>
 
 [app:public_version_service]
 use = egg:keystone#public_version_service
@@ -87,8 +87,8 @@ use = egg:Paste#urlmap
 /v3 = api_v3
 / = admin_version_api
 
-<% if node["openstack"]["identity"]["misc_paste"] %>
-<% node["openstack"]["identity"]["misc_paste"].each do |m| %>
+<% if node['openstack']['identity']['misc_paste'] %>
+<% node['openstack']['identity']['misc_paste'].each do |m| %>
 <%= m %>
 <% end %>
 <% end %>

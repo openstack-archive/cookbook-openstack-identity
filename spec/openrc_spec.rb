@@ -48,9 +48,11 @@ describe 'openstack-identity::openrc' do
       it 'templates misc_openrc array correctly' do
         node.set['openstack']['misc_openrc'] = ['export MISC1=OPTION1', 'export MISC2=OPTION2']
         expect(chef_run).to render_file(file.name).with_content(
-          /^export MISC1=OPTION1$/)
+          /^export MISC1=OPTION1$/
+        )
         expect(chef_run).to render_file(file.name).with_content(
-          /^export MISC2=OPTION2$/)
+          /^export MISC2=OPTION2$/
+        )
       end
 
       it 'contains overridden auth environment variables' do

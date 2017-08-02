@@ -48,6 +48,16 @@ end
 
 platform_options = node['openstack']['identity']['platform']
 
+identity_admin_endpoint = admin_endpoint 'identity'
+identity_internal_endpoint = internal_endpoint 'identity'
+identity_public_endpoint = public_endpoint 'identity'
+
+# define the credentials to use for the initial admin user
+admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
+region = node['openstack']['identity']['region']
+keystone_user    = node['openstack']['identity']['user']
+keystone_group   = node['openstack']['identity']['group']
+
 # install the database python adapter packages for the selected database
 # service_type
 db_type = node['openstack']['db']['identity']['service_type']
@@ -90,14 +100,14 @@ end
 directory '/etc/keystone' do
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
-  mode 00700
+  mode 0o0700
 end
 
 # create keystone domain config dir if needed
 directory node['openstack']['identity']['identity']['domain_config_dir'] do
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
-  mode 00700
+  mode 0o0700
   only_if { node['openstack']['identity']['identity']['domain_specific_drivers_enabled'] }
 end
 
@@ -109,6 +119,26 @@ end
 
 # include the recipe to setup fernet tokens
 include_recipe 'openstack-identity::_fernet_tokens'
+
+# initialize fernet tokens
+execute 'fernet setup' do
+  user 'root'
+  command <<-EOH.gsub(/\s+/, ' ').strip!
+        keystone-manage fernet_setup
+      --keystone-user #{keystone_user}
+      --keystone-group #{keystone_group}
+  EOH
+  notifies :run, 'execute[credential setup]', :immediately
+end
+
+execute 'credential setup' do
+  user 'root'
+  command <<-EOH.gsub(/\s+/, ' ').strip!
+        keystone-manage credential_setup
+      --keystone-user #{keystone_user}
+      --keystone-group #{keystone_group}
+  EOH
+end
 
 # define the address to bind the keystone apache main service to
 main_bind_service = node['openstack']['bind_service']['main']['identity']
@@ -149,14 +179,14 @@ if node['openstack']['identity']['pastefile_url']
     source node['openstack']['identity']['pastefile_url']
     owner node['openstack']['identity']['user']
     group node['openstack']['identity']['group']
-    mode 00644
+    mode 0o0644
   end
 else
   template '/etc/keystone/keystone-paste.ini' do
     source 'keystone-paste.ini.erb'
     owner node['openstack']['identity']['user']
     group node['openstack']['identity']['group']
-    mode 00644
+    mode 0o0644
   end
 end
 
@@ -181,7 +211,7 @@ template '/etc/keystone/keystone.conf' do
   cookbook 'openstack-common'
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
-  mode 00640
+  mode 0o0640
   variables(
     service_config: keystone_conf_options
   )
@@ -226,7 +256,7 @@ if node['openstack']['identity']['catalog']['backend'] == 'templated'
     source 'default_catalog.templates.erb'
     owner node['openstack']['identity']['user']
     group node['openstack']['identity']['group']
-    mode 00644
+    mode 0o0644
     variables(
       uris: uris
     )
@@ -235,10 +265,14 @@ end
 
 # sync db after keystone.conf is generated
 execute 'keystone-manage db_sync' do
-  user node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
-
+  user 'root'
   only_if { node['openstack']['db']['identity']['migrate'] }
+end
+
+# bootstrap keystone after keystone.conf is generated
+execute 'keystone bootstrap' do
+  user 'root'
+  command "keystone-manage bootstrap --bootstrap-password \"#{admin_pass}\" --bootstrap-region-id \"#{region}\" --bootstrap-admin-url #{identity_admin_endpoint} --bootstrap-public-url #{identity_public_endpoint} --bootstrap-internal-url #{identity_internal_endpoint}"
 end
 
 # configure the flush tokens cronjob
@@ -278,7 +312,7 @@ keystone_apache_dir = "#{node['apache']['docroot_dir']}/keystone"
 directory keystone_apache_dir do
   owner 'root'
   group 'root'
-  mode 00755
+  mode 0o0755
 end
 
 wsgi_apps = {

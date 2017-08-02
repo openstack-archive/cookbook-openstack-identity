@@ -29,7 +29,7 @@ key_repository =
 directory key_repository do
   owner node['openstack']['identity']['user']
   group node['openstack']['identity']['group']
-  mode 00700
+  mode 0o0700
 end
 
 node['openstack']['identity']['fernet']['keys'].each do |key_index|
@@ -38,6 +38,6 @@ node['openstack']['identity']['fernet']['keys'].each do |key_index|
     content key
     owner node['openstack']['identity']['user']
     group node['openstack']['identity']['group']
-    mode 00400
+    mode 0o0400
   end
 end

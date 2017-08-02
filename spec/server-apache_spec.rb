@@ -14,6 +14,12 @@ describe 'openstack-identity::server-apache' do
     include Helpers
     include_context 'identity_stubs'
 
+    region = 'RegionOne'
+    password = 'admin'
+    admin_url = 'http://127.0.0.1:35357/v3'
+    public_url = 'http://127.0.0.1:5000/v3'
+    internal_url = 'http://127.0.0.1:5000/v3'
+
     it 'runs logging recipe if node attributes say to' do
       node.set['openstack']['identity']['syslog']['use'] = true
       expect(chef_run).to include_recipe('openstack-common::logging')
@@ -40,6 +46,9 @@ describe 'openstack-identity::server-apache' do
       expect(chef_run).to upgrade_package('identity cookbook package keystone')
     end
 
+    it 'bootstrap with keystone-manage' do
+      expect(chef_run).to run_execute('keystone bootstrap').with(command: "keystone-manage bootstrap --bootstrap-password \"#{password}\" --bootstrap-region-id \"#{region}\" --bootstrap-admin-url #{admin_url} --bootstrap-public-url #{public_url} --bootstrap-internal-url #{internal_url}")
+    end
     it 'has flush tokens cronjob running every day at 3:30am' do
       expect(chef_run).to create_cron('keystone-manage-token-flush').with_command(/keystone-manage token_flush/)
       expect(chef_run).to create_cron('keystone-manage-token-flush').with_minute('0')
@@ -60,7 +69,7 @@ describe 'openstack-identity::server-apache' do
         expect(chef_run).to create_directory(dir.name).with(
           user: 'keystone',
           group: 'keystone',
-          mode: 00700
+          mode: 0o0700
         )
       end
     end
@@ -77,7 +86,7 @@ describe 'openstack-identity::server-apache' do
         expect(chef_run).to create_directory(dir).with(
           user: 'keystone',
           group: 'keystone',
-          mode: 00700
+          mode: 0o0700
         )
       end
     end
@@ -99,7 +108,7 @@ describe 'openstack-identity::server-apache' do
           expect(chef_run).to create_template(resource.name).with(
             user: 'keystone',
             group: 'keystone',
-            mode: 00640
+            mode: 0o0640
           )
         end
       end
@@ -204,7 +213,7 @@ describe 'openstack-identity::server-apache' do
 
       describe '[assignment] section' do
         it 'configures driver' do
-          r = line_regexp('driver = keystone.assignment.backends.sql.Assignment')
+          r = line_regexp('driver = sql')
           expect(chef_run).to render_config_file(path).with_section_content('assignment', r)
         end
       end
@@ -216,7 +225,7 @@ describe 'openstack-identity::server-apache' do
           line_regexp(str)
         end
         let(:sql) do
-          line_regexp('driver = keystone.catalog.backends.sql.Catalog')
+          line_regexp('driver = sql')
         end
 
         it 'configures driver' do
@@ -227,7 +236,7 @@ describe 'openstack-identity::server-apache' do
 
       describe '[policy] section' do
         it 'configures driver' do
-          r = line_regexp('driver = keystone.policy.backends.sql.Policy')
+          r = line_regexp('driver = sql')
           expect(chef_run).to render_config_file(path).with_section_content('policy', r)
         end
       end
@@ -248,16 +257,14 @@ describe 'openstack-identity::server-apache' do
 
       it 'runs migrations' do
         expect(chef_run).to run_execute(cmd).with(
-          user: 'keystone',
-          group: 'keystone'
+          user: 'root'
         )
       end
 
       it 'does not run migrations' do
         node.set['openstack']['db']['identity']['migrate'] = false
         expect(chef_run).not_to run_execute(cmd).with(
-          user: 'keystone',
-          group: 'keystone'
+          user: 'root'
         )
       end
     end
@@ -270,7 +277,7 @@ describe 'openstack-identity::server-apache' do
         expect(chef_run).to create_template(template.name).with(
           user: 'keystone',
           group: 'keystone',
-          mode: 0644
+          mode: 0o644
         )
       end
 
@@ -308,9 +315,11 @@ describe 'openstack-identity::server-apache' do
       it 'template misc_paste array correctly' do
         node.set['openstack']['identity']['misc_paste'] = ['MISC1 = OPTION1', 'MISC2 = OPTION2']
         expect(chef_run).to render_file(path).with_content(
-          /^MISC1 = OPTION1$/)
+          /^MISC1 = OPTION1$/
+        )
         expect(chef_run).to render_file(path).with_content(
-          /^MISC2 = OPTION2$/)
+          /^MISC2 = OPTION2$/
+        )
       end
     end
 
@@ -323,7 +332,7 @@ describe 'openstack-identity::server-apache' do
           source: 'http://server/mykeystone-paste.ini',
           user: 'keystone',
           group: 'keystone',
-          mode: 00644
+          mode: 0o0644
         )
       end
     end
