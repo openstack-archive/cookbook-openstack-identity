@@ -16,7 +16,7 @@ describe 'openstack-identity::registration' do
       openstack_username: 'admin',
       openstack_api_key: 'admin',
       openstack_project_name: 'admin',
-      openstack_domain_name: 'default'
+      openstack_domain_name: 'default',
     }
     service_user = 'admin'
     role_name = 'admin'
@@ -68,7 +68,7 @@ describe 'openstack-identity::registration' do
           openstack_username: 'identity_admin',
           openstack_api_key: 'identity_admin_pass',
           openstack_project_name: 'admin_project',
-          openstack_domain_name: 'identity_domain'
+          openstack_domain_name: 'identity_domain',
         }
         before do
           node.set['openstack']['endpoints']['admin']['identity']['uri'] =

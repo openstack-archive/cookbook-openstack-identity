@@ -39,7 +39,7 @@ describe 'openstack-identity::openrc' do
           /^export OS_PROJECT_DOMAIN_NAME=default$/,
           /^export OS_IDENTITY_API_VERSION=3$/,
           %r{^export OS_AUTH_URL=http://127.0.0.1:5000/v3$},
-          /^export OS_REGION_NAME=RegionOne$/
+          /^export OS_REGION_NAME=RegionOne$/,
         ].each do |line|
           expect(chef_run).to render_file(file.name).with_content(line)
         end
@@ -68,7 +68,7 @@ describe 'openstack-identity::openrc' do
           /^export OS_USERNAME=identity_admin$/,
           /^export OS_PROJECT_NAME=admin-project-name-override$/,
           /^export OS_PASSWORD=identity_admin_pass$/,
-          %r{^export OS_AUTH_URL=https://public.identity:1234/v3$}
+          %r{^export OS_AUTH_URL=https://public.identity:1234/v3$},
         ].each do |line|
           expect(chef_run).to render_file(file.name).with_content(line)
         end
