@@ -49,18 +49,6 @@ describe 'openstack-identity::server-apache' do
     it 'bootstrap with keystone-manage' do
       expect(chef_run).to run_execute('keystone bootstrap').with(command: "keystone-manage bootstrap --bootstrap-password \"#{password}\" --bootstrap-region-id \"#{region}\" --bootstrap-admin-url #{admin_url} --bootstrap-public-url #{public_url} --bootstrap-internal-url #{internal_url}")
     end
-    it 'has flush tokens cronjob running every day at 3:30am' do
-      expect(chef_run).to create_cron('keystone-manage-token-flush').with_command(/keystone-manage token_flush/)
-      expect(chef_run).to create_cron('keystone-manage-token-flush').with_minute('0')
-      expect(chef_run).to create_cron('keystone-manage-token-flush').with_hour('*')
-      expect(chef_run).to create_cron('keystone-manage-token-flush').with_day('*')
-      expect(chef_run).to create_cron('keystone-manage-token-flush').with_weekday('*')
-    end
-
-    it 'deletes flush tokens cronjob when tokens backend is not sql' do
-      node.set['openstack']['identity']['token']['backend'] = 'notsql'
-      expect(chef_run).to delete_cron('keystone-manage-token-flush')
-    end
 
     describe '/etc/keystone' do
       let(:dir) { chef_run.directory('/etc/keystone') }

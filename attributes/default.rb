@@ -141,19 +141,6 @@ default['openstack']['identity']['auth']['methods'] = 'external, password, token
 # Default auth_version for now
 default['openstack']['identity']['auth']['version'] = 'v3'
 
-# enable or disable the usage of the token flushing cronjob
-default['openstack']['identity']['token_flush_cron']['enabled'] = true
-# log file location for token flushing cronjob
-default['openstack']['identity']['token_flush_cron']['log_file'] = '/var/log/keystone/token-flush.log'
-# hour to run token flushing cronjob
-default['openstack']['identity']['token_flush_cron']['hour'] = '*'
-# minute to run token flushing cronjob
-default['openstack']['identity']['token_flush_cron']['minute'] = '0'
-# day to run token flushing cronjob
-default['openstack']['identity']['token_flush_cron']['day'] = '*'
-# weekday to run token flushing cronjob
-default['openstack']['identity']['token_flush_cron']['weekday'] = '*'
-
 # configuration directory for keystone domain specific options
 default['openstack']['identity']['identity']['domain_config_dir'] = '/etc/keystone/domains'
 
