@@ -275,21 +275,6 @@ execute 'keystone bootstrap' do
   command "keystone-manage bootstrap --bootstrap-password \"#{admin_pass}\" --bootstrap-region-id \"#{region}\" --bootstrap-admin-url #{identity_admin_endpoint} --bootstrap-public-url #{identity_public_endpoint} --bootstrap-internal-url #{identity_internal_endpoint}"
 end
 
-# configure the flush tokens cronjob
-should_run_cron = node['openstack']['identity']['token_flush_cron']['enabled'] && node['openstack']['identity']['token']['backend'] == 'sql'
-log_file = node['openstack']['identity']['token_flush_cron']['log_file']
-
-cron 'keystone-manage-token-flush' do
-  minute node['openstack']['identity']['token_flush_cron']['minute']
-  hour node['openstack']['identity']['token_flush_cron']['hour']
-  day node['openstack']['identity']['token_flush_cron']['day']
-  weekday node['openstack']['identity']['token_flush_cron']['weekday']
-  action should_run_cron ? :create : :delete
-  user node['openstack']['identity']['user']
-  command "keystone-manage token_flush > #{log_file} 2>&1; "\
-          "echo keystone-manage token_flush ran at $(/bin/date) with exit code $? >> #{log_file}"
-end
-
 #### Start of Apache specific work
 
 # configure attributes for apache2 cookbook to align with openstack settings
