@@ -14,7 +14,11 @@ describe 'openstack-identity::server-apache' do
     include Helpers
     include_context 'identity_stubs'
 
+    service_name = 'keystone'
+    service_user = 'admin'
     region = 'RegionOne'
+    project_name = 'admin'
+    role_name = 'admin'
     password = 'admin'
     admin_url = 'http://127.0.0.1:35357/v3'
     public_url = 'http://127.0.0.1:5000/v3'
@@ -47,7 +51,16 @@ describe 'openstack-identity::server-apache' do
     end
 
     it 'bootstrap with keystone-manage' do
-      expect(chef_run).to run_execute('keystone bootstrap').with(command: "keystone-manage bootstrap --bootstrap-password \"#{password}\" --bootstrap-region-id \"#{region}\" --bootstrap-admin-url #{admin_url} --bootstrap-public-url #{public_url} --bootstrap-internal-url #{internal_url}")
+      expect(chef_run).to run_execute('bootstrap_keystone').with(command: "keystone-manage bootstrap \\
+          --bootstrap-password #{password} \\
+          --bootstrap-username #{service_user} \\
+          --bootstrap-project-name #{project_name} \\
+          --bootstrap-role-name #{role_name} \\
+          --bootstrap-service-name #{service_name} \\
+          --bootstrap-region-id #{region} \\
+          --bootstrap-admin-url #{admin_url} \\
+          --bootstrap-public-url #{public_url} \\
+          --bootstrap-internal-url #{internal_url}")
     end
 
     describe '/etc/keystone' do

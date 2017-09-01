@@ -53,7 +53,10 @@ identity_internal_endpoint = internal_endpoint 'identity'
 identity_public_endpoint = public_endpoint 'identity'
 
 # define the credentials to use for the initial admin user
+admin_project = node['openstack']['identity']['admin_project']
+admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
+admin_role = node['openstack']['identity']['admin_role']
 region = node['openstack']['identity']['region']
 keystone_user    = node['openstack']['identity']['user']
 keystone_group   = node['openstack']['identity']['group']
@@ -270,9 +273,17 @@ execute 'keystone-manage db_sync' do
 end
 
 # bootstrap keystone after keystone.conf is generated
-execute 'keystone bootstrap' do
-  user 'root'
-  command "keystone-manage bootstrap --bootstrap-password \"#{admin_pass}\" --bootstrap-region-id \"#{region}\" --bootstrap-admin-url #{identity_admin_endpoint} --bootstrap-public-url #{identity_public_endpoint} --bootstrap-internal-url #{identity_internal_endpoint}"
+execute 'bootstrap_keystone' do
+  command "keystone-manage bootstrap \\
+          --bootstrap-password #{admin_pass} \\
+          --bootstrap-username #{admin_user} \\
+          --bootstrap-project-name #{admin_project} \\
+          --bootstrap-role-name #{admin_role} \\
+          --bootstrap-service-name keystone \\
+          --bootstrap-region-id #{region} \\
+          --bootstrap-admin-url #{identity_admin_endpoint} \\
+          --bootstrap-public-url #{identity_public_endpoint} \\
+          --bootstrap-internal-url #{identity_internal_endpoint}"
 end
 
 #### Start of Apache specific work
