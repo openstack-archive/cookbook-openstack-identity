@@ -33,7 +33,8 @@ directory key_repository do
 end
 
 node['openstack']['identity']['fernet']['keys'].each do |key_index|
-  key = secret('keystone', "fernet_key#{key_index}")
+  key = secret(node['openstack']['secret']['secrets_data_bag'],
+               "fernet_key#{key_index}")
   file File.join(key_repository, key_index.to_s) do
     content key
     owner node['openstack']['identity']['user']
