@@ -131,16 +131,6 @@ execute 'fernet setup' do
       --keystone-user #{keystone_user}
       --keystone-group #{keystone_group}
   EOH
-  notifies :run, 'execute[credential setup]', :immediately
-end
-
-execute 'credential setup' do
-  user 'root'
-  command <<-EOH.gsub(/\s+/, ' ').strip!
-        keystone-manage credential_setup
-      --keystone-user #{keystone_user}
-      --keystone-group #{keystone_group}
-  EOH
 end
 
 # define the address to bind the keystone apache main service to
@@ -252,7 +242,7 @@ if node['openstack']['identity']['catalog']['backend'] == 'templated'
     'compute' => compute_public_endpoint.to_s.gsub('%25', '%'),
     'ec2' => ec2_public_endpoint.to_s.gsub('%25', '%'),
     'network' => network_public_endpoint.to_s.gsub('%25', '%'),
-    'volume' => volume_public_endpoint.to_s.gsub('%25', '%')
+    'volume' => volume_public_endpoint.to_s.gsub('%25', '%'),
   }
 
   template '/etc/keystone/default_catalog.templates' do
@@ -315,13 +305,13 @@ wsgi_apps = {
   'main' => {
     server_host: main_bind_address,
     server_port: main_bind_service.port,
-    server_entry: '/usr/bin/keystone-wsgi-public'
+    server_entry: '/usr/bin/keystone-wsgi-public',
   },
   'admin' => {
     server_host: admin_bind_address,
     server_port: admin_bind_service.port,
-    server_entry: '/usr/bin/keystone-wsgi-admin'
-  }
+    server_entry: '/usr/bin/keystone-wsgi-admin',
+  },
 }
 
 # create the keystone apache config using the web_app resource from the apache2

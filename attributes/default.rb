@@ -158,7 +158,7 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
     'keystone_packages' => ['openstack-keystone', 'openstack-selinux'],
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
-    'package_options' => ''
+    'package_options' => '',
   }
 when 'debian'
   # platform specific package and service name options
@@ -167,7 +167,7 @@ when 'debian'
     'keystone_packages' => ['keystone'],
     'keystone_service' => 'keystone',
     'keystone_process_name' => 'keystone-all',
-    'package_options' => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'"
+    'package_options' => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'",
   }
 end
 
