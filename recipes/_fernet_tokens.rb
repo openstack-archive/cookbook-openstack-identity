@@ -40,5 +40,6 @@ node['openstack']['identity']['fernet']['keys'].each do |key_index|
     owner node['openstack']['identity']['user']
     group node['openstack']['identity']['group']
     mode 0o0400
+    sensitive true
   end
 end
