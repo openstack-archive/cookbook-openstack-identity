@@ -150,7 +150,7 @@ default['openstack']['identity']['user'] = 'keystone'
 default['openstack']['identity']['group'] = 'keystone'
 
 # platform defaults
-case platform_family
+case node['platform_family']
 when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
   # platform specific package and service name options
   default['openstack']['identity']['platform'] = {
