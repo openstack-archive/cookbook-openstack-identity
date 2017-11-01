@@ -131,6 +131,16 @@ execute 'fernet setup' do
       --keystone-user #{keystone_user}
       --keystone-group #{keystone_group}
   EOH
+  notifies :run, 'execute[credential setup]', :immediately
+end
+
+execute 'credential setup' do
+  user 'root'
+  command <<-EOH.gsub(/\s+/, ' ').strip!
+        keystone-manage credential_setup
+      --keystone-user #{keystone_user}
+      --keystone-group #{keystone_group}
+  EOH
 end
 
 # define the address to bind the keystone apache main service to
