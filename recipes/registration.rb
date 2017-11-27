@@ -87,9 +87,9 @@ openstack_role '_member_' do
   connection_params connection_params
 end
 
-node.set['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
-node.set['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
-node.set['openstack']['identity']['publicURL'] = identity_public_endpoint.to_s
+node.normal['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
+node.normal['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
+node.normal['openstack']['identity']['publicURL'] = identity_public_endpoint.to_s
 
 Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint}"
 Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint}"

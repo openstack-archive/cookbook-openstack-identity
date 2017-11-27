@@ -23,6 +23,10 @@ default['openstack']['identity']['conf'].tap do |conf|
   # [auth] option in keystone.conf to set auth methods
   conf['auth']['methods'] = 'external, password, token, oauth1'
 
+  # [cache] option in keystone.conf to set oslo backend
+  conf['cache']['enabled'] = true
+  conf['cache']['backend'] = 'oslo_cache.memcache_pool'
+
   # [catalog] option in keystone.conf to set catalog driver
   conf['catalog']['driver'] = 'sql'
 

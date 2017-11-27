@@ -293,8 +293,8 @@ apache_listen = Array(node['apache']['listen']) # include already defined listen
 # Remove the default apache2 cookbook port, as that is also the default for horizon, but with
 # a different address syntax.  *:80   vs  0.0.0.0:80
 apache_listen -= ['*:80']
-apache_listen += ["#{main_bind_address}:#{main_bind_service.port}"]
-apache_listen += ["#{admin_bind_address}:#{admin_bind_service.port}"]
+apache_listen += ["#{main_bind_address}:#{main_bind_service['port']}"]
+apache_listen += ["#{admin_bind_address}:#{admin_bind_service['port']}"]
 node.normal['apache']['listen'] = apache_listen.uniq
 
 # include the apache2 default recipe and the recipes for mod_wsgi
@@ -314,12 +314,12 @@ end
 wsgi_apps = {
   'main' => {
     server_host: main_bind_address,
-    server_port: main_bind_service.port,
+    server_port: main_bind_service['port'],
     server_entry: '/usr/bin/keystone-wsgi-public',
   },
   'admin' => {
     server_host: admin_bind_address,
-    server_port: admin_bind_service.port,
+    server_port: admin_bind_service['port'],
     server_entry: '/usr/bin/keystone-wsgi-admin',
   },
 }
