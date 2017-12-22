@@ -1,9 +1,9 @@
-source "https://supermarket.chef.io"
+source 'https://supermarket.chef.io'
 
 metadata
 
-cookbook "openstack-common",
-  github: "openstack/cookbook-openstack-common"
+cookbook 'openstack-common',
+  github: 'openstack/cookbook-openstack-common'
 
-cookbook "openstackclient",
-  github: "cloudbau/cookbook-openstackclient"
+cookbook 'openstackclient',
+  github: 'cloudbau/cookbook-openstackclient'

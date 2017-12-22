@@ -167,7 +167,7 @@ when 'debian'
     'keystone_packages' => ['keystone'],
     'keystone_service' => 'keystone',
     'keystone_process_name' => 'keystone-all',
-    'package_options' => "-o Dpkg::Options::='--force-confold' -o Dpkg::Options::='--force-confdef'",
+    'package_overrides' => '',
   }
 end
 
