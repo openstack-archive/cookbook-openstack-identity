@@ -37,11 +37,6 @@ describe 'openstack-identity::server-apache' do
       expect(chef_run).to upgrade_package('identity cookbook package python-mysqldb')
     end
 
-    it 'upgrades postgresql python packages if explicitly told' do
-      node.set['openstack']['db']['identity']['service_type'] = 'postgresql'
-      expect(chef_run).to upgrade_package('identity cookbook package python-psycopg2')
-    end
-
     it 'upgrades memcache python packages' do
       expect(chef_run).to upgrade_package('identity cookbook package python-memcache')
     end
