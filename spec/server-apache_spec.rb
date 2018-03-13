@@ -354,7 +354,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       describe 'apache wsgi' do
-        ['/etc/apache2/sites-available/keystone-main.conf',
+        ['/etc/apache2/sites-available/keystone-public.conf',
          '/etc/apache2/sites-available/keystone-admin.conf'].each do |file|
           it "creates #{file}" do
             expect(chef_run).to create_template(file).with(
@@ -364,14 +364,25 @@ describe 'openstack-identity::server-apache' do
             )
           end
 
-          it "configures #{file} common lines" do
+          it 'configures keystone-admin.conf lines' do
             node.set['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
             [/^custom_template_banner_value$/,
              /user=keystone/,
              /group=keystone/,
-             %r{^    ErrorLog /var/log/apache2/keystone.log$},
-             %r{^    CustomLog /var/log/apache2/keystone_access.log combined$}].each do |line|
-              expect(chef_run).to render_file(file).with_content(line)
+             %r{^    ErrorLog /var/log/apache2/keystone-admin.log$},
+             %r{^    CustomLog /var/log/apache2/keystone-admin_access.log combined$}].each do |line|
+              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-admin.conf').with_content(line)
+            end
+          end
+
+          it 'configures keystone-public.conf lines' do
+            node.set['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
+            [/^custom_template_banner_value$/,
+             /user=keystone/,
+             /group=keystone/,
+             %r{^    ErrorLog /var/log/apache2/keystone-public.log$},
+             %r{^    CustomLog /var/log/apache2/keystone-public_access.log combined$}].each do |line|
+              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-public.conf').with_content(line)
             end
           end
 
@@ -381,6 +392,7 @@ describe 'openstack-identity::server-apache' do
               expect(chef_run).not_to render_file(file).with_content(line)
             end
           end
+
           context 'Enable SSL' do
             before do
               node.set['openstack']['identity']['ssl']['enabled'] = true
@@ -419,13 +431,13 @@ describe 'openstack-identity::server-apache' do
           end
         end
 
-        describe 'keystone-main.conf' do
+        describe 'keystone-public.conf' do
           it 'configures required lines' do
             [/^<VirtualHost 127.0.0.1:5000>$/,
-             /^    WSGIDaemonProcess keystone-main/,
-             /^    WSGIProcessGroup keystone-main$/,
+             /^    WSGIDaemonProcess keystone-public/,
+             /^    WSGIProcessGroup keystone-public$/,
              %r{^    WSGIScriptAlias / /usr/bin/keystone-wsgi-public$}].each do |line|
-              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-main.conf').with_content(line)
+              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-public.conf').with_content(line)
             end
           end
         end

@@ -143,9 +143,9 @@ execute 'credential setup' do
   EOH
 end
 
-# define the address to bind the keystone apache main service to
-main_bind_service = node['openstack']['bind_service']['main']['identity']
-main_bind_address = bind_address main_bind_service
+# define the address to bind the keystone apache public service to
+public_bind_service = node['openstack']['bind_service']['public']['identity']
+public_bind_address = bind_address public_bind_service
 # define the address to bind the keystone apache admin service to
 admin_bind_service = node['openstack']['bind_service']['admin']['identity']
 admin_bind_address = bind_address admin_bind_service
@@ -167,10 +167,10 @@ memcache_servers = memcached_servers.join ','
 identity_public_endpoint = public_endpoint 'identity'
 ie = identity_public_endpoint
 # define the keystone public endpoint full path
-public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
+api_public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 ae = identity_admin_endpoint
 # define the keystone admin endpoint full path
-admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
+api_admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
 
 # If a keystone-paste.ini is specified use it.
 # If platform_family is RHEL and we do not specify keystone-paste.ini,
@@ -200,8 +200,8 @@ end
 
 # set keystone config parameters for admin_token, endpoints and memcache
 node.default['openstack']['identity']['conf'].tap do |conf|
-  conf['DEFAULT']['public_endpoint'] = public_endpoint
-  conf['DEFAULT']['admin_endpoint'] = admin_endpoint
+  conf['DEFAULT']['public_endpoint'] = api_public_endpoint
+  conf['DEFAULT']['admin_endpoint'] = api_admin_endpoint
   conf['memcache']['servers'] = memcache_servers if memcache_servers
 end
 
@@ -293,7 +293,7 @@ apache_listen = Array(node['apache']['listen']) # include already defined listen
 # Remove the default apache2 cookbook port, as that is also the default for horizon, but with
 # a different address syntax.  *:80   vs  0.0.0.0:80
 apache_listen -= ['*:80']
-apache_listen += ["#{main_bind_address}:#{main_bind_service['port']}"]
+apache_listen += ["#{public_bind_address}:#{public_bind_service['port']}"]
 apache_listen += ["#{admin_bind_address}:#{admin_bind_service['port']}"]
 node.normal['apache']['listen'] = apache_listen.uniq
 
@@ -312,15 +312,17 @@ directory keystone_apache_dir do
 end
 
 wsgi_apps = {
-  'main' => {
-    server_host: main_bind_address,
-    server_port: main_bind_service['port'],
+  'public' => {
+    server_host: public_bind_address,
+    server_port: public_bind_service['port'],
     server_entry: '/usr/bin/keystone-wsgi-public',
+    server_alias: 'identity',
   },
   'admin' => {
     server_host: admin_bind_address,
     server_port: admin_bind_service['port'],
     server_entry: '/usr/bin/keystone-wsgi-admin',
+    server_alias: 'identity_admin',
   },
 }
 
@@ -332,6 +334,7 @@ wsgi_apps.each do |app, opt|
     server_host opt[:server_host]
     server_port opt[:server_port]
     server_entry opt[:server_entry]
+    server_alias opt[:server_alias]
     server_suffix app
     log_dir node['apache']['log_dir']
     log_debug node['openstack']['identity']['debug']
@@ -348,9 +351,10 @@ wsgi_apps.each do |app, opt|
   end
 end
 
-# disable keystone-site since ubuntu autoenables this
+# disable default keystone config file from UCA package
 apache_site 'keystone' do
   enable false
+  only_if { platform_family?('debian') }
 end
 
 # Hack until Apache cookbook has lwrp's for proper use of notify
