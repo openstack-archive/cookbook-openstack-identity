@@ -48,9 +48,7 @@ end
 
 platform_options = node['openstack']['identity']['platform']
 
-identity_admin_endpoint = admin_endpoint 'identity'
-identity_internal_endpoint = internal_endpoint 'identity'
-identity_public_endpoint = public_endpoint 'identity'
+identity_endpoint = public_endpoint 'identity'
 
 # define the credentials to use for the initial admin user
 admin_project = node['openstack']['identity']['admin_project']
@@ -144,14 +142,8 @@ execute 'credential setup' do
 end
 
 # define the address to bind the keystone apache public service to
-public_bind_service = node['openstack']['bind_service']['public']['identity']
-public_bind_address = bind_address public_bind_service
-# define the address to bind the keystone apache admin service to
-admin_bind_service = node['openstack']['bind_service']['admin']['identity']
-admin_bind_address = bind_address admin_bind_service
-
-# define the address where the keystone admin endpoint will be reachable
-identity_admin_endpoint = admin_endpoint 'identity'
+bind_service = node['openstack']['bind_service']['public']['identity']
+bind_address = bind_address bind_service
 
 # set the keystone database credentials
 db_user = node['openstack']['db']['identity']['username']
@@ -164,13 +156,9 @@ node.default['openstack']['identity']['conf_secrets']
 memcache_servers = memcached_servers.join ','
 
 # define the address where the keystone public endpoint will be reachable
-identity_public_endpoint = public_endpoint 'identity'
-ie = identity_public_endpoint
+ie = identity_endpoint
 # define the keystone public endpoint full path
-api_public_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
-ae = identity_admin_endpoint
-# define the keystone admin endpoint full path
-api_admin_endpoint = "#{ae.scheme}://#{ae.host}:#{ae.port}/"
+api_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 
 # If a keystone-paste.ini is specified use it.
 # If platform_family is RHEL and we do not specify keystone-paste.ini,
@@ -200,8 +188,7 @@ end
 
 # set keystone config parameters for admin_token, endpoints and memcache
 node.default['openstack']['identity']['conf'].tap do |conf|
-  conf['DEFAULT']['public_endpoint'] = api_public_endpoint
-  conf['DEFAULT']['admin_endpoint'] = api_admin_endpoint
+  conf['DEFAULT']['public_endpoint'] = api_endpoint
   conf['memcache']['servers'] = memcache_servers if memcache_servers
 end
 
@@ -246,8 +233,7 @@ if node['openstack']['identity']['catalog']['backend'] == 'templated'
   # populate the templated catlog
   # TODO: (jklare) this should be done in a helper method
   uris = {
-    'identity-admin' => identity_admin_endpoint.to_s.gsub('%25', '%'),
-    'identity' => identity_public_endpoint.to_s.gsub('%25', '%'),
+    'identity' => identity_endpoint.to_s.gsub('%25', '%'),
     'image' => image_public_endpoint.to_s.gsub('%25', '%'),
     'compute' => compute_public_endpoint.to_s.gsub('%25', '%'),
     'ec2' => ec2_public_endpoint.to_s.gsub('%25', '%'),
@@ -281,9 +267,9 @@ execute 'bootstrap_keystone' do
           --bootstrap-role-name #{admin_role} \\
           --bootstrap-service-name keystone \\
           --bootstrap-region-id #{region} \\
-          --bootstrap-admin-url #{identity_admin_endpoint} \\
-          --bootstrap-public-url #{identity_public_endpoint} \\
-          --bootstrap-internal-url #{identity_internal_endpoint}"
+          --bootstrap-admin-url #{identity_endpoint} \\
+          --bootstrap-public-url #{identity_endpoint} \\
+          --bootstrap-internal-url #{identity_endpoint}"
 end
 
 #### Start of Apache specific work
@@ -293,8 +279,7 @@ apache_listen = Array(node['apache']['listen']) # include already defined listen
 # Remove the default apache2 cookbook port, as that is also the default for horizon, but with
 # a different address syntax.  *:80   vs  0.0.0.0:80
 apache_listen -= ['*:80']
-apache_listen += ["#{public_bind_address}:#{public_bind_service['port']}"]
-apache_listen += ["#{admin_bind_address}:#{admin_bind_service['port']}"]
+apache_listen += ["#{bind_address}:#{bind_service['port']}"]
 node.normal['apache']['listen'] = apache_listen.uniq
 
 # include the apache2 default recipe and the recipes for mod_wsgi
@@ -311,44 +296,27 @@ directory keystone_apache_dir do
   mode 0o0755
 end
 
-wsgi_apps = {
-  'public' => {
-    server_host: public_bind_address,
-    server_port: public_bind_service['port'],
-    server_entry: '/usr/bin/keystone-wsgi-public',
-    server_alias: 'identity',
-  },
-  'admin' => {
-    server_host: admin_bind_address,
-    server_port: admin_bind_service['port'],
-    server_entry: '/usr/bin/keystone-wsgi-admin',
-    server_alias: 'identity_admin',
-  },
-}
-
 # create the keystone apache config using the web_app resource from the apache2
 # cookbook
-wsgi_apps.each do |app, opt|
-  web_app "keystone-#{app}" do
-    template 'wsgi-keystone.conf.erb'
-    server_host opt[:server_host]
-    server_port opt[:server_port]
-    server_entry opt[:server_entry]
-    server_alias opt[:server_alias]
-    server_suffix app
-    log_dir node['apache']['log_dir']
-    log_debug node['openstack']['identity']['debug']
-    user keystone_user
-    group keystone_group
-    use_ssl node['openstack']['identity']['ssl']['enabled']
-    cert_file node['openstack']['identity']['ssl']['certfile']
-    chain_file node['openstack']['identity']['ssl']['chainfile']
-    key_file node['openstack']['identity']['ssl']['keyfile']
-    ca_certs_path node['openstack']['identity']['ssl']['ca_certs_path']
-    cert_required node['openstack']['identity']['ssl']['cert_required']
-    protocol node['openstack']['identity']['ssl']['protocol']
-    ciphers node['openstack']['identity']['ssl']['ciphers']
-  end
+web_app 'identity' do
+  template 'wsgi-keystone.conf.erb'
+  server_host bind_address
+  server_port bind_service['port']
+  server_entry '/usr/bin/keystone-wsgi-public'
+  server_alias 'identity'
+  server_suffix app
+  log_dir node['apache']['log_dir']
+  log_debug node['openstack']['identity']['debug']
+  user keystone_user
+  group keystone_group
+  use_ssl node['openstack']['identity']['ssl']['enabled']
+  cert_file node['openstack']['identity']['ssl']['certfile']
+  chain_file node['openstack']['identity']['ssl']['chainfile']
+  key_file node['openstack']['identity']['ssl']['keyfile']
+  ca_certs_path node['openstack']['identity']['ssl']['ca_certs_path']
+  cert_required node['openstack']['identity']['ssl']['cert_required']
+  protocol node['openstack']['identity']['ssl']['protocol']
+  ciphers node['openstack']['identity']['ssl']['ciphers']
 end
 
 # disable default keystone config file from UCA package

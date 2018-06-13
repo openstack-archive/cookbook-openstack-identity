@@ -20,7 +20,6 @@ describe 'openstack-identity::server-apache' do
     project_name = 'admin'
     role_name = 'admin'
     password = 'admin'
-    admin_url = 'http://127.0.0.1:35357/v3'
     public_url = 'http://127.0.0.1:5000/v3'
     internal_url = 'http://127.0.0.1:5000/v3'
 
@@ -53,7 +52,7 @@ describe 'openstack-identity::server-apache' do
           --bootstrap-role-name #{role_name} \\
           --bootstrap-service-name #{service_name} \\
           --bootstrap-region-id #{region} \\
-          --bootstrap-admin-url #{admin_url} \\
+          --bootstrap-admin-url #{public_url} \\
           --bootstrap-public-url #{public_url} \\
           --bootstrap-internal-url #{internal_url}")
     end
@@ -140,10 +139,8 @@ describe 'openstack-identity::server-apache' do
         it 'has correct endpoints' do
           # values correspond to node attrs set in chef_run above
           pub = line_regexp('public_endpoint = http://127.0.0.1:5000/')
-          adm = line_regexp('admin_endpoint = http://127.0.0.1:35357/')
 
           expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', pub)
-          expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', adm)
         end
       end
 
@@ -293,15 +290,10 @@ describe 'openstack-identity::server-apache' do
       end
       it 'template api pipeline set correct' do
         node.set['openstack']['identity']['pipeline']['public_api'] = 'public_service'
-        node.set['openstack']['identity']['pipeline']['admin_api'] = 'admin_service'
         node.set['openstack']['identity']['pipeline']['api_v3'] = 'service_v3'
         expect(chef_run).to render_config_file(path).with_section_content(
           'pipeline:public_api',
           /^pipeline = public_service$/
-        )
-        expect(chef_run).to render_config_file(path).with_section_content(
-          'pipeline:admin_api',
-          /^pipeline = admin_service$/
         )
         expect(chef_run).to render_config_file(path).with_section_content(
           'pipeline:api_v3',
@@ -335,9 +327,7 @@ describe 'openstack-identity::server-apache' do
 
     describe 'apache setup' do
       it 'set apache addresses and ports' do
-        expect(chef_run.node['apache']['listen']).to eq(
-          %w(127.0.0.1:5000 127.0.0.1:35357)
-        )
+        expect(chef_run.node['apache']['listen']).to eq(%w(127.0.0.1:5000))
       end
 
       describe 'apache recipes' do
@@ -354,102 +344,85 @@ describe 'openstack-identity::server-apache' do
       end
 
       describe 'apache wsgi' do
-        ['/etc/apache2/sites-available/keystone-public.conf',
-         '/etc/apache2/sites-available/keystone-admin.conf'].each do |file|
-          it "creates #{file}" do
-            expect(chef_run).to create_template(file).with(
-              user: 'root',
-              group: 'root',
-              mode: '0644'
-            )
-          end
+        let(:file) { '/etc/apache2/sites-available/identity.conf' }
 
-          it 'configures keystone-admin.conf lines' do
-            node.set['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
-            [/^custom_template_banner_value$/,
-             /user=keystone/,
-             /group=keystone/,
-             %r{^    ErrorLog /var/log/apache2/keystone-admin.log$},
-             %r{^    CustomLog /var/log/apache2/keystone-admin_access.log combined$}].each do |line|
-              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-admin.conf').with_content(line)
+        it 'creates identity.conf' do
+          expect(chef_run).to create_template(file).with(
+            user: 'root',
+            group: 'root',
+            mode: '0644'
+          )
+        end
+
+        it 'does not configure keystone-admin.conf' do
+          expect(chef_run).not_to render_file('/etc/apache2/sites-available/keystone-admin.conf')
+        end
+
+        it 'configures identity.conf lines' do
+          node.set['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
+          [/^custom_template_banner_value$/,
+           /user=keystone/,
+           /group=keystone/,
+           %r{^    ErrorLog /var/log/apache2/identity.log$},
+           %r{^    CustomLog /var/log/apache2/identity_access.log combined$}].each do |line|
+            expect(chef_run).to render_file(file).with_content(line)
+          end
+        end
+
+        it 'does not configure identity.conf triggered common lines' do
+          [/^    LogLevel/,
+           /^    SSL/].each do |line|
+            expect(chef_run).not_to render_file(file).with_content(line)
+          end
+        end
+
+        context 'Enable SSL' do
+          let(:file) { '/etc/apache2/sites-available/identity.conf' }
+          before do
+            node.set['openstack']['identity']['ssl']['enabled'] = true
+          end
+          it 'configures identity.conf common ssl lines' do
+            [/^    SSLEngine On$/,
+             %r{^    SSLCertificateFile /etc/keystone/ssl/certs/sslcert.pem$},
+             %r{^    SSLCertificateKeyFile /etc/keystone/ssl/private/sslkey.pem$},
+             %r{^    SSLCACertificatePath /etc/keystone/ssl/certs/$},
+             /^    SSLProtocol All -SSLv2 -SSLv3$/].each do |line|
+              expect(chef_run).to render_file(file).with_content(line)
             end
           end
-
-          it 'configures keystone-public.conf lines' do
-            node.set['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
-            [/^custom_template_banner_value$/,
-             /user=keystone/,
-             /group=keystone/,
-             %r{^    ErrorLog /var/log/apache2/keystone-public.log$},
-             %r{^    CustomLog /var/log/apache2/keystone-public_access.log combined$}].each do |line|
-              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-public.conf').with_content(line)
-            end
-          end
-
-          it "does not configure #{file} triggered common lines" do
-            [/^    LogLevel/,
-             /^    SSL/].each do |line|
+          it 'does not configure identity.conf common ssl lines' do
+            [/^    SSLCertificateChainFile/,
+             /^    SSLCipherSuite/,
+             /^    SSLVerifyClient require/].each do |line|
               expect(chef_run).not_to render_file(file).with_content(line)
             end
           end
-
-          context 'Enable SSL' do
-            before do
-              node.set['openstack']['identity']['ssl']['enabled'] = true
-            end
-            it "configures #{file} common ssl lines" do
-              [/^    SSLEngine On$/,
-               %r{^    SSLCertificateFile /etc/keystone/ssl/certs/sslcert.pem$},
-               %r{^    SSLCertificateKeyFile /etc/keystone/ssl/private/sslkey.pem$},
-               %r{^    SSLCACertificatePath /etc/keystone/ssl/certs/$},
-               /^    SSLProtocol All -SSLv2 -SSLv3$/].each do |line|
-                expect(chef_run).to render_file(file).with_content(line)
-              end
-            end
-            it "does not configure #{file} common ssl lines" do
-              [/^    SSLCertificateChainFile/,
-               /^    SSLCipherSuite/,
-               /^    SSLVerifyClient require/].each do |line|
-                expect(chef_run).not_to render_file(file).with_content(line)
-              end
-            end
-            it "configures #{file} chainfile when set" do
-              node.set['openstack']['identity']['ssl']['chainfile'] = '/etc/keystone/ssl/certs/chainfile.pem'
-              expect(chef_run).to render_file(file)
-                .with_content(%r{^    SSLCertificateChainFile /etc/keystone/ssl/certs/chainfile.pem$})
-            end
-            it "configures #{file} ciphers when set" do
-              node.set['openstack']['identity']['ssl']['ciphers'] = 'ciphers_value'
-              expect(chef_run).to render_file(file)
-                .with_content(/^    SSLCipherSuite ciphers_value$/)
-            end
-            it "configures #{file} cert_required set" do
-              node.set['openstack']['identity']['ssl']['cert_required'] = true
-              expect(chef_run).to render_file(file)
-                .with_content(/^    SSLVerifyClient require$/)
-            end
+          it 'configures identity.conf chainfile when set' do
+            node.set['openstack']['identity']['ssl']['chainfile'] = '/etc/keystone/ssl/certs/chainfile.pem'
+            expect(chef_run).to render_file(file)
+              .with_content(%r{^    SSLCertificateChainFile /etc/keystone/ssl/certs/chainfile.pem$})
+          end
+          it 'configures identity.conf ciphers when set' do
+            node.set['openstack']['identity']['ssl']['ciphers'] = 'ciphers_value'
+            expect(chef_run).to render_file(file)
+              .with_content(/^    SSLCipherSuite ciphers_value$/)
+          end
+          it 'configures identity.conf cert_required set' do
+            node.set['openstack']['identity']['ssl']['cert_required'] = true
+            expect(chef_run).to render_file(file)
+              .with_content(/^    SSLVerifyClient require$/)
           end
         end
+      end
 
-        describe 'keystone-public.conf' do
-          it 'configures required lines' do
-            [/^<VirtualHost 127.0.0.1:5000>$/,
-             /^    WSGIDaemonProcess keystone-public/,
-             /^    WSGIProcessGroup keystone-public$/,
-             %r{^    WSGIScriptAlias / /usr/bin/keystone-wsgi-public$}].each do |line|
-              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-public.conf').with_content(line)
-            end
-          end
-        end
-
-        describe 'keystone-admin.conf' do
-          it 'configures required lines' do
-            [/^<VirtualHost 127.0.0.1:35357>$/,
-             /^    WSGIDaemonProcess keystone-admin/,
-             /^    WSGIProcessGroup keystone-admin$/,
-             %r{^    WSGIScriptAlias / /usr/bin/keystone-wsgi-admin$}].each do |line|
-              expect(chef_run).to render_file('/etc/apache2/sites-available/keystone-admin.conf').with_content(line)
-            end
+      describe 'identity.conf' do
+        let(:file) { '/etc/apache2/sites-available/identity.conf' }
+        it 'configures required lines' do
+          [/^<VirtualHost 127.0.0.1:5000>$/,
+           /^    WSGIDaemonProcess identity/,
+           /^    WSGIProcessGroup identity$/,
+           %r{^    WSGIScriptAlias / /usr/bin/keystone-wsgi-public$}].each do |line|
+            expect(chef_run).to render_file(file).with_content(line)
           end
         end
       end

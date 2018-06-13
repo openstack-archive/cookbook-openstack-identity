@@ -29,11 +29,11 @@ default['openstack']['identity']['custom_template_banner'] = '
 '
 
 %w(admin internal public).each do |ep_type|
-  # host for openstack admin/internal/public identity endpoint
+  # host for openstack identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['host'] = '127.0.0.1'
-  # scheme for openstack admin/internal/public identity endpoint
+  # scheme for openstack identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['scheme'] = 'http'
-  # path for openstack admin/internal/public identity endpoint
+  # path for openstack identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['path'] = '/v3'
 end
 
@@ -41,17 +41,11 @@ end
 default['openstack']['endpoints']['public']['identity']['port'] = 5000
 # port for openstack internal identity endpoint
 default['openstack']['endpoints']['internal']['identity']['port'] = 5000
-# port for openstack admin identity endpoint
-default['openstack']['endpoints']['admin']['identity']['port'] = 35357
 
 # address for openstack identity service main endpoint to bind to
 default['openstack']['bind_service']['public']['identity']['host'] = '127.0.0.1'
 # port for openstack identity service main endpoint to bind to
 default['openstack']['bind_service']['public']['identity']['port'] = 5000
-# address for openstack identity service admin endpoint to bind to
-default['openstack']['bind_service']['admin']['identity']['host'] = '127.0.0.1'
-# port for openstack identity service admin endpoint to bind to
-default['openstack']['bind_service']['admin']['identity']['port'] = 35357
 
 # identity service catalog backend for service endpoints
 default['openstack']['identity']['catalog']['backend'] = 'sql'
