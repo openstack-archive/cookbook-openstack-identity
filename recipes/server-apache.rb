@@ -101,15 +101,15 @@ end
 
 # create the keystone config directory and set correct permissions
 directory '/etc/keystone' do
-  owner node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
+  owner keystone_user
+  group keystone_group
   mode 0o0700
 end
 
 # create keystone domain config dir if needed
 directory node['openstack']['identity']['identity']['domain_config_dir'] do
-  owner node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
+  owner keystone_user
+  group keystone_group
   mode 0o0700
   only_if { node['openstack']['identity']['identity']['domain_specific_drivers_enabled'] }
 end
@@ -180,15 +180,15 @@ if node['openstack']['identity']['pastefile_url']
   remote_file '/etc/keystone/keystone-paste.ini' do
     action :create_if_missing
     source node['openstack']['identity']['pastefile_url']
-    owner node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
+    owner keystone_user
+    group keystone_group
     mode 0o0644
   end
 else
   template '/etc/keystone/keystone-paste.ini' do
     source 'keystone-paste.ini.erb'
-    owner node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
+    owner keystone_user
+    group keystone_group
     mode 0o0644
   end
 end
@@ -212,8 +212,8 @@ keystone_conf_options = merge_config_options 'identity'
 template '/etc/keystone/keystone.conf' do
   source 'openstack-service.conf.erb'
   cookbook 'openstack-common'
-  owner node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
+  owner keystone_user
+  group keystone_group
   mode 0o0640
   variables(
     service_config: keystone_conf_options
@@ -257,8 +257,8 @@ if node['openstack']['identity']['catalog']['backend'] == 'templated'
 
   template '/etc/keystone/default_catalog.templates' do
     source 'default_catalog.templates.erb'
-    owner node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
+    owner keystone_user
+    group keystone_group
     mode 0o0644
     variables(
       uris: uris
@@ -335,8 +335,8 @@ wsgi_apps.each do |app, opt|
     server_suffix app
     log_dir node['apache']['log_dir']
     log_debug node['openstack']['identity']['debug']
-    user node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
+    user keystone_user
+    group keystone_group
     use_ssl node['openstack']['identity']['ssl']['enabled']
     cert_file node['openstack']['identity']['ssl']['certfile']
     chain_file node['openstack']['identity']['ssl']['chainfile']
