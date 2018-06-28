@@ -120,28 +120,9 @@ file '/var/lib/keystone/keystone.db' do
   not_if { node['openstack']['db']['identity']['service_type'] == 'sqlite' }
 end
 
-# include the recipe to setup fernet tokens
+# include the recipes to setup tokens
+include_recipe 'openstack-identity::_credential_tokens'
 include_recipe 'openstack-identity::_fernet_tokens'
-
-# initialize fernet tokens
-execute 'fernet setup' do
-  user 'root'
-  command <<-EOH.gsub(/\s+/, ' ').strip!
-        keystone-manage fernet_setup
-      --keystone-user #{keystone_user}
-      --keystone-group #{keystone_group}
-  EOH
-  notifies :run, 'execute[credential setup]', :immediately
-end
-
-execute 'credential setup' do
-  user 'root'
-  command <<-EOH.gsub(/\s+/, ' ').strip!
-        keystone-manage credential_setup
-      --keystone-user #{keystone_user}
-      --keystone-group #{keystone_group}
-  EOH
-end
 
 # define the address to bind the keystone apache main service to
 main_bind_service = node['openstack']['bind_service']['main']['identity']
