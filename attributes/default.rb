@@ -132,10 +132,20 @@ default['openstack']['identity']['ssl']['ca_certs_path'] = "#{node['openstack'][
 # 'fernet_key0' and 'fernet_key1' will be read from the databag/vault
 # 'keystone).
 # For more information please read:
-# http://docs.openstack.org/admin-guide-cloud/keystone_fernet_token_faq.html
+# https://docs.openstack.org/keystone/queens/admin/identity-fernet-token-faq.html
 default['openstack']['identity']['fernet']['keys'] = [0, 1]
 default['openstack']['identity']['conf']['fernet_tokens']['key_repository'] =
   '/etc/keystone/fernet-tokens'
+
+# Credential keys to read from databags/vaults. This should be changed in the
+# environment when rotating keys (with the defaults below, the items
+# 'credential_key0' and 'credential_key1' will be read from the databag/vault
+# 'keystone).
+# For more information please read:
+# https://docs.openstack.org/keystone/queens/admin/identity-credential-encryption.html
+default['openstack']['identity']['credential']['keys'] = [0, 1]
+default['openstack']['identity']['conf']['credential']['key_repository'] =
+  '/etc/keystone/credential-tokens'
 
 # The external (REMOTE_USER) auth plugin module. (String value)
 default['openstack']['identity']['auth']['external'] = 'keystone.auth.plugins.external.DefaultDomain'
