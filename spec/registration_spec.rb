@@ -12,7 +12,7 @@ describe 'openstack-identity::registration' do
     include_context 'identity_stubs'
 
     connection_params = {
-      openstack_auth_url: 'http://127.0.0.1:35357/v3/auth/tokens',
+      openstack_auth_url: 'http://127.0.0.1:5000/v3/auth/tokens',
       openstack_username: 'admin',
       openstack_api_key: 'admin',
       openstack_project_name: 'admin',
@@ -25,7 +25,7 @@ describe 'openstack-identity::registration' do
     describe 'keystone bootstrap' do
       context 'default values' do
         it do
-          expect(chef_run).to run_ruby_block('wait for identity admin endpoint')
+          expect(chef_run).to run_ruby_block('wait for identity endpoint')
         end
 
         it "registers #{domain_name} domain" do
@@ -59,62 +59,6 @@ describe 'openstack-identity::registration' do
             '_member_'
           ).with(
             connection_params: connection_params
-          )
-        end
-      end
-      context 'all different values' do
-        connection_params_other = {
-          openstack_auth_url: 'https://admin.identity:1234/v3/auth/tokens',
-          openstack_username: 'identity_admin',
-          openstack_api_key: 'identity_admin_pass',
-          openstack_project_name: 'admin_project',
-          openstack_domain_name: 'identity_domain',
-        }
-        before do
-          node.set['openstack']['endpoints']['admin']['identity']['uri'] =
-            'https://admin.identity:1234/v3'
-          node.set['openstack']['endpoints']['internal']['identity']['uri'] =
-            'https://internal.identity:5678/v3'
-          node.set['openstack']['endpoints']['public']['identity']['uri'] =
-            'https://public.identity:9753/v3'
-          node.set['openstack']['region'] = 'otherRegion'
-          node.set['openstack']['identity']['admin_project'] = 'admin_project'
-          node.set['openstack']['identity']['admin_user'] = 'identity_admin'
-          node.set['openstack']['identity']['admin_role'] = 'identity_role'
-          node.set['openstack']['identity']['admin_domain_name'] =
-            'identity_domain'
-        end
-
-        it 'registers identity_domain domain' do
-          expect(chef_run).to create_openstack_domain(
-            'identity_domain'
-          ).with(
-            connection_params: connection_params_other
-          )
-        end
-
-        it 'grants identity_admin user to identity_domain domain' do
-          expect(chef_run).to grant_domain_openstack_user(
-            'identity_admin'
-          ).with(
-            domain_name: 'identity_domain',
-            role_name: 'identity_role',
-            connection_params: connection_params_other
-          )
-        end
-
-        it 'create service role' do
-          expect(chef_run).to create_openstack_role(
-            'service'
-          ).with(
-            connection_params: connection_params_other
-          )
-        end
-        it 'create service role' do
-          expect(chef_run).to create_openstack_role(
-            '_member_'
-          ).with(
-            connection_params: connection_params_other
           )
         end
       end

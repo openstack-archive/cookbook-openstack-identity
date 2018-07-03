@@ -30,10 +30,8 @@ class ::Chef::Recipe
   include ::Openstack
 end
 
-identity_admin_endpoint = admin_endpoint 'identity'
-identity_internal_endpoint = internal_endpoint 'identity'
-identity_public_endpoint = public_endpoint 'identity'
-auth_url = ::URI.decode identity_admin_endpoint.to_s
+identity_endpoint = public_endpoint 'identity'
+auth_url = auth_uri_transform identity_endpoint.to_s, node['openstack']['api']['auth']['version']
 
 # define the credentials to use for the initial admin user
 admin_project = node['openstack']['identity']['admin_project']
@@ -50,17 +48,17 @@ connection_params = {
   openstack_domain_name:    admin_domain,
 }
 
-ruby_block 'wait for identity admin endpoint' do
+ruby_block 'wait for identity endpoint' do
   block do
     begin
       Timeout.timeout(60) do
         until Net::HTTP.get_response(URI(auth_url)).message == 'OK'
-          Chef::Log.info 'waiting for identity admin endpoint to be up...'
+          Chef::Log.info 'waiting for identity endpoint to be up...'
           sleep 1
         end
       end
     rescue Timeout::Error
-      raise 'Waited 60 seconds for identity admin endpoint to become ready'\
+      raise 'Waited 60 seconds for identity endpoint to become ready'\
         ' and will not wait any longer'
     end
   end
@@ -87,10 +85,6 @@ openstack_role '_member_' do
   connection_params connection_params
 end
 
-node.normal['openstack']['identity']['adminURL'] = identity_admin_endpoint.to_s
-node.normal['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
-node.normal['openstack']['identity']['publicURL'] = identity_public_endpoint.to_s
+node.normal['openstack']['identity']['publicURL'] = identity_endpoint.to_s
 
-Chef::Log.info "Keystone AdminURL: #{identity_admin_endpoint}"
-Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint}"
-Chef::Log.info "Keystone PublicURL: #{identity_public_endpoint}"
+Chef::Log.info "Keystone PublicURL: #{identity_endpoint}"
