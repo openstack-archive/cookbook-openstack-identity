@@ -29,11 +29,10 @@ project_domain_name = node['openstack']['identity']['admin_project_domain']
 ksadmin_user = node['openstack']['identity']['admin_user']
 admin_domain_name = node['openstack']['identity']['admin_domain_name']
 
-# auth_api_version = node['openstack']['api']['auth']['version']
 ksadmin_pass = get_password 'user', ksadmin_user
 
 identity_endpoint = public_endpoint 'identity'
-auth_url = auth_uri_transform identity_endpoint.to_s, node['openstack']['api']['auth']['version']
+auth_url = ::URI.decode identity_endpoint.to_s
 
 directory node['openstack']['openrc']['path'] do
   owner node['openstack']['openrc']['user']

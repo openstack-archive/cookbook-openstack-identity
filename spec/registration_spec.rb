@@ -16,11 +16,12 @@ describe 'openstack-identity::registration' do
       openstack_username: 'admin',
       openstack_api_key: 'admin',
       openstack_project_name: 'admin',
-      openstack_domain_name: 'default',
+      openstack_domain_id: 'default',
     }
     service_user = 'admin'
     role_name = 'admin'
-    domain_name = 'default'
+    admin_domain_name = 'default'
+    domain_name = 'identity'
 
     describe 'keystone bootstrap' do
       context 'default values' do
@@ -40,7 +41,7 @@ describe 'openstack-identity::registration' do
           expect(chef_run).to grant_domain_openstack_user(
             service_user
           ).with(
-            domain_name: domain_name,
+            domain_name: admin_domain_name,
             role_name: role_name,
             connection_params: connection_params
           )

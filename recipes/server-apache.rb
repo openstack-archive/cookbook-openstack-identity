@@ -48,7 +48,13 @@ end
 
 platform_options = node['openstack']['identity']['platform']
 
+identity_internal_endpoint = internal_endpoint 'identity'
 identity_endpoint = public_endpoint 'identity'
+
+# define the address where the keystone public endpoint will be reachable
+ie = identity_endpoint
+# define the keystone public endpoint full path
+api_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
 
 # define the credentials to use for the initial admin user
 admin_project = node['openstack']['identity']['admin_project']
@@ -136,15 +142,9 @@ node.default['openstack']['identity']['conf_secrets']
 # search for memcache servers using the method from cookbook-openstack-common
 memcache_servers = memcached_servers.join ','
 
-# define the address where the keystone public endpoint will be reachable
-ie = identity_endpoint
-# define the keystone public endpoint full path
-api_endpoint = "#{ie.scheme}://#{ie.host}:#{ie.port}/"
-
 # If a keystone-paste.ini is specified use it.
-# If platform_family is RHEL and we do not specify keystone-paste.ini,
-# copy in /usr/share/keystone/keystone-dist-paste.ini since
-# /etc/keystone/keystone-paste.ini is not packaged.
+# TODO(jh): Starting with Rocky keystone-paste.ini is no longer being used
+# and this block can be removed
 if node['openstack']['identity']['pastefile_url']
   remote_file '/etc/keystone/keystone-paste.ini' do
     action :create_if_missing
@@ -167,13 +167,14 @@ if node['openstack']['mq']['service_type'] == 'rabbit'
   node.default['openstack']['identity']['conf_secrets']['DEFAULT']['transport_url'] = rabbit_transport_url 'identity'
 end
 
-# set keystone config parameters for admin_token, endpoints and memcache
+# set keystone config parameters for endpoints, memcache
 node.default['openstack']['identity']['conf'].tap do |conf|
   conf['DEFAULT']['public_endpoint'] = api_endpoint
+  conf['DEFAULT']['admin_endpoint'] = api_endpoint
   conf['memcache']['servers'] = memcache_servers if memcache_servers
 end
 
-# merge all config options and secrets to be used in the nova.conf.erb
+# merge all config options and secrets to be used in the keystone.conf.erb
 keystone_conf_options = merge_config_options 'identity'
 
 # create the keystone.conf from attributes
@@ -211,9 +212,10 @@ if node['openstack']['identity']['catalog']['backend'] == 'templated'
   network_public_endpoint = public_endpoint 'network'
   volume_public_endpoint = public_endpoint 'block-storage'
 
-  # populate the templated catlog
+  # populate the templated catalog
   # TODO: (jklare) this should be done in a helper method
   uris = {
+    'identity-admin' => identity_internal_endpoint.to_s.gsub('%25', '%'),
     'identity' => identity_endpoint.to_s.gsub('%25', '%'),
     'image' => image_public_endpoint.to_s.gsub('%25', '%'),
     'compute' => compute_public_endpoint.to_s.gsub('%25', '%'),
@@ -248,9 +250,9 @@ execute 'bootstrap_keystone' do
           --bootstrap-role-name #{admin_role} \\
           --bootstrap-service-name keystone \\
           --bootstrap-region-id #{region} \\
-          --bootstrap-admin-url #{identity_endpoint} \\
+          --bootstrap-admin-url #{identity_internal_endpoint} \\
           --bootstrap-public-url #{identity_endpoint} \\
-          --bootstrap-internal-url #{identity_endpoint}"
+          --bootstrap-internal-url #{identity_internal_endpoint}"
 end
 
 #### Start of Apache specific work

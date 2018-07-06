@@ -28,19 +28,16 @@ default['openstack']['identity']['custom_template_banner'] = '
 # Any changes will be overwritten
 '
 
-%w(admin internal public).each do |ep_type|
-  # host for openstack identity endpoint
+%w(internal public).each do |ep_type|
+  # host for openstack internal/public identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['host'] = '127.0.0.1'
-  # scheme for openstack identity endpoint
+  # scheme for openstack internal/public identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['scheme'] = 'http'
-  # path for openstack identity endpoint
+  # port for openstack internal/public identity endpoint
+  default['openstack']['endpoints'][ep_type]['identity']['port'] = 5000
+  # path for openstack internal/public identity endpoint
   default['openstack']['endpoints'][ep_type]['identity']['path'] = '/v3'
 end
-
-# port for openstack public identity endpoint
-default['openstack']['endpoints']['public']['identity']['port'] = 5000
-# port for openstack internal identity endpoint
-default['openstack']['endpoints']['internal']['identity']['port'] = 5000
 
 # address for openstack identity service main endpoint to bind to
 default['openstack']['bind_service']['public']['identity']['host'] = '127.0.0.1'
@@ -65,19 +62,19 @@ default['openstack']['identity']['pastefile_url'] = nil
 # this value will be used in the templated version of keystone-paste.ini
 # The last item in this pipeline must be public_service or an equivalent
 # application. It cannot be a filter.
-default['openstack']['identity']['pipeline']['public_api'] = 'healthcheck cors sizelimit http_proxy_to_wsgi url_normalize request_id build_auth_context token_auth json_body ec2_extension public_service'
+default['openstack']['identity']['pipeline']['public_api'] = 'healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension public_service'
 # This specify the pipeline of the keystone admin API,
 # all Identity admin API requests will be processed by the order of the pipeline.
 # this value will be used in the templated version of keystone-paste.ini
 # The last item in this pipeline must be admin_service or an equivalent
 # application. It cannot be a filter.
-default['openstack']['identity']['pipeline']['admin_api'] = 'healthcheck cors sizelimit http_proxy_to_wsgi url_normalize request_id build_auth_context token_auth json_body ec2_extension s3_extension admin_service'
+default['openstack']['identity']['pipeline']['admin_api'] = 'healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension s3_extension admin_service'
 # This specify the pipeline of the keystone V3 API,
 # all Identity V3 API requests will be processed by the order of the pipeline.
 # this value will be used in the templated version of keystone-paste.ini
 # The last item in this pipeline must be service_v3 or an equivalent
 # application. It cannot be a filter.
-default['openstack']['identity']['pipeline']['api_v3'] = 'healthcheck cors sizelimit http_proxy_to_wsgi url_normalize request_id build_auth_context token_auth json_body ec2_extension_v3 s3_extension service_v3'
+default['openstack']['identity']['pipeline']['api_v3'] = 'healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension_v3 s3_extension service_v3'
 
 # region to be used for endpoint registration
 default['openstack']['identity']['region'] = node['openstack']['region']

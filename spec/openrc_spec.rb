@@ -63,12 +63,12 @@ describe 'openstack-identity::openrc' do
         node.set['openstack']['identity']['admin_domain_id'] =
           'admin-domain-override'
         node.set['openstack']['endpoints']['public']['identity']['uri'] =
-          'https://public.identity:1234/v3'
+          'https://public.identity:1234/'
         [
           /^export OS_USERNAME=identity_admin$/,
           /^export OS_PROJECT_NAME=admin-project-name-override$/,
           /^export OS_PASSWORD=identity_admin_pass$/,
-          %r{^export OS_AUTH_URL=https://public.identity:1234/v3$},
+          %r{^export OS_AUTH_URL=https://public.identity:1234/$},
         ].each do |line|
           expect(chef_run).to render_file(file.name).with_content(line)
         end
