@@ -46,7 +46,7 @@ describe 'openstack-identity::openrc' do
       end
 
       it 'templates misc_openrc array correctly' do
-        node.set['openstack']['misc_openrc'] = ['export MISC1=OPTION1', 'export MISC2=OPTION2']
+        node.override['openstack']['misc_openrc'] = ['export MISC1=OPTION1', 'export MISC2=OPTION2']
         expect(chef_run).to render_file(file.name).with_content(
           /^export MISC1=OPTION1$/
         )
@@ -56,13 +56,13 @@ describe 'openstack-identity::openrc' do
       end
 
       it 'contains overridden auth environment variables' do
-        node.set['openstack']['identity']['admin_project'] =
+        node.override['openstack']['identity']['admin_project'] =
           'admin-project-name-override'
-        node.set['openstack']['identity']['admin_user'] =
+        node.override['openstack']['identity']['admin_user'] =
           'identity_admin'
-        node.set['openstack']['identity']['admin_domain_id'] =
+        node.override['openstack']['identity']['admin_domain_id'] =
           'admin-domain-override'
-        node.set['openstack']['endpoints']['public']['identity']['uri'] =
+        node.override['openstack']['endpoints']['public']['identity']['uri'] =
           'https://public.identity:1234/'
         [
           /^export OS_USERNAME=identity_admin$/,

@@ -25,7 +25,7 @@ describe 'openstack-identity::server-apache' do
     internal_url = 'http://127.0.0.1:5000/v3'
 
     it 'runs logging recipe if node attributes say to' do
-      node.set['openstack']['identity']['syslog']['use'] = true
+      node.override['openstack']['identity']['syslog']['use'] = true
       expect(chef_run).to include_recipe('openstack-common::logging')
     end
 
@@ -78,7 +78,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       it 'creates /etc/keystone/domains when domain_specific_drivers_enabled enabled' do
-        node.set['openstack']['identity']['identity']['domain_specific_drivers_enabled'] = true
+        node.override['openstack']['identity']['identity']['domain_specific_drivers_enabled'] = true
         expect(chef_run).to create_directory(dir).with(
           user: 'keystone',
           group: 'keystone',
@@ -92,7 +92,7 @@ describe 'openstack-identity::server-apache' do
     end
 
     it 'does not delete keystone.db when configured to use sqlite' do
-      node.set['openstack']['db']['identity']['service_type'] = 'sqlite'
+      node.override['openstack']['db']['identity']['service_type'] = 'sqlite'
       expect(chef_run).not_to delete_file('/var/lib/keystone/keystone.db')
     end
 
@@ -130,7 +130,7 @@ describe 'openstack-identity::server-apache' do
           end
 
           it 'renders log_config correctly' do
-            node.set['openstack']['identity']['syslog']['use'] = true
+            node.override['openstack']['identity']['syslog']['use'] = true
 
             expect(chef_run).to render_config_file(path).with_section_content('DEFAULT', log_conf)
             expect(chef_run).not_to render_config_file(path).with_section_content('DEFAULT', log_file)
@@ -198,7 +198,7 @@ describe 'openstack-identity::server-apache' do
 
             context 'when use_tls enabled' do
               before do
-                node.set['openstack']['identity']['ldap']['use_tls'] = true
+                node.override['openstack']['identity']['ldap']['use_tls'] = true
               end
             end
           end
@@ -256,7 +256,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       it 'does not run migrations' do
-        node.set['openstack']['db']['identity']['migrate'] = false
+        node.override['openstack']['db']['identity']['migrate'] = false
         expect(chef_run).not_to run_execute(cmd).with(
           user: 'root'
         )
@@ -290,8 +290,8 @@ describe 'openstack-identity::server-apache' do
         )
       end
       it 'template api pipeline set correct' do
-        node.set['openstack']['identity']['pipeline']['public_api'] = 'public_service'
-        node.set['openstack']['identity']['pipeline']['api_v3'] = 'service_v3'
+        node.override['openstack']['identity']['pipeline']['public_api'] = 'public_service'
+        node.override['openstack']['identity']['pipeline']['api_v3'] = 'service_v3'
         expect(chef_run).to render_config_file(path).with_section_content(
           'pipeline:public_api',
           /^pipeline = public_service$/
@@ -302,7 +302,7 @@ describe 'openstack-identity::server-apache' do
         )
       end
       it 'template misc_paste array correctly' do
-        node.set['openstack']['identity']['misc_paste'] = ['MISC1 = OPTION1', 'MISC2 = OPTION2']
+        node.override['openstack']['identity']['misc_paste'] = ['MISC1 = OPTION1', 'MISC2 = OPTION2']
         expect(chef_run).to render_file(path).with_content(
           /^MISC1 = OPTION1$/
         )
@@ -313,7 +313,7 @@ describe 'openstack-identity::server-apache' do
     end
 
     describe 'keystone-paste.ini as remote file' do
-      before { node.set['openstack']['identity']['pastefile_url'] = 'http://server/mykeystone-paste.ini' }
+      before { node.override['openstack']['identity']['pastefile_url'] = 'http://server/mykeystone-paste.ini' }
       let(:remote_paste) { chef_run.remote_file('/etc/keystone/keystone-paste.ini') }
 
       it 'uses a remote file if pastefile_url is specified' do
@@ -339,7 +339,7 @@ describe 'openstack-identity::server-apache' do
         end
 
         it 'include apache recipes' do
-          node.set['openstack']['identity']['ssl']['enabled'] = true
+          node.override['openstack']['identity']['ssl']['enabled'] = true
           expect(chef_run).to include_recipe('apache2::mod_ssl')
         end
       end
@@ -360,7 +360,7 @@ describe 'openstack-identity::server-apache' do
         end
 
         it 'configures identity.conf lines' do
-          node.set['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
+          node.override['openstack']['identity']['custom_template_banner'] = 'custom_template_banner_value'
           [/^custom_template_banner_value$/,
            /user=keystone/,
            /group=keystone/,
@@ -380,7 +380,7 @@ describe 'openstack-identity::server-apache' do
         context 'Enable SSL' do
           let(:file) { '/etc/apache2/sites-available/identity.conf' }
           before do
-            node.set['openstack']['identity']['ssl']['enabled'] = true
+            node.override['openstack']['identity']['ssl']['enabled'] = true
           end
           it 'configures identity.conf common ssl lines' do
             [/^    SSLEngine On$/,
@@ -399,17 +399,17 @@ describe 'openstack-identity::server-apache' do
             end
           end
           it 'configures identity.conf chainfile when set' do
-            node.set['openstack']['identity']['ssl']['chainfile'] = '/etc/keystone/ssl/certs/chainfile.pem'
+            node.override['openstack']['identity']['ssl']['chainfile'] = '/etc/keystone/ssl/certs/chainfile.pem'
             expect(chef_run).to render_file(file)
               .with_content(%r{^    SSLCertificateChainFile /etc/keystone/ssl/certs/chainfile.pem$})
           end
           it 'configures identity.conf ciphers when set' do
-            node.set['openstack']['identity']['ssl']['ciphers'] = 'ciphers_value'
+            node.override['openstack']['identity']['ssl']['ciphers'] = 'ciphers_value'
             expect(chef_run).to render_file(file)
               .with_content(/^    SSLCipherSuite ciphers_value$/)
           end
           it 'configures identity.conf cert_required set' do
-            node.set['openstack']['identity']['ssl']['cert_required'] = true
+            node.override['openstack']['identity']['ssl']['cert_required'] = true
             expect(chef_run).to render_file(file)
               .with_content(/^    SSLVerifyClient require$/)
           end
