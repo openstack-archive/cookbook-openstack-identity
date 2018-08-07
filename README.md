@@ -12,7 +12,7 @@ Description
 
 This cookbook installs the OpenStack Identity Service **Keystone** as part of
 the OpenStack reference deployment Chef for OpenStack. The
-https://github.com/openstack/openstack-chef-repo contains documentation for
+https://github.com/openstack/openstack-chef contains documentation for
 using this cookbook in the context of a full OpenStack deployment. Keystone is
 installed from packages, creating the default user, tenant, and roles. It also
 registers the identity service and identity endpoint.
