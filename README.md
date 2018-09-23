@@ -17,7 +17,7 @@ using this cookbook in the context of a full OpenStack deployment. Keystone is
 installed from packages, creating the default user, tenant, and roles. It also
 registers the identity service and identity endpoint.
 
-https://docs.openstack.org/developer/keystone
+https://docs.openstack.org/keystone/latest/
 
 Requirements
 ============
