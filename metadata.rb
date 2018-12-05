@@ -1,6 +1,6 @@
 name             'openstack-identity'
 maintainer       'openstack-chef'
-maintainer_email 'openstack-dev@lists.openstack.org'
+maintainer_email 'openstack-discuss@lists.openstack.org'
 license          'Apache-2.0'
 description      'The OpenStack Identity service Keystone.'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
