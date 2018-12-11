@@ -13,7 +13,7 @@ end
 depends 'openstack-common', '>= 18.0.0'
 depends 'openstackclient'
 
-depends 'apache2'
+depends 'apache2', '5.0.1'
 
 issues_url 'https://launchpad.net/openstack-chef' if respond_to?(:issues_url)
 source_url 'https://github.com/openstack/cookbook-openstack-identity' if respond_to?(:source_url)
