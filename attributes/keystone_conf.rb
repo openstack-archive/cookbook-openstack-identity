@@ -18,11 +18,6 @@ default['openstack']['identity']['conf'].tap do |conf|
   # [assignment] option in keystone.conf to set driver
   conf['assignment']['driver'] = 'sql'
 
-  # [auth] option in keystone.conf to set auth plugins
-  conf['auth']['external'] = 'DefaultDomain'
-  # [auth] option in keystone.conf to set auth methods
-  conf['auth']['methods'] = 'external, password, token, oauth1'
-
   # [cache] option in keystone.conf to set oslo backend
   conf['cache']['enabled'] = true
   conf['cache']['backend'] = 'oslo_cache.memcache_pool'

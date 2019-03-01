@@ -138,13 +138,6 @@ default['openstack']['identity']['credential']['keys'] = [0, 1]
 default['openstack']['identity']['conf']['credential']['key_repository'] =
   '/etc/keystone/credential-tokens'
 
-# The external (REMOTE_USER) auth plugin module. (String value)
-default['openstack']['identity']['auth']['external'] = 'keystone.auth.plugins.external.DefaultDomain'
-# Default auth methods. (List value)
-default['openstack']['identity']['auth']['methods'] = 'external, password, token, oauth1'
-# Default auth_version for now
-default['openstack']['identity']['auth']['version'] = 'v3'
-
 # configuration directory for keystone domain specific options
 default['openstack']['identity']['identity']['domain_config_dir'] = '/etc/keystone/domains'
 
