@@ -4,7 +4,7 @@ maintainer_email 'openstack-dev@lists.openstack.org'
 license          'Apache-2.0'
 description      'The OpenStack Identity service Keystone.'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '16.1.0'
+version          '16.2.0'
 
 %w(ubuntu redhat centos).each do |os|
   supports os
@@ -13,7 +13,7 @@ end
 depends 'openstack-common', '>= 16.0.0'
 depends 'openstackclient'
 
-depends 'apache2'
+depends 'apache2', '< 6.0'
 
 issues_url 'https://launchpad.net/openstack-chef' if respond_to?(:issues_url)
 source_url 'https://github.com/openstack/cookbook-openstack-identity' if respond_to?(:source_url)
