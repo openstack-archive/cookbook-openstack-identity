@@ -44,8 +44,6 @@ default['openstack']['bind_service']['public']['identity']['host'] = '127.0.0.1'
 # port for openstack identity service main endpoint to bind to
 default['openstack']['bind_service']['public']['identity']['port'] = 5000
 
-# identity service catalog backend for service endpoints
-default['openstack']['identity']['catalog']['backend'] = 'sql'
 # identity service token backend for user and service tokens
 default['openstack']['identity']['token']['backend'] = 'sql'
 

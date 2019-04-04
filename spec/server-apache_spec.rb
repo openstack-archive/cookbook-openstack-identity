@@ -212,36 +212,10 @@ describe 'openstack-identity::server-apache' do
         end
       end
 
-      describe '[catalog] section' do
-        # use let() to access Helpers#line_regexp method
-        let(:templated) do
-          str = 'driver = keystone.catalog.backends.templated.TemplatedCatalog'
-          line_regexp(str)
-        end
-        let(:sql) do
-          line_regexp('driver = sql')
-        end
-
-        it 'configures driver' do
-          expect(chef_run).to render_config_file(path).with_content(sql)
-          expect(chef_run).not_to render_config_file(path).with_section_content('catalog', templated)
-        end
-      end
-
       describe '[policy] section' do
         it 'configures driver' do
           r = line_regexp('driver = sql')
           expect(chef_run).to render_config_file(path).with_section_content('policy', r)
-        end
-      end
-    end
-
-    describe 'default_catalog.templates' do
-      let(:file) { '/etc/keystone/default_catalog.templates' }
-
-      describe 'without templated backend' do
-        it 'does not create' do
-          expect(chef_run).not_to render_file(file)
         end
       end
     end
@@ -265,15 +239,6 @@ describe 'openstack-identity::server-apache' do
 
     describe 'keystone-paste.ini as template' do
       let(:path) { '/etc/keystone/keystone-paste.ini' }
-      let(:template) { chef_run.template(path) }
-
-      it 'creates /etc/keystone/default_catalog.templates' do
-        expect(chef_run).to create_template(template.name).with(
-          user: 'keystone',
-          group: 'keystone',
-          mode: 0o644
-        )
-      end
 
       it 'has default api pipeline values' do
         expect(chef_run).to render_config_file(path).with_section_content(

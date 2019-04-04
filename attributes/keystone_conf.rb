@@ -22,9 +22,6 @@ default['openstack']['identity']['conf'].tap do |conf|
   conf['cache']['enabled'] = true
   conf['cache']['backend'] = 'oslo_cache.memcache_pool'
 
-  # [catalog] option in keystone.conf to set catalog driver
-  conf['catalog']['driver'] = 'sql'
-
   # [policy] option in keystone.conf to set policy backend driver
   conf['policy']['driver'] = 'sql'
 end

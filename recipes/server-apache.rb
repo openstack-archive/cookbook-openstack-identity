@@ -197,44 +197,6 @@ ruby_block "delete all attributes in node['openstack']['identity']['conf_secrets
   end
 end
 
-# TODO: (jklare) needs to be refactored and filled by the service cookbooks, to
-# avoid dependencies on unused cookbooks
-
-# configure the endpoints in keystone_catalog.templates if the catalog backend
-# is templated
-if node['openstack']['identity']['catalog']['backend'] == 'templated'
-  # These values are going into the templated catalog and
-  # since they're the endpoints being used by the clients,
-  # we should put in the public endpoints for each service.
-  compute_public_endpoint = public_endpoint 'compute'
-  ec2_public_endpoint = public_endpoint 'compute-ec2'
-  image_public_endpoint = public_endpoint 'image'
-  network_public_endpoint = public_endpoint 'network'
-  volume_public_endpoint = public_endpoint 'block-storage'
-
-  # populate the templated catalog
-  # TODO: (jklare) this should be done in a helper method
-  uris = {
-    'identity-admin' => identity_internal_endpoint.to_s.gsub('%25', '%'),
-    'identity' => identity_endpoint.to_s.gsub('%25', '%'),
-    'image' => image_public_endpoint.to_s.gsub('%25', '%'),
-    'compute' => compute_public_endpoint.to_s.gsub('%25', '%'),
-    'ec2' => ec2_public_endpoint.to_s.gsub('%25', '%'),
-    'network' => network_public_endpoint.to_s.gsub('%25', '%'),
-    'volume' => volume_public_endpoint.to_s.gsub('%25', '%'),
-  }
-
-  template '/etc/keystone/default_catalog.templates' do
-    source 'default_catalog.templates.erb'
-    owner keystone_user
-    group keystone_group
-    mode 0o0644
-    variables(
-      uris: uris
-    )
-  end
-end
-
 # sync db after keystone.conf is generated
 execute 'keystone-manage db_sync' do
   user 'root'
