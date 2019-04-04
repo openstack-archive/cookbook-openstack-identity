@@ -20,9 +20,7 @@ describe 'openstack-identity::server-apache' do
     project_name = 'admin'
     role_name = 'admin'
     password = 'admin'
-    admin_url = 'http://127.0.0.1:5000/v3'
     public_url = 'http://127.0.0.1:5000/v3'
-    internal_url = 'http://127.0.0.1:5000/v3'
 
     it 'runs logging recipe if node attributes say to' do
       node.override['openstack']['identity']['syslog']['use'] = true
@@ -53,9 +51,9 @@ describe 'openstack-identity::server-apache' do
           --bootstrap-role-name #{role_name} \\
           --bootstrap-service-name #{service_name} \\
           --bootstrap-region-id #{region} \\
-          --bootstrap-admin-url #{admin_url} \\
+          --bootstrap-admin-url #{public_url} \\
           --bootstrap-public-url #{public_url} \\
-          --bootstrap-internal-url #{internal_url}")
+          --bootstrap-internal-url #{public_url}")
     end
 
     describe '/etc/keystone' do
@@ -242,25 +240,12 @@ describe 'openstack-identity::server-apache' do
 
       it 'has default api pipeline values' do
         expect(chef_run).to render_config_file(path).with_section_content(
-          'pipeline:public_api',
-          /^pipeline = healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension public_service$/
-        )
-        expect(chef_run).to render_config_file(path).with_section_content(
-          'pipeline:admin_api',
-          /^pipeline = healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension s3_extension admin_service$/
-        )
-        expect(chef_run).to render_config_file(path).with_section_content(
           'pipeline:api_v3',
           /^pipeline = healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension_v3 s3_extension service_v3$/
         )
       end
       it 'template api pipeline set correct' do
-        node.override['openstack']['identity']['pipeline']['public_api'] = 'public_service'
         node.override['openstack']['identity']['pipeline']['api_v3'] = 'service_v3'
-        expect(chef_run).to render_config_file(path).with_section_content(
-          'pipeline:public_api',
-          /^pipeline = public_service$/
-        )
         expect(chef_run).to render_config_file(path).with_section_content(
           'pipeline:api_v3',
           /^pipeline = service_v3$/

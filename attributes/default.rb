@@ -8,6 +8,7 @@
 # Copyright 2013, IBM Corp.
 # Copyright 2017, x-ion GmbH
 # Copyright 2018, Workday, Inc.
+# Copyright 2019, x-ion GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,19 +56,7 @@ default['openstack']['identity']['token']['backend'] = 'sql'
 # will be used (keystone-paste.ini.erb)
 default['openstack']['identity']['pastefile_url'] = nil
 
-# This specify the pipeline of the keystone public API,
-# all Identity public API requests will be processed by the order of the pipeline.
-# this value will be used in the templated version of keystone-paste.ini
-# The last item in this pipeline must be public_service or an equivalent
-# application. It cannot be a filter.
-default['openstack']['identity']['pipeline']['public_api'] = 'healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension public_service'
-# This specify the pipeline of the keystone admin API,
-# all Identity admin API requests will be processed by the order of the pipeline.
-# this value will be used in the templated version of keystone-paste.ini
-# The last item in this pipeline must be admin_service or an equivalent
-# application. It cannot be a filter.
-default['openstack']['identity']['pipeline']['admin_api'] = 'healthcheck cors sizelimit http_proxy_to_wsgi osprofiler url_normalize request_id build_auth_context token_auth json_body ec2_extension s3_extension admin_service'
-# This specify the pipeline of the keystone V3 API,
+# This specifies the pipeline of the keystone V3 API,
 # all Identity V3 API requests will be processed by the order of the pipeline.
 # this value will be used in the templated version of keystone-paste.ini
 # The last item in this pipeline must be service_v3 or an equivalent

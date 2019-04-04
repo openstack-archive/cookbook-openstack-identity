@@ -51,41 +51,19 @@ use = egg:keystone#public_service
 [app:service_v3]
 use = egg:keystone#service_v3
 
-[app:admin_service]
-use = egg:keystone#admin_service
-
-[pipeline:public_api]
-pipeline = <%=node['openstack']['identity']['pipeline']['public_api'] %>
-
-[pipeline:admin_api]
-pipeline = <%=node['openstack']['identity']['pipeline']['admin_api'] %>
-
 [pipeline:api_v3]
 pipeline = <%=node['openstack']['identity']['pipeline']['api_v3'] %>
 
 [app:public_version_service]
 use = egg:keystone#public_version_service
 
-[app:admin_version_service]
-use = egg:keystone#admin_version_service
-
 [pipeline:public_version_api]
 pipeline = healthcheck cors sizelimit osprofiler url_normalize public_version_service
 
-[pipeline:admin_version_api]
-pipeline = healthcheck cors sizelimit osprofiler url_normalize admin_version_service
-
 [composite:main]
 use = egg:Paste#urlmap
-/v2.0 = public_api
 /v3 = api_v3
 / = public_version_api
-
-[composite:admin]
-use = egg:Paste#urlmap
-/v2.0 = admin_api
-/v3 = api_v3
-/ = admin_version_api
 
 <% if node['openstack']['identity']['misc_paste'] %>
 <% node['openstack']['identity']['misc_paste'].each do |m| %>

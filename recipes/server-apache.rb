@@ -170,7 +170,6 @@ end
 # set keystone config parameters for endpoints, memcache
 node.default['openstack']['identity']['conf'].tap do |conf|
   conf['DEFAULT']['public_endpoint'] = api_endpoint
-  conf['DEFAULT']['admin_endpoint'] = api_endpoint
   conf['memcache']['servers'] = memcache_servers if memcache_servers
 end
 
@@ -204,6 +203,7 @@ execute 'keystone-manage db_sync' do
 end
 
 # bootstrap keystone after keystone.conf is generated
+# TODO(frickler): drop admin endpoint once keystonemiddleware is fixed
 execute 'bootstrap_keystone' do
   command "keystone-manage bootstrap \\
           --bootstrap-password #{admin_pass} \\
