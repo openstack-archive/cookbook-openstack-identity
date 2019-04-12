@@ -84,6 +84,8 @@ default['openstack']['identity']['syslog']['facility'] = 'LOG_LOCAL2'
 # syslog config facility in case syslog is used
 default['openstack']['identity']['syslog']['config_facility'] = 'local2'
 
+# endpoint type to be used for creating resources
+default['openstack']['identity']['endpoint_type'] = 'internalURL'
 # user to be created and used for identity service
 default['openstack']['identity']['admin_user'] = 'admin'
 # project to be created and used for identity service
