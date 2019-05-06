@@ -17,11 +17,8 @@ describe 'openstack-identity::registration' do
       openstack_api_key: 'admin',
       openstack_project_name: 'admin',
       openstack_domain_id: 'default',
+      openstack_endpoint_type: 'internalURL',
     }
-    service_user = 'admin'
-    role_name = 'admin'
-    admin_domain_name = 'default'
-    domain_name = 'identity'
 
     describe 'keystone bootstrap' do
       context 'default values' do
@@ -29,35 +26,9 @@ describe 'openstack-identity::registration' do
           expect(chef_run).to run_ruby_block('wait for identity endpoint')
         end
 
-        it "registers #{domain_name} domain" do
-          expect(chef_run).to create_openstack_domain(
-            domain_name
-          ).with(
-            connection_params: connection_params
-          )
-        end
-
-        it "grants #{service_user} user to #{domain_name} domain" do
-          expect(chef_run).to grant_domain_openstack_user(
-            service_user
-          ).with(
-            domain_name: admin_domain_name,
-            role_name: role_name,
-            connection_params: connection_params
-          )
-        end
-
         it 'create service role' do
           expect(chef_run).to create_openstack_role(
             'service'
-          ).with(
-            connection_params: connection_params
-          )
-        end
-
-        it 'create service role' do
-          expect(chef_run).to create_openstack_role(
-            '_member_'
           ).with(
             connection_params: connection_params
           )

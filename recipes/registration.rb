@@ -38,15 +38,20 @@ auth_url = ::URI.decode identity_internal_endpoint.to_s
 admin_project = node['openstack']['identity']['admin_project']
 admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
-admin_role = node['openstack']['identity']['admin_role']
 admin_domain = node['openstack']['identity']['admin_domain_name']
 
+# endpoint type to use when creating resources
+# NOTE(frickler): fog-openstack defaults to the 'admin' endpoint for
+# Identity operations, so we need to override this after we dropped that one
+endpoint_type = node['openstack']['identity']['endpoint_type']
+
 connection_params = {
-  openstack_auth_url:     "#{auth_url}/auth/tokens",
-  openstack_username:     admin_user,
-  openstack_api_key:      admin_pass,
-  openstack_project_name: admin_project,
-  openstack_domain_id:    admin_domain,
+  openstack_auth_url:      "#{auth_url}/auth/tokens",
+  openstack_username:      admin_user,
+  openstack_api_key:       admin_pass,
+  openstack_project_name:  admin_project,
+  openstack_domain_id:     admin_domain,
+  openstack_endpoint_type: endpoint_type,
 }
 
 ruby_block 'wait for identity endpoint' do
@@ -65,31 +70,13 @@ ruby_block 'wait for identity endpoint' do
   end
 end
 
-openstack_domain 'identity' do
-  connection_params connection_params
-end
-
-openstack_user admin_user do
-  domain_name admin_domain
-  role_name admin_role
-  connection_params connection_params
-  action :grant_domain
-end
-
 # create default service role
 openstack_role 'service' do
   connection_params connection_params
 end
 
-# create default role for horizon dashboard login
-openstack_role '_member_' do
-  connection_params connection_params
-end
-
-node.normal['openstack']['identity']['adminURL'] = identity_internal_endpoint.to_s
 node.normal['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
 node.normal['openstack']['identity']['publicURL'] = identity_endpoint.to_s
 
-Chef::Log.info "Keystone AdminURL: #{identity_internal_endpoint}"
 Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint}"
 Chef::Log.info "Keystone PublicURL: #{identity_endpoint}"
