@@ -379,16 +379,32 @@ describe 'openstack-identity::server-apache' do
       end
 
       describe 'restart apache' do
-        let(:restart) { chef_run.execute('Keystone apache restart') }
-
-        it 'has restart resource' do
-          expect(chef_run).to run_execute(restart.name).with(
-            command: 'uname'
-          )
+        it do
+          expect(chef_run).to nothing_execute('Clear Keystone apache restart')
+            .with(
+              command: 'rm -f /var/chef/cache/keystone-apache-restarted'
+            )
         end
-
-        it 'has notified apache to restart' do
-          expect(restart).to notify('service[apache2]').to(:restart).immediately
+        %w(
+          /etc/keystone/keystone.conf
+          /etc/apache2/sites-available/identity.conf
+        ).each do |f|
+          it "#{f} notifies execute[Clear Keystone apache restart]" do
+            expect(chef_run.template(f)).to notify('execute[Clear Keystone apache restart]').to(:run).immediately
+          end
+        end
+        it do
+          expect(chef_run).to run_execute('Keystone apache restart')
+            .with(
+              command: 'touch /var/chef/cache/keystone-apache-restarted',
+              creates: '/var/chef/cache/keystone-apache-restarted'
+            )
+        end
+        it do
+          expect(chef_run.execute('Keystone apache restart')).to notify('execute[restore-selinux-context]').to(:run).immediately
+        end
+        it do
+          expect(chef_run.execute('Keystone apache restart')).to notify('service[apache2]').to(:restart).immediately
         end
       end
     end

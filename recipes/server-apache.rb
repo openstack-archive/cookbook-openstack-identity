@@ -41,6 +41,12 @@ execute 'set-selinux-permissive' do
   only_if "[ ! -e /etc/httpd/conf/httpd.conf ] && [ -e /etc/redhat-release ] && [ $(/sbin/sestatus | grep -c '^Current mode:.*enforcing') -eq 1 ]"
 end
 
+# Clear lock file when notified
+execute 'Clear Keystone apache restart' do
+  command "rm -f #{Chef::Config[:file_cache_path]}/keystone-apache-restarted"
+  action :nothing
+end
+
 # include the logging recipe from openstack-common if syslog usage is enbaled
 if node['openstack']['identity']['syslog']['use']
   include_recipe 'openstack-common::logging'
@@ -192,6 +198,7 @@ template '/etc/keystone/keystone.conf' do
   variables(
     service_config: keystone_conf_options
   )
+  notifies :run, 'execute[Clear Keystone apache restart]', :immediately
 end
 
 # delete all secrets saved in the attribute
@@ -270,10 +277,22 @@ web_app 'identity' do
   ciphers node['openstack']['identity']['ssl']['ciphers']
 end
 
-# Hack until Apache cookbook has lwrp's for proper use of notify
-# restart apache2 after keystone if completely configured
+# Hack until Apache cookbook has lwrp's for proper use of notify restart
+# apache2 after keystone if completely configured. Whenever a keystone
+# config is updated, have it notify the resource which clears the lock
+# so the service can be restarted.
+# TODO(ramereth): This should be removed once this cookbook is updated
+# to use the newer apache2 cookbook which uses proper resources.
+edit_resource(:template, "#{node['apache']['dir']}/sites-available/identity.conf") do
+  notifies :run, 'execute[Clear Keystone apache restart]', :immediately
+end
+
+# Only restart Keystone apache during the initial install. This causes
+# monitoring and service issues while the service is restarted so we
+# should minimize the amount of times we restart apache.
 execute 'Keystone apache restart' do
-  command 'uname'
+  command "touch #{Chef::Config[:file_cache_path]}/keystone-apache-restarted"
+  creates "#{Chef::Config[:file_cache_path]}/keystone-apache-restarted"
   notifies :run, 'execute[restore-selinux-context]', :immediately
   notifies :restart, 'service[apache2]', :immediately
 end
