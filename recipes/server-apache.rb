@@ -103,6 +103,12 @@ service 'keystone' do
   action [:stop, :disable]
 end
 
+# disable default keystone config file from UCA package
+apache_site 'keystone' do
+  enable false
+  only_if { platform_family?('debian') }
+end
+
 # create the keystone config directory and set correct permissions
 directory '/etc/keystone' do
   owner keystone_user
@@ -300,12 +306,6 @@ web_app 'identity' do
   cert_required node['openstack']['identity']['ssl']['cert_required']
   protocol node['openstack']['identity']['ssl']['protocol']
   ciphers node['openstack']['identity']['ssl']['ciphers']
-end
-
-# disable default keystone config file from UCA package
-apache_site 'keystone' do
-  enable false
-  only_if { platform_family?('debian') }
 end
 
 # Hack until Apache cookbook has lwrp's for proper use of notify
