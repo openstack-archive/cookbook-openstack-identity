@@ -43,15 +43,17 @@ admin_domain = node['openstack']['identity']['admin_domain_name']
 # endpoint type to use when creating resources
 # NOTE(frickler): fog-openstack defaults to the 'admin' endpoint for
 # Identity operations, so we need to override this after we dropped that one
-endpoint_type = node['openstack']['identity']['endpoint_type']
+# TODO(ramereth): commenting this out until
+# https://github.com/fog/fog-openstack/pull/494 gets merged and released.
+# endpoint_type = node['openstack']['identity']['endpoint_type']
 
 connection_params = {
-  openstack_auth_url:      "#{auth_url}/auth/tokens",
+  openstack_auth_url:      auth_url,
   openstack_username:      admin_user,
   openstack_api_key:       admin_pass,
   openstack_project_name:  admin_project,
   openstack_domain_id:     admin_domain,
-  openstack_endpoint_type: endpoint_type,
+  # openstack_endpoint_type: endpoint_type,
 }
 
 ruby_block 'wait for identity endpoint' do
