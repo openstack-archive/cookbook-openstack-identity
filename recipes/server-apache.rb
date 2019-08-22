@@ -117,11 +117,11 @@ directory '/etc/keystone' do
 end
 
 # create keystone domain config dir if needed
-directory node['openstack']['identity']['identity']['domain_config_dir'] do
+directory node['openstack']['identity']['domain_config_dir'] do
   owner keystone_user
   group keystone_group
   mode 0o0700
-  only_if { node['openstack']['identity']['identity']['domain_specific_drivers_enabled'] }
+  only_if { node['openstack']['identity']['domain_specific_drivers_enabled'] }
 end
 
 # delete the keystone.db sqlite file if another db backend is used

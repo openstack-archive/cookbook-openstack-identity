@@ -128,7 +128,7 @@ default['openstack']['identity']['conf']['credential']['key_repository'] =
   '/etc/keystone/credential-tokens'
 
 # configuration directory for keystone domain specific options
-default['openstack']['identity']['identity']['domain_config_dir'] = '/etc/keystone/domains'
+default['openstack']['identity']['domain_config_dir'] = '/etc/keystone/domains'
 
 # keystone service user name
 default['openstack']['identity']['user'] = 'keystone'
@@ -160,15 +160,17 @@ end
 # array of bare options for openrc (e.g. 'option=value')
 default['openstack']['misc_openrc'] = nil
 
-# openrc path
-default['openstack']['openrc']['path'] = '/root'
-# openrc path mode
-default['openstack']['openrc']['path_mode'] = '0700'
+%w(openrc cloud_config).each do |file_type|
+  default['openstack']['identity'][file_type]['path'] = '/root'
+  default['openstack']['identity'][file_type]['path_mode'] = '0700'
+  default['openstack']['identity'][file_type]['file_mode'] = '0600'
+  default['openstack']['identity'][file_type]['user'] = 'root'
+  default['openstack']['identity'][file_type]['group'] = 'root'
+end
+
 # openrc file name
-default['openstack']['openrc']['file'] = 'openrc'
-# openrc file mode
-default['openstack']['openrc']['file_mode'] = '0600'
-# openrc file owner
-default['openstack']['openrc']['user'] = 'root'
-# openrc file group
-default['openstack']['openrc']['group'] = 'root'
+default['openstack']['identity']['openrc']['file'] = 'openrc'
+# cloud_config file name
+default['openstack']['identity']['cloud_config']['file'] = 'clouds.yaml'
+# cloud_config cloud name
+default['openstack']['identity']['cloud_config']['cloud_name'] = 'default'
