@@ -76,7 +76,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       it 'creates /etc/keystone/domains when domain_specific_drivers_enabled enabled' do
-        node.override['openstack']['identity']['identity']['domain_specific_drivers_enabled'] = true
+        node.override['openstack']['identity']['domain_specific_drivers_enabled'] = true
         expect(chef_run).to create_directory(dir).with(
           user: 'keystone',
           group: 'keystone',

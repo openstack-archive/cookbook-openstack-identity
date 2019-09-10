@@ -1,9 +1,9 @@
 # encoding: UTF-8
 #
 # Cookbook Name:: openstack-identity
-# recipe:: openrc
+# recipe:: cloud_config
 #
-# Copyright 2014 IBM Corp.
+# Copyright 2019 x-ion GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This recipe create a fully usable openrc file to export the needed environment
-# variables to use the openstack client.
+# This recipe creates a fully usable cloud config file to be used directly
+# by the openstack client or sdk.
 
 class ::Chef::Recipe
   include ::Openstack
@@ -34,22 +34,23 @@ ksadmin_pass = get_password 'user', ksadmin_user
 identity_endpoint = public_endpoint 'identity'
 auth_url = ::URI.decode identity_endpoint.to_s
 
-openrc_config = node['openstack']['identity']['openrc']
+cloud_config = node['openstack']['identity']['cloud_config']
 
-directory openrc_config['path'] do
-  owner openrc_config['user']
-  group openrc_config['group']
-  mode openrc_config['path_mode']
+directory cloud_config['path'] do
+  owner cloud_config['user']
+  group cloud_config['group']
+  mode cloud_config['path_mode']
   recursive true
 end
 
-template "#{openrc_config['path']}/#{openrc_config['file']}" do
-  source 'openrc.erb'
-  owner openrc_config['user']
-  group openrc_config['group']
-  mode openrc_config['file_mode']
+template "#{cloud_config['path']}/#{cloud_config['file']}" do
+  source 'cloud_config.erb'
+  owner cloud_config['user']
+  group cloud_config['group']
+  mode cloud_config['file_mode']
   sensitive true
   variables(
+    cloud_name: cloud_config['cloud_name'],
     user: ksadmin_user,
     user_domain_name: admin_domain_name,
     project: ksadmin_project,
