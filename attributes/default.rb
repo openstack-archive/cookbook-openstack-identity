@@ -149,8 +149,8 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
 when 'debian'
   # platform specific package and service name options
   default['openstack']['identity']['platform'] = {
-    'memcache_python_packages' => ['python-memcache'],
-    'keystone_packages' => ['keystone'],
+    'memcache_python_packages' => ['python3-memcache'],
+    'keystone_packages' => ['libapache2-mod-wsgi-py3', 'python3-keystone', 'keystone'],
     'keystone_service' => 'keystone',
     'keystone_process_name' => 'keystone-all',
     'package_overrides' => '',

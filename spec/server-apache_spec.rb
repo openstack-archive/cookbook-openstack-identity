@@ -32,14 +32,15 @@ describe 'openstack-identity::server-apache' do
     end
 
     it 'upgrades mysql python packages' do
-      expect(chef_run).to upgrade_package('identity cookbook package python-mysqldb')
+      expect(chef_run).to upgrade_package('identity cookbook package python3-mysqldb')
     end
 
     it 'upgrades memcache python packages' do
-      expect(chef_run).to upgrade_package('identity cookbook package python-memcache')
+      expect(chef_run).to upgrade_package('identity cookbook package python3-memcache')
     end
 
     it 'upgrades keystone packages' do
+      expect(chef_run).to upgrade_package('identity cookbook package python3-keystone')
       expect(chef_run).to upgrade_package('identity cookbook package keystone')
     end
 
@@ -284,7 +285,7 @@ describe 'openstack-identity::server-apache' do
       describe 'apache recipes' do
         it 'include apache recipes' do
           expect(chef_run).to include_recipe('apache2')
-          expect(chef_run).to include_recipe('apache2::mod_wsgi')
+          expect(chef_run).not_to include_recipe('apache2::mod_wsgi')
           expect(chef_run).not_to include_recipe('apache2::mod_ssl')
         end
 

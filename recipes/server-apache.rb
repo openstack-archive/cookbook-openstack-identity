@@ -242,7 +242,15 @@ node.normal['apache']['listen'] = apache_listen.uniq
 
 # include the apache2 default recipe and the recipes for mod_wsgi
 include_recipe 'apache2'
-include_recipe 'apache2::mod_wsgi'
+# TODO(jh): hardcoded to include py2 mod-wsgi package
+# include_recipe 'apache2::mod_wsgi'
+case node['platform_family']
+when 'debian'
+  apache_module 'wsgi'
+when 'rhel', 'fedora', 'arch', 'amazon'
+  include_recipe 'apache2::mod_wsgi'
+end
+
 # include the apache2 mod_ssl recipe if ssl is enabled for identity
 include_recipe 'apache2::mod_ssl' if node['openstack']['identity']['ssl']['enabled']
 
