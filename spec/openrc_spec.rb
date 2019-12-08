@@ -6,7 +6,7 @@ describe 'openstack-identity::openrc' do
   describe 'ubuntu' do
     let(:runner) { ChefSpec::SoloRunner.new(UBUNTU_OPTS) }
     let(:node) { runner.node }
-    let(:chef_run) do
+    cached(:chef_run) do
       runner.converge(described_recipe)
     end
 
@@ -45,32 +45,38 @@ describe 'openstack-identity::openrc' do
         end
       end
 
-      it 'templates misc_openrc array correctly' do
-        node.override['openstack']['misc_openrc'] = ['export MISC1=OPTION1', 'export MISC2=OPTION2']
-        expect(chef_run).to render_file(file.name).with_content(
-          /^export MISC1=OPTION1$/
-        )
-        expect(chef_run).to render_file(file.name).with_content(
-          /^export MISC2=OPTION2$/
-        )
+      context 'misc_openrc array' do
+        cached(:chef_run) do
+          node.override['openstack']['misc_openrc'] = ['export MISC1=OPTION1', 'export MISC2=OPTION2']
+          runner.converge(described_recipe)
+        end
+        it 'templates misc_openrc array correctly' do
+          expect(chef_run).to render_file(file.name).with_content(
+            /^export MISC1=OPTION1$/
+          )
+          expect(chef_run).to render_file(file.name).with_content(
+            /^export MISC2=OPTION2$/
+          )
+        end
       end
 
-      it 'contains overridden auth environment variables' do
-        node.override['openstack']['identity']['admin_project'] =
-          'admin-project-name-override'
-        node.override['openstack']['identity']['admin_user'] =
-          'identity_admin'
-        node.override['openstack']['identity']['admin_domain_id'] =
-          'admin-domain-override'
-        node.override['openstack']['endpoints']['public']['identity']['uri'] =
-          'https://public.identity:1234/'
-        [
-          /^export OS_USERNAME=identity_admin$/,
-          /^export OS_PROJECT_NAME=admin-project-name-override$/,
-          /^export OS_PASSWORD=identity_admin_pass$/,
-          %r{^export OS_AUTH_URL=https://public.identity:1234/$},
-        ].each do |line|
-          expect(chef_run).to render_file(file.name).with_content(line)
+      context 'override auth environment variables' do
+        cached(:chef_run) do
+          node.override['openstack']['identity']['admin_project'] = 'admin-project-name-override'
+          node.override['openstack']['identity']['admin_user'] = 'identity_admin'
+          node.override['openstack']['identity']['admin_domain_id'] = 'admin-domain-override'
+          node.override['openstack']['endpoints']['public']['identity']['uri'] = 'https://public.identity:1234/'
+          runner.converge(described_recipe)
+        end
+        it 'contains overridden auth environment variables' do
+          [
+            /^export OS_USERNAME=identity_admin$/,
+            /^export OS_PROJECT_NAME=admin-project-name-override$/,
+            /^export OS_PASSWORD=identity_admin_pass$/,
+            %r{^export OS_AUTH_URL=https://public.identity:1234/$},
+          ].each do |line|
+            expect(chef_run).to render_file(file.name).with_content(line)
+          end
         end
       end
     end

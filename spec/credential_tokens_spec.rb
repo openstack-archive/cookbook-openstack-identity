@@ -3,7 +3,7 @@
 
 require_relative 'spec_helper'
 
-describe 'openstack-identity::_fernet_tokens' do
+describe 'openstack-identity::_credential_tokens' do
   describe 'ubuntu' do
     include_context 'identity_stubs'
 
@@ -12,15 +12,15 @@ describe 'openstack-identity::_fernet_tokens' do
     cached(:chef_run) { runner.converge(described_recipe) }
 
     it do
-      expect(chef_run).to create_directory('/etc/keystone/fernet-tokens')
+      expect(chef_run).to create_directory('/etc/keystone/credential-tokens')
         .with(owner: 'keystone', user: 'keystone', mode: 0o0700)
     end
 
     [0, 1].each do |key_index|
       it do
-        expect(chef_run).to create_file("/etc/keystone/fernet-tokens/#{key_index}")
+        expect(chef_run).to create_file("/etc/keystone/credential-tokens/#{key_index}")
           .with(
-            content: "thisisfernetkey#{key_index}",
+            content: "thisiscredentialkey#{key_index}",
             owner: 'keystone',
             group: 'keystone',
             mode: 0o0400

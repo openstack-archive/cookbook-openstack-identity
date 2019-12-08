@@ -7,7 +7,7 @@ describe 'openstack-identity::registration' do
   describe 'ubuntu' do
     let(:node)     { runner.node }
     let(:runner)   { ChefSpec::SoloRunner.new(UBUNTU_OPTS) }
-    let(:chef_run) { runner.converge(described_recipe) }
+    cached(:chef_run) { runner.converge(described_recipe) }
 
     include_context 'identity_stubs'
 
