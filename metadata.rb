@@ -16,9 +16,9 @@ recipe 'server-apache', 'Installs and configures the OpenStack Identity Service 
   supports os
 end
 
-depends 'openstack-common', '>= 18.0.0'
+depends 'apache2', '~> 8.0'
 depends 'openstackclient'
-depends 'apache2', '5.0.1'
+depends 'openstack-common', '>= 18.0.0'
 
 issues_url 'https://launchpad.net/openstack-chef'
 source_url 'https://opendev.org/openstack/cookbook-openstack-identity'

@@ -26,25 +26,7 @@ require 'uri'
 # load the methods defined in cookbook-openstack-common libraries
 class ::Chef::Recipe
   include ::Openstack
-end
-
-# Workaround lifted from openstack-dashboard::apache2-server to install apache2
-# on a RHEL-ish machine with SELinux set to enforcing.
-#
-# TODO(sc): once apache2 is in a place to allow for subscribes to web_app,
-#           this workaround should go away
-#
-execute 'set-selinux-permissive' do
-  command '/sbin/setenforce Permissive'
-  action :run
-
-  only_if "[ ! -e /etc/httpd/conf/httpd.conf ] && [ -e /etc/redhat-release ] && [ $(/sbin/sestatus | grep -c '^Current mode:.*enforcing') -eq 1 ]"
-end
-
-# Clear lock file when notified
-execute 'Clear Keystone apache restart' do
-  command "rm -f #{Chef::Config[:file_cache_path]}/keystone-apache-restarted"
-  action :nothing
+  include Apache2::Cookbook::Helpers
 end
 
 # include the logging recipe from openstack-common if syslog usage is enbaled
@@ -110,8 +92,8 @@ service 'keystone' do
 end
 
 # disable default keystone config file from UCA package
-apache_site 'keystone' do
-  enable false
+apache2_site 'keystone' do
+  action :disable
   only_if { platform_family?('debian') }
 end
 
@@ -198,7 +180,7 @@ template '/etc/keystone/keystone.conf' do
   variables(
     service_config: keystone_conf_options
   )
-  notifies :run, 'execute[Clear Keystone apache restart]', :immediately
+  notifies :restart, 'service[apache2]'
 end
 
 # delete all secrets saved in the attribute
@@ -232,81 +214,48 @@ end
 
 #### Start of Apache specific work
 
-# configure attributes for apache2 cookbook to align with openstack settings
-apache_listen = Array(node['apache']['listen']) # include already defined listen attributes
-# Remove the default apache2 cookbook port, as that is also the default for horizon, but with
-# a different address syntax.  *:80   vs  0.0.0.0:80
-apache_listen -= ['*:80']
-apache_listen += ["#{bind_address}:#{bind_service['port']}"]
-node.normal['apache']['listen'] = apache_listen.uniq
-
-# include the apache2 default recipe and the recipes for mod_wsgi
-include_recipe 'apache2'
-# TODO(jh): hardcoded to include py2 mod-wsgi package
-# include_recipe 'apache2::mod_wsgi'
-case node['platform_family']
-when 'debian'
-  apache_module 'wsgi'
-when 'rhel', 'fedora', 'arch', 'amazon'
-  include_recipe 'apache2::mod_wsgi'
+# service['apache2'] is defined in the apache2_default_install resource
+# but other resources are currently unable to reference it.  To work
+# around this issue, define the following helper in your cookbook:
+service 'apache2' do
+  extend Apache2::Cookbook::Helpers
+  service_name lazy { apache_platform_service_name }
+  supports restart: true, status: true, reload: true
+  action :nothing
 end
 
-# include the apache2 mod_ssl recipe if ssl is enabled for identity
-include_recipe 'apache2::mod_ssl' if node['openstack']['identity']['ssl']['enabled']
+apache2_install 'openstack' do
+  listen "#{bind_address}:#{bind_service['port']}"
+end
+
+apache2_module 'wsgi'
+apache2_module 'ssl' if node['openstack']['identity']['ssl']['enabled']
 
 # create the keystone apache directory
-keystone_apache_dir = "#{node['apache']['docroot_dir']}/keystone"
+keystone_apache_dir = "#{default_docroot_dir}/keystone"
 directory keystone_apache_dir do
   owner 'root'
   group 'root'
   mode 0o0755
 end
 
-# create the keystone apache config using the web_app resource from the apache2
-# cookbook
-web_app 'identity' do
-  template 'wsgi-keystone.conf.erb'
-  server_host bind_address
-  server_port bind_service['port']
-  server_entry '/usr/bin/keystone-wsgi-public'
-  server_alias 'identity'
-  server_suffix app
-  log_dir node['apache']['log_dir']
-  log_debug node['openstack']['identity']['debug']
-  user keystone_user
-  group keystone_group
-  use_ssl node['openstack']['identity']['ssl']['enabled']
-  cert_file node['openstack']['identity']['ssl']['certfile']
-  chain_file node['openstack']['identity']['ssl']['chainfile']
-  key_file node['openstack']['identity']['ssl']['keyfile']
-  ca_certs_path node['openstack']['identity']['ssl']['ca_certs_path']
-  cert_required node['openstack']['identity']['ssl']['cert_required']
-  protocol node['openstack']['identity']['ssl']['protocol']
-  ciphers node['openstack']['identity']['ssl']['ciphers']
+# create the keystone apache config using template
+template "#{apache_dir}/sites-available/identity.conf" do
+  extend Apache2::Cookbook::Helpers
+  source 'wsgi-keystone.conf.erb'
+  variables(
+    server_host: bind_address,
+    server_port: bind_service['port'],
+    server_entry: '/usr/bin/keystone-wsgi-public',
+    server_alias: 'identity',
+    log_dir: default_log_dir,
+    run_dir: lock_dir,
+    user: keystone_user,
+    group: keystone_group
+  )
+  notifies :restart, 'service[apache2]'
 end
 
-# Hack until Apache cookbook has lwrp's for proper use of notify restart
-# apache2 after keystone if completely configured. Whenever a keystone
-# config is updated, have it notify the resource which clears the lock
-# so the service can be restarted.
-# TODO(ramereth): This should be removed once this cookbook is updated
-# to use the newer apache2 cookbook which uses proper resources.
-edit_resource(:template, "#{node['apache']['dir']}/sites-available/identity.conf") do
-  notifies :run, 'execute[Clear Keystone apache restart]', :immediately
-end
-
-# Only restart Keystone apache during the initial install. This causes
-# monitoring and service issues while the service is restarted so we
-# should minimize the amount of times we restart apache.
-execute 'Keystone apache restart' do
-  command "touch #{Chef::Config[:file_cache_path]}/keystone-apache-restarted"
-  creates "#{Chef::Config[:file_cache_path]}/keystone-apache-restarted"
-  notifies :run, 'execute[restore-selinux-context]', :immediately
+apache2_site 'identity' do
   notifies :restart, 'service[apache2]', :immediately
-end
-
-execute 'restore-selinux-context' do
-  command 'restorecon -Rv /etc/httpd /etc/pki || :'
-  action :nothing
-  only_if { platform_family?('rhel') }
 end

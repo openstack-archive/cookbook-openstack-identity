@@ -1,37 +1,36 @@
 <%= node['openstack']['identity']['custom_template_banner'] %>
 
-<VirtualHost <%= @params[:server_host] %>:<%= @params[:server_port] %>>
-    WSGIDaemonProcess identity processes=5 threads=1 user=<%= @params[:user] %> group=<%= @params[:group] %> display-name=%{GROUP}
+<VirtualHost <%= @server_host %>:<%= @server_port %>>
+    WSGIDaemonProcess identity processes=5 threads=1 user=<%= @user %> group=<%= @group %> display-name=%{GROUP}
     WSGIProcessGroup identity
-    WSGIScriptAlias / <%= @params[:server_entry] %>
+    WSGIScriptAlias / <%= @server_entry %>
     WSGIApplicationGroup %{GLOBAL}
     WSGIPassAuthorization On
 
     ErrorLogFormat "%{cu}t %M"
-    ErrorLog <%= @params[:log_dir] %>/identity.log
-    CustomLog <%= @params[:log_dir] %>/identity_access.log combined
-    <% if [true, 'true', 'True'].include?(@params[:log_debug]) -%>
-    LogLevel debug
-    <% end -%>
+    ErrorLog <%= @log_dir %>/identity.log
+    CustomLog <%= @log_dir %>/identity_access.log combined
 
     <Directory /usr/bin>
         Require all granted
     </Directory>
+    <% if node['openstack']['identity']['ssl']['enabled'] -%>
 
-    <% if @params[:use_ssl] -%>
     SSLEngine On
-    SSLCertificateFile <%= @params[:cert_file] %>
-    SSLCertificateKeyFile <%= @params[:key_file] %>
-    SSLCACertificatePath <%= @params[:ca_certs_path] %>
-      <% if @params[:chain_file] %>
-    SSLCertificateChainFile <%= @params[:chain_file] %>
+    SSLCertificateFile <%= node['openstack']['identity']['ssl']['certfile'] %>
+    SSLCertificateKeyFile <%= node['openstack']['identity']['ssl']['keyfile'] %>
+    SSLCACertificatePath <%= node['openstack']['identity']['ssl']['ca_certs_path'] %>
+      <% if node['openstack']['identity']['ssl']['chainfile'] %>
+    SSLCertificateChainFile <%= node['openstack']['identity']['ssl']['chainfile'] %>
       <% end -%>
-    SSLProtocol <%= @params[:protocol] %>
-      <% if @params[:ciphers] -%>
-    SSLCipherSuite <%= @params[:ciphers] %>
+    SSLProtocol <%= node['openstack']['identity']['ssl']['protocol'] %>
+      <% if node['openstack']['identity']['ssl']['ciphers'] -%>
+    SSLCipherSuite <%= node['openstack']['identity']['ssl']['ciphers'] %>
       <% end -%>
-      <% if @params[:cert_required] -%>
+      <% if node['openstack']['identity']['ssl']['cert_required'] -%>
     SSLVerifyClient require
       <% end -%>
     <% end -%>
 </VirtualHost>
+
+WSGISocketPrefix <%= @run_dir %>
