@@ -54,7 +54,8 @@ describe 'openstack-identity::server-apache' do
     end
 
     it 'bootstrap with keystone-manage' do
-      expect(chef_run).to run_execute('bootstrap_keystone').with(command: "keystone-manage bootstrap \\
+      expect(chef_run).to run_execute('bootstrap_keystone').with(
+        command: "keystone-manage bootstrap \\
           --bootstrap-password #{password} \\
           --bootstrap-username #{service_user} \\
           --bootstrap-project-name #{project_name} \\
@@ -63,7 +64,9 @@ describe 'openstack-identity::server-apache' do
           --bootstrap-region-id #{region} \\
           --bootstrap-admin-url #{public_url} \\
           --bootstrap-public-url #{public_url} \\
-          --bootstrap-internal-url #{public_url}")
+          --bootstrap-internal-url #{public_url}",
+        sensitive: true
+      )
     end
 
     describe '/etc/keystone' do
@@ -73,7 +76,7 @@ describe 'openstack-identity::server-apache' do
         expect(chef_run).to create_directory(dir.name).with(
           user: 'keystone',
           group: 'keystone',
-          mode: 0o0700
+          mode: '700'
         )
       end
     end
@@ -94,7 +97,7 @@ describe 'openstack-identity::server-apache' do
           expect(chef_run).to create_directory(dir).with(
             user: 'keystone',
             group: 'keystone',
-            mode: 0o0700
+            mode: '700'
           )
         end
       end
@@ -122,7 +125,8 @@ describe 'openstack-identity::server-apache' do
           expect(chef_run).to create_template(resource.name).with(
             user: 'keystone',
             group: 'keystone',
-            mode: 0o0640
+            mode: '640',
+            sensitive: true
           )
         end
       end
@@ -207,13 +211,13 @@ describe 'openstack-identity::server-apache' do
         end
       end
       describe '[fernet_tokens] section' do
-        it do
+        it 'key_repository = /etc/keystone/fernet-tokens' do
           r = %r{^key_repository = /etc/keystone/fernet-tokens$}
           expect(chef_run).to render_config_file(path).with_section_content('fernet_tokens', r)
         end
       end
       describe '[credential] section' do
-        it do
+        it 'key_repository = /etc/keystone/credential-tokens' do
           r = %r{^key_repository = /etc/keystone/credential-tokens$}
           expect(chef_run).to render_config_file(path).with_section_content('credential', r)
         end
@@ -301,7 +305,7 @@ describe 'openstack-identity::server-apache' do
           source: 'http://server/mykeystone-paste.ini',
           user: 'keystone',
           group: 'keystone',
-          mode: 0o0644
+          mode: '644'
         )
       end
     end

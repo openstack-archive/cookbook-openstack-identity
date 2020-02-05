@@ -1,9 +1,10 @@
 # encoding: UTF-8
 #
-# Cookbook Name:: openstack-identity
+# Cookbook:: openstack-identity
 # Recipe:: server-apache
 #
-# Copyright 2015, IBM Corp. Inc.
+# Copyright:: 2015, IBM Corp. Inc.
+# Copyright:: 2016-2020, Oregon State University
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -50,8 +51,8 @@ admin_user = node['openstack']['identity']['admin_user']
 admin_pass = get_password 'user', node['openstack']['identity']['admin_user']
 admin_role = node['openstack']['identity']['admin_role']
 region = node['openstack']['identity']['region']
-keystone_user    = node['openstack']['identity']['user']
-keystone_group   = node['openstack']['identity']['group']
+keystone_user = node['openstack']['identity']['user']
+keystone_group = node['openstack']['identity']['group']
 
 # install the database python adapter packages for the selected database
 # service_type
@@ -101,14 +102,14 @@ end
 directory '/etc/keystone' do
   owner keystone_user
   group keystone_group
-  mode 0o0700
+  mode '700'
 end
 
 # create keystone domain config dir if needed
 directory node['openstack']['identity']['domain_config_dir'] do
   owner keystone_user
   group keystone_group
-  mode 0o0700
+  mode '700'
   only_if { node['openstack']['identity']['domain_specific_drivers_enabled'] }
 end
 
@@ -119,8 +120,8 @@ file '/var/lib/keystone/keystone.db' do
 end
 
 # include the recipes to setup tokens
-include_recipe 'openstack-identity::_credential_tokens'
 include_recipe 'openstack-identity::_fernet_tokens'
+include_recipe 'openstack-identity::_credential_tokens'
 
 # define the address to bind the keystone apache public service to
 bind_service = node['openstack']['bind_service']['public']['identity']
@@ -145,14 +146,14 @@ if node['openstack']['identity']['pastefile_url']
     source node['openstack']['identity']['pastefile_url']
     owner keystone_user
     group keystone_group
-    mode 0o0644
+    mode '644'
   end
 else
   template '/etc/keystone/keystone-paste.ini' do
     source 'keystone-paste.ini.erb'
     owner keystone_user
     group keystone_group
-    mode 0o0644
+    mode '644'
   end
 end
 
@@ -176,7 +177,8 @@ template '/etc/keystone/keystone.conf' do
   cookbook 'openstack-common'
   owner keystone_user
   group keystone_group
-  mode 0o0640
+  mode '640'
+  sensitive true
   variables(
     service_config: keystone_conf_options
   )
@@ -210,6 +212,7 @@ execute 'bootstrap_keystone' do
           --bootstrap-admin-url #{identity_internal_endpoint} \\
           --bootstrap-public-url #{identity_endpoint} \\
           --bootstrap-internal-url #{identity_internal_endpoint}"
+  sensitive true
 end
 
 #### Start of Apache specific work
@@ -236,7 +239,7 @@ keystone_apache_dir = "#{default_docroot_dir}/keystone"
 directory keystone_apache_dir do
   owner 'root'
   group 'root'
-  mode 0o0755
+  mode '755'
 end
 
 # create the keystone apache config using template

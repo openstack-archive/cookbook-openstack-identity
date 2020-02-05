@@ -1,10 +1,11 @@
 # encoding: UTF-8
 #
-# Cookbook Name:: openstack-identity
+# Cookbook:: openstack-identity
 # Recipe:: setup
 #
-# Copyright 2012, Rackspace US, Inc.
-# Copyright 2012-2013, Opscode, Inc.
+# Copyright:: 2012, Rackspace US, Inc.
+# Copyright:: 2012-2013, Opscode, Inc.
+# Copyright:: 2020, Oregon State University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,11 +49,11 @@ admin_domain = node['openstack']['identity']['admin_domain_name']
 # endpoint_type = node['openstack']['identity']['endpoint_type']
 
 connection_params = {
-  openstack_auth_url:      auth_url,
-  openstack_username:      admin_user,
-  openstack_api_key:       admin_pass,
-  openstack_project_name:  admin_project,
-  openstack_domain_id:     admin_domain,
+  openstack_auth_url: auth_url,
+  openstack_username: admin_user,
+  openstack_api_key: admin_pass,
+  openstack_project_name: admin_project,
+  openstack_domain_id: admin_domain,
   # openstack_endpoint_type: endpoint_type,
 }
 
@@ -77,8 +78,8 @@ openstack_role 'service' do
   connection_params connection_params
 end
 
-node.normal['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
-node.normal['openstack']['identity']['publicURL'] = identity_endpoint.to_s
+node.default['openstack']['identity']['internalURL'] = identity_internal_endpoint.to_s
+node.default['openstack']['identity']['publicURL'] = identity_endpoint.to_s
 
 Chef::Log.info "Keystone InternalURL: #{identity_internal_endpoint}"
 Chef::Log.info "Keystone PublicURL: #{identity_endpoint}"

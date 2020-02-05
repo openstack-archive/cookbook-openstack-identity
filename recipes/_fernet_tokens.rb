@@ -1,7 +1,9 @@
 # encoding: UTF-8
 #
-# Cookbook Name:: openstack-identity
+# Cookbook:: openstack-identity
 # Recipe:: _fernet_tokens
+#
+# Copyright:: 2020, Oregon State University
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -23,23 +25,28 @@ class ::Chef::Recipe
   include ::Openstack
 end
 
-key_repository =
-  node['openstack']['identity']['conf']['fernet_tokens']['key_repository']
+key_repository = node['openstack']['identity']['conf']['fernet_tokens']['key_repository']
+keystone_user = node['openstack']['identity']['user']
+keystone_group = node['openstack']['identity']['group']
 
 directory key_repository do
-  owner node['openstack']['identity']['user']
-  group node['openstack']['identity']['group']
-  mode 0o0700
+  owner keystone_user
+  group keystone_group
+  mode '700'
 end
 
 node['openstack']['identity']['fernet']['keys'].each do |key_index|
-  key = secret(node['openstack']['secret']['secrets_data_bag'],
-               "fernet_key#{key_index}")
+  key = secret(node['openstack']['secret']['secrets_data_bag'], "fernet_key#{key_index}")
   file File.join(key_repository, key_index.to_s) do
     content key
-    owner node['openstack']['identity']['user']
-    group node['openstack']['identity']['group']
-    mode 0o0400
+    owner keystone_user
+    group keystone_group
+    mode '400'
     sensitive true
   end
+end
+
+execute 'keystone-manage fernet_setup' do
+  command "keystone-manage fernet_setup --keystone-user #{keystone_user} --keystone-group #{keystone_group}"
+  creates '/etc/keystone/fernet-keys'
 end

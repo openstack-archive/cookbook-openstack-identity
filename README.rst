@@ -21,9 +21,9 @@ https://docs.openstack.org/keystone/latest/
 Requirements
 ============
 
-- Chef 14 or higher
-- ChefDK 3.2.30 for testing (also includes Berkshelf for cookbook
-  dependency resolution)
+- Chef 15 or higher
+- Chef Workstation 0.15.18 for testing (also includes Berkshelf for
+  cookbook dependency resolution)
 
 Platform
 ========
@@ -38,7 +38,7 @@ Cookbooks
 The following cookbooks are dependencies:
 
 - 'apache2', '~> 8.0'
-- 'openstack-common', '>= 18.0.0'
+- 'openstack-common', '>= 19.0.0'
 - 'openstackclient'
 
 Attributes
@@ -63,7 +63,17 @@ openstack-identity::cloud_config
 openstack-identity::_credential_tokens
 --------------------------------------
 
-- Helper recipe to manage credential keys
+- Helper recipe to manage credential keys.
+
+If you prefer, you can manually create the keys by doing the following:
+
+.. code-block:: console
+
+  $ keystone-manage credential_setup \
+    --keystone-user keystone --keystone-group keystone
+
+This should create a directory ``/etc/keystone/credential-keys`` with
+the keys residing in it.
 
 openstack-identity::_fernet_tokens
 ----------------------------------
@@ -141,7 +151,7 @@ License and Author
 +---------------+----------------------------------------------+
 | **Copyright** | GmbH Copyright 2013-2014, IBM, Corp.         |
 +---------------+----------------------------------------------+
-| **Copyright** | Copyright 2016-2019, Oregon State University |
+| **Copyright** | Copyright 2016-2020, Oregon State University |
 +---------------+----------------------------------------------+
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may

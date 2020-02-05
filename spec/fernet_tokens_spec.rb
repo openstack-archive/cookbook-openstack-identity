@@ -13,7 +13,7 @@ describe 'openstack-identity::_fernet_tokens' do
 
     it do
       expect(chef_run).to create_directory('/etc/keystone/fernet-tokens')
-        .with(owner: 'keystone', user: 'keystone', mode: 0o0700)
+        .with(owner: 'keystone', user: 'keystone', mode: '700')
     end
 
     [0, 1].each do |key_index|
@@ -23,9 +23,14 @@ describe 'openstack-identity::_fernet_tokens' do
             content: "thisisfernetkey#{key_index}",
             owner: 'keystone',
             group: 'keystone',
-            mode: 0o0400
+            mode: '400'
           )
       end
+    end
+    it do
+      expect(chef_run).to run_execute('keystone-manage fernet_setup').with(
+        command: 'keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone'
+      )
     end
   end
 end

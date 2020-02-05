@@ -13,7 +13,7 @@ describe 'openstack-identity::_credential_tokens' do
 
     it do
       expect(chef_run).to create_directory('/etc/keystone/credential-tokens')
-        .with(owner: 'keystone', user: 'keystone', mode: 0o0700)
+        .with(owner: 'keystone', user: 'keystone', mode: '700')
     end
 
     [0, 1].each do |key_index|
@@ -23,7 +23,7 @@ describe 'openstack-identity::_credential_tokens' do
             content: "thisiscredentialkey#{key_index}",
             owner: 'keystone',
             group: 'keystone',
-            mode: 0o0400
+            mode: '400'
           )
       end
     end
