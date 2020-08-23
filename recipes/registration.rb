@@ -24,7 +24,6 @@
 # inside of this cookbook. The recipe is documented in detail with inline
 # comments inside the recipe.
 
-require 'uri'
 require 'chef/mixin/shell_out'
 
 class ::Chef::Recipe
@@ -33,7 +32,7 @@ end
 
 identity_endpoint = public_endpoint 'identity'
 identity_internal_endpoint = internal_endpoint 'identity'
-auth_url = ::URI.decode identity_internal_endpoint.to_s
+auth_url = identity_internal_endpoint.to_s
 
 # define the credentials to use for the initial admin user
 admin_project = node['openstack']['identity']['admin_project']
