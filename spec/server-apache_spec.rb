@@ -321,7 +321,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       it do
-        expect(chef_run).to install_apache2_install('openstack').with(listen: '127.0.0.1:5000')
+        expect(chef_run).to install_apache2_install('openstack').with(listen: %w(127.0.0.1:5000))
       end
 
       it do

@@ -32,7 +32,7 @@ admin_domain_name = node['openstack']['identity']['admin_domain_name']
 ksadmin_pass = get_password 'user', ksadmin_user
 
 identity_endpoint = public_endpoint 'identity'
-auth_url = ::URI.decode identity_endpoint.to_s
+auth_url = identity_endpoint.to_s
 
 cloud_config = node['openstack']['identity']['cloud_config']
 

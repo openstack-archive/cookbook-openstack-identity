@@ -22,8 +22,6 @@
 # inside of an apache webserver. The recipe is documented in detail with inline
 # comments inside the recipe.
 
-require 'uri'
-
 # load the methods defined in cookbook-openstack-common libraries
 class ::Chef::Recipe
   include ::Openstack
