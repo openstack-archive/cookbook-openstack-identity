@@ -1,4 +1,3 @@
-# encoding: UTF-8
 #
 # Cookbook:: openstack-identity
 # Recipe:: server-apache
