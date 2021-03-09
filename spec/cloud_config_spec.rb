@@ -56,7 +56,7 @@ describe 'openstack-identity::cloud_config' do
       }
 
       it 'contains auth environment variables' do
-        expect(chef_run).to render_file(file.name).with_content(cloud_yaml.to_yaml)
+        expect(chef_run).to render_file(file.name).with_content(YAML.dump(cloud_yaml))
       end
 
       context 'override auth environment variables' do
@@ -86,7 +86,7 @@ describe 'openstack-identity::cloud_config' do
           runner.converge(described_recipe)
         end
         it 'contains overridden auth environment variables' do
-          expect(chef_run).to render_file(file.name).with_content(cloud_yaml_override.to_yaml)
+          expect(chef_run).to render_file(file.name).with_content(YAML.dump(cloud_yaml_override))
         end
       end
     end
