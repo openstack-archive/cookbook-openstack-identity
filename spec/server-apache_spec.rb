@@ -396,6 +396,8 @@ describe 'openstack-identity::server-apache' do
           /SSLCertificateFile/,
           /SSLCertificateKeyFile/,
           /SSLCACertificatePath/,
+          /SSLCARevocationPath/,
+          /SSLCARevocationCheck/,
           /SSLCertificateChainFile/,
           /SSLProtocol/,
           /SSLCipherSuite/,
@@ -424,6 +426,8 @@ describe 'openstack-identity::server-apache' do
             end
           end
           [
+            /SSLCARevocationPath/,
+            /SSLCARevocationCheck/,
             /SSLCertificateChainFile/,
             /SSLCipherSuite/,
             /SSLVerifyClient require/,
@@ -432,15 +436,18 @@ describe 'openstack-identity::server-apache' do
               expect(chef_run).not_to render_file(file).with_content(line)
             end
           end
-          context 'Enable chainfile, ciphers & cert_required' do
+          context 'Enable ca_revocation_path, chainfile, ciphers & cert_required' do
             cached(:chef_run) do
               node.override['openstack']['identity']['ssl']['enabled'] = true
+              node.override['openstack']['identity']['ssl']['ca_revocation_path'] = '/etc/keystone/ssl/crl.d'
               node.override['openstack']['identity']['ssl']['chainfile'] = '/etc/keystone/ssl/certs/chainfile.pem'
               node.override['openstack']['identity']['ssl']['ciphers'] = 'ciphers_value'
               node.override['openstack']['identity']['ssl']['cert_required'] = true
               runner.converge(described_recipe)
             end
             [
+              %r{SSLCARevocationPath /etc/keystone/ssl/crl.d$},
+              /SSLCARevocationCheck chain$/,
               %r{SSLCertificateChainFile /etc/keystone/ssl/certs/chainfile.pem$},
               /SSLCipherSuite ciphers_value$/,
               /SSLVerifyClient require$/,

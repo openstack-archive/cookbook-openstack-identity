@@ -106,6 +106,8 @@ default['openstack']['identity']['ssl']['chainfile'] = nil
 default['openstack']['identity']['ssl']['ca_certs'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/sslca.pem"
 # path of the CA cert files for SSL (Apache)
 default['openstack']['identity']['ssl']['ca_certs_path'] = "#{node['openstack']['identity']['ssl']['basedir']}/certs/"
+# (optional) path to certificate-revocation lists (Apache)
+default['openstack']['identity']['ssl']['ca_revocation_path'] = nil
 
 # Fernet keys to read from databags/vaults. This should be changed in the
 # environment when rotating keys (with the defaults below, the items

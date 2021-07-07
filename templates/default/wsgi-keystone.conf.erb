@@ -20,6 +20,10 @@
     SSLCertificateFile <%= node['openstack']['identity']['ssl']['certfile'] %>
     SSLCertificateKeyFile <%= node['openstack']['identity']['ssl']['keyfile'] %>
     SSLCACertificatePath <%= node['openstack']['identity']['ssl']['ca_certs_path'] %>
+      <% if node['openstack']['identity']['ssl']['ca_revocation_path'] %>
+    SSLCARevocationPath <%= node['openstack']['identity']['ssl']['ca_revocation_path'] %>
+    SSLCARevocationCheck chain
+      <% end -%>
       <% if node['openstack']['identity']['ssl']['chainfile'] %>
     SSLCertificateChainFile <%= node['openstack']['identity']['ssl']['chainfile'] %>
       <% end -%>
