@@ -351,7 +351,7 @@ describe 'openstack-identity::server-apache' do
             variables: {
               group: 'keystone',
               log_dir: '/var/log/apache2',
-              run_dir: '/var/lock/apache2',
+              run_dir: '/var/lock',
               server_alias: 'identity',
               server_entry: '/usr/bin/keystone-wsgi-public',
               server_host: '127.0.0.1',
@@ -372,7 +372,7 @@ describe 'openstack-identity::server-apache' do
           %r{WSGIScriptAlias / /usr/bin/keystone-wsgi-public$},
           %r{ErrorLog /var/log/apache2/identity.log$},
           %r{CustomLog /var/log/apache2/identity_access.log combined$},
-          %r{WSGISocketPrefix /var/lock/apache2$},
+          %r{WSGISocketPrefix /var/lock$},
         ].each do |line|
           it do
             expect(chef_run).to render_file(file).with_content(line)
