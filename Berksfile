@@ -20,3 +20,7 @@ metadata
     cookbook "openstack#{cookbook}", git: "https://opendev.org/openstack/cookbook-openstack#{cookbook}", group: group
   end
 end
+
+# TODO(ramereth): Remove after this PR gets included in a release
+# https://github.com/joyofhex/cookbook-bind/pull/60
+cookbook 'bind', github: 'joyofhex/cookbook-bind'
