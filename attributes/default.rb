@@ -154,6 +154,7 @@ when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
         openstack-selinux
         python2-urllib3
       ),
+    'keystone_apache2_site' => 'keystone', # currently unused on RHEL
     'keystone_service' => 'openstack-keystone',
     'keystone_process_name' => 'keystone-all',
     'package_options' => '',
@@ -168,6 +169,7 @@ when 'debian'
         libapache2-mod-wsgi-py3
         python3-keystone
       ),
+    'keystone_apache2_site' => platform?('ubuntu') ? 'keystone' : 'wsgi-keystone',
     'keystone_service' => 'keystone',
     'keystone_process_name' => 'keystone-all',
     'package_overrides' => '',

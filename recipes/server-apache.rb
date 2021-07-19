@@ -90,7 +90,7 @@ service 'keystone' do
 end
 
 # disable default keystone config file from UCA package
-apache2_site 'keystone' do
+apache2_site platform_options['keystone_apache2_site'] do
   action :disable
   only_if { platform_family?('debian') }
 end
