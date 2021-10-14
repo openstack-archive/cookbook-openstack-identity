@@ -2,7 +2,7 @@
 # Cookbook:: openstack-identity
 # recipe:: cloud_config
 #
-# Copyright:: 2019 x-ion GmbH
+# Copyright:: 2019-2021, x-ion GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

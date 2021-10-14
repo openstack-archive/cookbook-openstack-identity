@@ -2,13 +2,13 @@
 # Cookbook:: openstack-identity
 # Recipe:: default
 #
-# Copyright:: 2012-2013, AT&T Services, Inc.
-# Copyright:: 2013, Opscode, Inc.
-# Copyright:: 2013, IBM Corp.
-# Copyright:: 2017, x-ion GmbH
-# Copyright:: 2018, Workday, Inc.
-# Copyright:: 2019, x-ion GmbH
-# Copyright:: 2016-2020, Oregon State University
+# Copyright:: 2012-2021, AT&T Services, Inc.
+# Copyright:: 2013-2021, Chef Software, Inc.
+# Copyright:: 2013-2021, IBM Corp.
+# Copyright:: 2017-2021, x-ion GmbH
+# Copyright:: 2018-2021, Workday, Inc.
+# Copyright:: 2019-2021, x-ion GmbH
+# Copyright:: 2016-2021, Oregon State University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
