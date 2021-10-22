@@ -323,7 +323,7 @@ describe 'openstack-identity::server-apache' do
       end
 
       it do
-        expect(chef_run).to enable_apache2_module('wsgi')
+        expect(chef_run).to create_apache2_mod_wsgi('openstack')
       end
 
       it do

@@ -228,7 +228,7 @@ apache2_install 'openstack' do
   listen "#{bind_address}:#{bind_service['port']}"
 end
 
-apache2_module 'wsgi'
+apache2_mod_wsgi 'openstack'
 apache2_module 'ssl' if node['openstack']['identity']['ssl']['enabled']
 
 # create the keystone apache directory

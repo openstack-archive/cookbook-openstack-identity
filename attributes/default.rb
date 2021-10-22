@@ -139,26 +139,46 @@ default['openstack']['identity']['group'] = 'keystone'
 
 # platform defaults
 case node['platform_family']
-when 'fedora', 'rhel' # :pragma-foodcritic: ~FC024 - won't fix this
+when 'rhel'
   # platform specific package and service name options
-  default['openstack']['identity']['platform'] = {
-    'memcache_python_packages' => ['python-memcached'],
-    # TODO(ramereth): python2-urllib3 is here to workaround an issue if
-    # it's already been installed from the base repository which is
-    # incompatible with what's shipped with RDO. This should be removed
-    # once fixed upstream.
-    'keystone_packages' =>
-      %w(
-        mod_wsgi
-        openstack-keystone
-        openstack-selinux
-        python2-urllib3
-      ),
-    'keystone_apache2_site' => 'keystone', # currently unused on RHEL
-    'keystone_service' => 'openstack-keystone',
-    'keystone_process_name' => 'keystone-all',
-    'package_options' => '',
-  }
+  case node['platform_version'].to_i
+  when 8
+    default['openstack']['identity']['platform'] = {
+      'memcache_python_packages' => ['python3-memcached'],
+      # TODO(ramereth): python3-urllib3 is here to workaround an issue if
+      # it's already been installed from the base repository which is
+      # incompatible with what's shipped with RDO. This should be removed
+      # once fixed upstream.
+      'keystone_packages' =>
+        %w(
+          openstack-keystone
+          openstack-selinux
+          python3-urllib3
+        ),
+      'keystone_apache2_site' => 'keystone', # currently unused on RHEL
+      'keystone_service' => 'openstack-keystone',
+      'keystone_process_name' => 'keystone-all',
+      'package_options' => '',
+    }
+  when 7
+    default['openstack']['identity']['platform'] = {
+      'memcache_python_packages' => ['python-memcached'],
+      # TODO(ramereth): python2-urllib3 is here to workaround an issue if
+      # it's already been installed from the base repository which is
+      # incompatible with what's shipped with RDO. This should be removed
+      # once fixed upstream.
+      'keystone_packages' =>
+        %w(
+          openstack-keystone
+          openstack-selinux
+          python2-urllib3
+        ),
+      'keystone_apache2_site' => 'keystone', # currently unused on RHEL
+      'keystone_service' => 'openstack-keystone',
+      'keystone_process_name' => 'keystone-all',
+      'package_options' => '',
+    }
+  end
 when 'debian'
   # platform specific package and service name options
   default['openstack']['identity']['platform'] = {
@@ -166,7 +186,6 @@ when 'debian'
     'keystone_packages' =>
       %w(
         keystone
-        libapache2-mod-wsgi-py3
         python3-keystone
       ),
     'keystone_apache2_site' => platform?('ubuntu') ? 'keystone' : 'wsgi-keystone',

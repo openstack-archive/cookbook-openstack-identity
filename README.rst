@@ -37,7 +37,7 @@ Cookbooks
 
 The following cookbooks are dependencies:
 
-- 'apache2', '~> 8.1'
+- 'apache2', '~> 8.6'
 - 'openstack-common', '>= 20.0.0'
 - 'openstackclient'
 
